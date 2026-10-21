@@ -271,16 +271,36 @@
   .st-needdesign { background: #ef4444; }
   .st-nodesign { background: #6b7280; }
 
-  /* ===== حالت زوم اوت (خوانایی اسم ماژول) ===== */
+  /* ===== حالت زوم اوت (بزرگ کردن کارت‌ها) ===== */
+  body.zoomed-out .module-card {
+    transform: scale(1.3); /* بزرگ‌تر شدن کارت ماژول */
+    transform-origin: center center;
+    background: #1c2531; /* کمی پررنگ‌تر برای خوانایی بهتر */
+    z-index: 20; /* بالاتر از بقیه المان‌ها قرار بگیرد */
+  }
+
   body.zoomed-out .module-title {
-    font-size: 50px; /* بزرگتر شدن اسم ماژول */
+    font-size: 50px; /* فونت کمی بزرگ‌تر */
     text-shadow: 0 2px 4px rgba(0,0,0,0.8);
   }
+
+  /* کمرنگ کردن جزئیات داخل کارت در حالت زوم اوت */
   body.zoomed-out .module-desc,
   body.zoomed-out .module-progress-row,
-  body.zoomed-out .module-badge,
+  body.zoomed-out .module-badge {
+    opacity: 0.1;
+  }
+
+  /* بزرگ‌تر کردن صفحات و هل دادن آن‌ها به سمت بیرون تا زیر کارت بزرگ‌شده نروند */
   body.zoomed-out .page-node {
-    opacity: 0.2; /* کمرنگ شدن جزئیات */
+    transform: scale(1.15);
+    /* این مارجین باعث می‌شود صفحات کمی از مرکز فاصله بگیرند تا با کارت بزرگ‌شده تداخل نداشته باشند */
+    margin: -10px -15px; 
+  }
+  
+  /* هایلایت‌های زوم اوت */
+  body.zoomed-out .module-cluster.highlight .module-card {
+    transform: scale(1.3) !important;
   }
 
   /* ===== UI ===== */
