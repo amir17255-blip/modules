@@ -32,52 +32,28 @@
     box-shadow: 0 2px 12px rgba(0,0,0,0.4);
     overflow-x: auto;
   }
-  #toolbar h1 {
-    font-size: 15px;
-    font-weight: 600;
-    color: #7dd3fc;
-    white-space: nowrap;
-  }
+  #toolbar h1 { font-size: 15px; font-weight: 600; color: #7dd3fc; white-space: nowrap; }
   .toolbar-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0 10px;
-    border-left: 1px solid #2a3340;
-    white-space: nowrap;
+    display: flex; align-items: center; gap: 6px; padding: 0 10px;
+    border-left: 1px solid #2a3340; white-space: nowrap;
   }
   .toolbar-group:last-child { border-left: none; }
   .toolbar-group label { font-size: 12px; color: #94a3b8; }
   select, button, input {
-    font-family: inherit;
-    font-size: 12px;
-    background: #232c38;
-    color: #e6e6e6;
-    border: 1px solid #334155;
-    border-radius: 6px;
-    padding: 6px 10px;
-    cursor: pointer;
-    transition: all 0.15s;
+    font-family: inherit; font-size: 12px; background: #232c38; color: #e6e6e6;
+    border: 1px solid #334155; border-radius: 6px; padding: 6px 10px;
+    cursor: pointer; transition: all 0.15s;
   }
   select:hover, button:hover, input:hover { background: #2d3846; border-color: #475569; }
   button.danger { background: #7f1d1d; border-color: #991b1b; }
   button.danger:hover { background: #991b1b; }
-  
-  #zoom-level {
-    font-size: 12px;
-    color: #94a3b8;
-    min-width: 44px;
-    text-align: center;
-  }
+  #zoom-level { font-size: 12px; color: #94a3b8; min-width: 44px; text-align: center; }
   #stats { font-size: 11px; color: #64748b; margin-right: auto; }
 
   /* ===== Canvas ===== */
   #canvas {
-    position: fixed;
-    top: 56px; left: 0; right: 0; bottom: 0;
-    overflow: hidden;
-    cursor: grab;
-    background-color: #0f1419;
+    position: fixed; top: 56px; left: 0; right: 0; bottom: 0; overflow: hidden;
+    cursor: grab; background-color: #0f1419;
     background-image: radial-gradient(circle, #1e2833 1px, transparent 1px);
     background-size: 24px 24px;
   }
@@ -85,61 +61,38 @@
   #canvas.connecting { cursor: crosshair; }
 
   #world {
-    position: absolute;
-    top: 0; left: 0;
-    transform-origin: 0 0;
-    will-change: transform;
-    backface-visibility: hidden;
+    position: absolute; top: 0; left: 0; transform-origin: 0 0;
+    will-change: transform; backface-visibility: hidden;
   }
 
-  /* ===== SVG (فلش‌ها در پس‌زمینه) ===== */
+  /* ===== SVG (پشت همه چیز) ===== */
   #svg-layer {
-    position: absolute;
-    top: 0; left: 0;
-    overflow: visible;
-    pointer-events: none;
-    z-index: 0;
+    position: absolute; top: 0; left: 0; overflow: visible;
+    pointer-events: none; z-index: 0;
   }
   #svg-layer path.connection {
-    fill: none;
-    stroke: #38bdf8;
-    stroke-width: 2;
-    stroke-linecap: round;
-    pointer-events: stroke;
-    cursor: pointer;
-    transition: stroke 0.15s, stroke-width 0.15s, opacity 0.2s;
+    fill: none; stroke: #38bdf8; stroke-width: 2; stroke-linecap: round;
+    pointer-events: stroke; cursor: pointer; transition: all 0.2s;
   }
   #svg-layer path.connection:hover { stroke: #f87171; stroke-width: 3.5; }
   #svg-layer path.connection.dim { opacity: 0.1; }
   #svg-layer path.connection.highlight { stroke: #fbbf24; stroke-width: 3; opacity: 1; }
   #svg-layer path.temp {
-    fill: none;
-    stroke: #fbbf24;
-    stroke-width: 2;
-    stroke-dasharray: 6 4;
-    pointer-events: none;
+    fill: none; stroke: #fbbf24; stroke-width: 2; stroke-dasharray: 6 4; pointer-events: none;
   }
 
   /* ===== Module Cluster ===== */
   .module-cluster {
-    position: absolute;
-    transition: opacity 0.3s;
-    z-index: 10;
+    position: absolute; transition: opacity 0.3s; z-index: 10;
   }
   .module-cluster { opacity: 1; }
   .module-cluster.dimmed { opacity: 0.2; }
 
-  /* کارت ماژول */
   .module-card {
     background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
-    border: 1px solid #334155;
-    border-radius: 14px;
-    padding: 14px 16px;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.45);
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    border: 1px solid #334155; border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.45); position: absolute;
+    display: flex; flex-direction: column; gap: 8px;
     transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s;
     transform-origin: center center; 
     
@@ -151,25 +104,13 @@
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
 
-  .module-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
-  }
+  .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
   .module-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #f1f5f9;
-    line-height: 1.3;
-    flex: 1;
-    transition: font-size 0.3s;
+    font-size: 16px; font-weight: 700; color: #f1f5f9; line-height: 1.3;
+    flex: 1; transition: font-size 0.3s;
   }
   .module-badge {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    white-space: nowrap;
+    font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
     transition: opacity 0.3s;
   }
   .badge-reh { background: #422006; color: #fbbf24; border: 1px solid #78350f; }
@@ -180,64 +121,34 @@
   .badge-common { background: #7c2d12; color: #fdba74; border: 1px solid #9a3412; }
 
   .module-desc {
-    font-size: 12px;
-    color: #94a3b8;
-    min-height: 32px;
-    padding: 6px 8px;
-    background: rgba(15,23,42,0.6);
-    border-radius: 6px;
-    border: 1px solid #1e293b;
+    font-size: 12px; color: #94a3b8; min-height: 32px; padding: 6px 8px;
+    background: rgba(15,23,42,0.6); border-radius: 6px; border: 1px solid #1e293b;
     transition: opacity 0.3s;
   }
 
   .module-progress-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-top: auto;
-    transition: opacity 0.3s;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin-top: auto; transition: opacity 0.3s;
   }
   .progress-select {
-    padding: 2px 4px;
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 5px;
-    color: #e6e6e6;
+    padding: 2px 4px; background: #0f172a; border: 1px solid #334155;
+    border-radius: 5px; color: #e6e6e6;
   }
-  .progress-bar-wrap {
-    flex: 1;
-    height: 6px;
-    background: #1e293b;
-    border-radius: 3px;
-    overflow: hidden;
-  }
+  .progress-bar-wrap { flex: 1; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
   .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #22d3ee);
-    transition: width 0.3s ease;
+    height: 100%; background: linear-gradient(90deg, #3b82f6, #22d3ee); transition: width 0.3s ease;
   }
 
   /* ===== Page Node ===== */
   .page-node {
-    position: absolute;
-    background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
-    border: 1px solid #2d3a4a;
-    border-radius: 8px;
-    padding: 6px 9px;
-    font-size: 11px;
-    color: #cbd5e1;
-    text-align: center;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.35);
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute; background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
+    border: 1px solid #2d3a4a; border-radius: 8px; padding: 6px 9px;
+    font-size: 11px; color: #cbd5e1; text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: pointer;
+    transition: all 0.3s; display: flex; align-items: center; justify-content: center;
   }
   .page-node:hover {
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
+    border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
     z-index: 10;
   }
   
@@ -245,40 +156,23 @@
   .page-node.dimmed { opacity: 0.2; }
   
   .page-node.highlight {
-    opacity: 1;
-    border-color: #fbbf24;
-    box-shadow: 0 0 0 2px #fbbf24;
-    z-index: 11;
-    background: #2a2416;
-    color: #fef3c7;
+    opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24;
+    z-index: 11; background: #2a2416; color: #fef3c7;
   }
   .page-node.selected {
-    opacity: 1;
-    border-color: #fbbf24;
-    box-shadow: 0 0 0 2px #fbbf24;
-    z-index: 12;
-    background: #2a2416;
-    color: #fff;
+    opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24;
+    z-index: 12; background: #2a2416; color: #fff;
   }
   .drag-handle {
-    position: absolute;
-    top: -4px; right: -4px;
-    width: 10px; height: 10px;
-    background: #38bdf8;
-    border-radius: 50%;
-    border: 2px solid #0f1419;
-    cursor: crosshair;
-    opacity: 0;
-    transition: opacity 0.15s;
+    position: absolute; top: -4px; right: -4px; width: 10px; height: 10px;
+    background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
+    cursor: crosshair; opacity: 0; transition: opacity 0.15s;
   }
   .page-node:hover .drag-handle { opacity: 1; }
 
   .page-status {
-    position: absolute;
-    bottom: -3px; left: -3px;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    border: 1.5px solid #0f1419;
+    position: absolute; bottom: -3px; left: -3px; width: 8px; height: 8px;
+    border-radius: 50%; border: 1.5px solid #0f1419;
   }
   .st-done { background: #22c55e; }
   .st-test { background: #84cc16; }
@@ -288,23 +182,16 @@
   .st-nodesign { background: #6b7280; }
 
   /* ===== حالت زوم اوت ===== */
-  /* بزرگ‌تر شدن کارت در مرکز خودش */
   body.zoomed-out .module-card {
     transform: translate(-50%, -50%) scale(1.5); 
     background: #1c2531;
     border-color: #475569;
   }
-  /* متن 50px وسط چین */
   body.zoomed-out .module-title {
-    font-size: 50px; 
-    font-weight: 700;
-    text-align: center;
-    text-shadow: 0 4px 12px rgba(0,0,0,0.9);
-    margin-top: 10px;
-    line-height: 1.1;
+    font-size: 50px; font-weight: 700; text-align: center;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 10px; line-height: 1.1;
   }
   
-  /* مخفی کردن جزئیات در حالت زوم اوت */
   body.zoomed-out .module-desc,
   body.zoomed-out .module-progress-row,
   body.zoomed-out .module-badge {
@@ -313,35 +200,18 @@
 
   /* ===== UI ===== */
   #toast {
-    position: fixed;
-    top: 70px; left: 50%;
-    transform: translateX(-50%) translateY(-20px);
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    padding: 10px 18px;
-    font-size: 12px;
-    z-index: 200;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.25s;
+    position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+    padding: 10px 18px; font-size: 12px; z-index: 200; opacity: 0;
+    pointer-events: none; transition: all 0.25s;
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   #hint {
-    position: fixed;
-    bottom: 16px; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(30,41,59,0.95);
-    border: 1px solid #334155;
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 11px;
-    color: #94a3b8;
-    z-index: 90;
-    backdrop-filter: blur(4px);
-    pointer-events: none;
-    transition: opacity 0.3s;
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: rgba(30,41,59,0.95); border: 1px solid #334155; border-radius: 8px;
+    padding: 8px 16px; font-size: 11px; color: #94a3b8; z-index: 90;
+    backdrop-filter: blur(4px); pointer-events: none; transition: opacity 0.3s;
   }
   #hint.hidden { opacity: 0; }
 </style>
@@ -448,6 +318,8 @@ const CLUSTER_GAP_X = 50;
 const CLUSTER_GAP_Y = 50;
 const MAX_COLS = 4;
 
+const FIXED_CLUSTER_WIDTH = 460; // عرض ثابت برای همه خوشه‌ها جهت تراز شدن دقیق
+
 const state = {
   pan: { x: 50, y: 50 },
   zoom: 0.8,
@@ -458,7 +330,7 @@ const state = {
   search: "",
   nextConnId: 1,
 };
-const LS_KEY = "module-map-state-v8";
+const LS_KEY = "module-map-state-v9";
 
 function saveState() {
   try {
@@ -485,33 +357,25 @@ function loadState() {
    GEOMETRY
    ============================================================ */
 function computeClusterSize(numPages) {
-  if (numPages === 0) return { w: MODULE_W + CLUSTER_PAD*2, h: MODULE_H + CLUSTER_PAD*2 };
+  // عرض خوشه ثابت است تا کارت‌ها در گرید تراز شوند
+  const clusterW = FIXED_CLUSTER_WIDTH;
   
-  // محاسبه فضای لازم برای صفحات در دو طرف با در نظر گرفتن بزرگترین حالت (زوم اوت)
   const maxPerCol = Math.max(3, Math.ceil((MODULE_H + 30) / (PAGE_H + PAGE_GAP)));
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
   const pagesPerCol = Math.ceil(pagesPerSide / colsPerSide);
   
-  // عرض یک ستون صفحات + فاصله اضافی برای زوم اوت
-  const sideWidth = colsPerSide * (PAGE_W + PAGE_GAP) + 40; 
-  
-  // عرض کل خوشه: عرض صفحات چپ + عرض کارت بزرگ‌شده + عرض صفحات راست
-  const cardWidthInZoomOut = MODULE_W * 1.5;
-  const clusterW = sideWidth * 2 + cardWidthInZoomOut + CLUSTER_PAD * 2;
   const clusterH = Math.max((MODULE_H * 1.5) + CLUSTER_PAD*2, pagesPerCol * (PAGE_H + PAGE_GAP) + CLUSTER_PAD*2);
   
-  return { w: clusterW, h: clusterH, maxPerCol, colsPerSide, pagesPerCol, sideWidth };
+  return { w: clusterW, h: clusterH, maxPerCol, colsPerSide, pagesPerCol };
 }
 
 function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const positions = [];
   if (numPages === 0) return positions;
-  const { colsPerSide, pagesPerCol, sideWidth } = info;
   
-  // مرکز خوشه
+  const { colsPerSide, pagesPerCol } = info;
   const centerX = clusterW / 2;
-  const centerY = clusterH / 2;
   
   const pagesPerSide = Math.ceil(numPages / 2);
   
@@ -520,7 +384,7 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const rowIdx = i % pagesPerCol;
     
     // فاصله از مرکز به سمت چپ
-    const offsetX = (colIdx + 1) * (PAGE_W + PAGE_GAP) + (isZoomedOut ? MODULE_W * 0.4 : 0);
+    const offsetX = (colIdx + 1) * (PAGE_W + PAGE_GAP) + (isZoomedOut ? MODULE_W * 0.45 : 0);
     const x = centerX - offsetX - PAGE_W;
     
     const colStartY = (clusterH - Math.min(pagesPerCol, pagesPerSide - colIdx*pagesPerCol) * (PAGE_H + PAGE_GAP)) / 2;
@@ -533,7 +397,7 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const rowIdx = localI % pagesPerCol;
     
     // فاصله از مرکز به سمت راست
-    const offsetX = (colIdx + 1) * (PAGE_W + PAGE_GAP) + (isZoomedOut ? MODULE_W * 0.4 : 0);
+    const offsetX = (colIdx + 1) * (PAGE_W + PAGE_GAP) + (isZoomedOut ? MODULE_W * 0.45 : 0);
     const x = centerX + offsetX;
     
     const pagesInThisCol = Math.min(pagesPerCol, numPages - pagesPerSide - colIdx*pagesPerCol);
@@ -563,22 +427,25 @@ function buildWorld() {
   
   const cols = MAX_COLS;
   const rowHeights = [];
-  const colWidths = [];
   
   for (let i = 0; i < clusters.length; i++) {
-    const col = i % cols;
     const row = Math.floor(i / cols);
-    colWidths[col] = Math.max(colWidths[col] || 0, clusters[i].w);
     rowHeights[row] = Math.max(rowHeights[row] || 0, clusters[i].h);
   }
   
   const colX = [];
   let accX = 0;
-  for (let c = 0; c < cols; c++) { colX[c] = accX; accX += (colWidths[c] || 0) + CLUSTER_GAP_X; }
+  for (let c = 0; c < cols; c++) { 
+    colX[c] = accX; 
+    accX += FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X; 
+  }
   
   const rowY = [];
   let accY = 0;
-  for (let r = 0; r < rowHeights.length; r++) { rowY[r] = accY; accY += (rowHeights[r] || 0) + CLUSTER_GAP_Y; }
+  for (let r = 0; r < rowHeights.length; r++) { 
+    rowY[r] = accY; 
+    accY += (rowHeights[r] || 0) + CLUSTER_GAP_Y; 
+  }
   
   clusters.forEach((cl, i) => {
     const col = i % cols;
@@ -971,9 +838,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v8")) {
+  if(!localStorage.getItem(LS_KEY + "_v9")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v8", "true");
+    localStorage.setItem(LS_KEY + "_v9", "true");
   }
   
   buildWorld();
