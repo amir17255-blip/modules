@@ -315,10 +315,10 @@ const PAGE_H = 36;
 const PAGE_GAP = 10;
 const CLUSTER_PAD = 25;
 const CLUSTER_GAP_X = 60;
-const CLUSTER_GAP_Y = 80; // فاصله عمودی بیشتر برای جلوگیری از تداخل خوشه‌های بلند
+const CLUSTER_GAP_Y = 80; // فاصله عمودی بیشتر
 const MAX_COLS = 4;
 
-const FIXED_CLUSTER_WIDTH = 700; // عرض ثابت و بزرگ‌تر برای جا دادن صفحات بدون تداخل
+const FIXED_CLUSTER_WIDTH = 700; 
 
 const state = {
   pan: { x: 50, y: 50 },
@@ -330,7 +330,7 @@ const state = {
   search: "",
   nextConnId: 1,
 };
-const LS_KEY = "module-map-state-v10";
+const LS_KEY = "module-map-state-v11";
 
 function saveState() {
   try {
@@ -383,7 +383,6 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(i / pagesPerCol);
     const rowIdx = i % pagesPerCol;
     
-    // فاصله از مرکز به سمت چپ
     const offsetX = (colIdx + 1) * (PAGE_W + PAGE_GAP) + (isZoomedOut ? MODULE_W * 0.45 : 0);
     const x = centerX - offsetX - PAGE_W;
     
@@ -396,7 +395,6 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(localI / pagesPerCol);
     const rowIdx = localI % pagesPerCol;
     
-    // فاصله از مرکز به سمت راست
     const offsetX = (colIdx + 1) * (PAGE_W + PAGE_GAP) + (isZoomedOut ? MODULE_W * 0.45 : 0);
     const x = centerX + offsetX;
     
@@ -428,6 +426,7 @@ function buildWorld() {
   const cols = MAX_COLS;
   const rowHeights = [];
   
+  // محاسبه ارتفاع هر ردیف بر اساس بلندترین خوشه در آن ردیف
   for (let i = 0; i < clusters.length; i++) {
     const row = Math.floor(i / cols);
     rowHeights[row] = Math.max(rowHeights[row] || 0, clusters[i].h);
@@ -453,12 +452,15 @@ function buildWorld() {
     const cx = colX[col];
     const cy = rowY[row];
     
+    // ارتفاع تمام خوشه‌های یک ردیف را برابر با بلندترین خوشه می‌کنیم
+    const clusterElHeight = rowHeights[row];
+    
     const clusterEl = document.createElement("div");
     clusterEl.className = "module-cluster";
     clusterEl.style.left = cx + "px";
     clusterEl.style.top = cy + "px";
     clusterEl.style.width = cl.w + "px";
-    clusterEl.style.height = cl.h + "px";
+    clusterEl.style.height = clusterElHeight + "px"; // ارتفاع یکسان
     clusterEl.dataset.modId = cl.mod.id;
     
     const card = document.createElement("div");
@@ -493,7 +495,8 @@ function buildWorld() {
       saveState();
     });
     
-    const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, false);
+    // برای چیدمان صفحات از ارتفاع کل خوشه (که حالا برابر با ماکس است) استفاده می‌کنیم
+    const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, clusterElHeight, cl, false);
     const pageEls = [];
     
     pagePositions.forEach((p) => {
@@ -526,7 +529,7 @@ function buildWorld() {
     });
     
     world.appendChild(clusterEl);
-    clusterMap[cl.mod.id] = { el: clusterEl, card, w: cl.w, h: cl.h, x: cx, y: cy, pageEls };
+    clusterMap[cl.mod.id] = { el: clusterEl, card, w: cl.w, h: clusterElHeight, x: cx, y: cy, pageEls };
   });
   
   renderConnections();
@@ -838,9 +841,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v10")) {
+  if(!localStorage.getItem(LS_KEY + "_v11")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v10", "true");
+    localStorage.setItem(LS_KEY + "_v11", "true");
   }
   
   buildWorld();
