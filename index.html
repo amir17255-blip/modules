@@ -13,6 +13,10 @@
     color: #e6e6e6;
     overflow: hidden;
     user-select: none;
+    /* افزایش کیفیت رندر فونت */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   /* ===== Top Toolbar ===== */
@@ -85,11 +89,11 @@
   #world {
     position: absolute;
     top: 0; left: 0;
+    /* بهینه‌سازی رندر برای جلوگیری از تار شدن */
     transform-origin: 0 0;
     will-change: transform;
-    /* رفع مشکل تار بودن اولیه */
     backface-visibility: hidden;
-    -webkit-font-smoothing: antialiased;
+    perspective: 1000px;
   }
 
   /* ===== SVG ===== */
@@ -98,7 +102,7 @@
     top: 0; left: 0;
     overflow: visible;
     pointer-events: none;
-    z-index: 5;
+    z-index: 1; /* فلش‌ها در پایین‌ترین لایه قرار بگیرند */
   }
   #svg-layer path.connection {
     fill: none;
@@ -110,7 +114,7 @@
     transition: stroke 0.15s, stroke-width 0.15s, opacity 0.2s;
   }
   #svg-layer path.connection:hover { stroke: #f87171; stroke-width: 3.5; }
-  #svg-layer path.connection.dim { opacity: 0.12; }
+  #svg-layer path.connection.dim { opacity: 0.08; }
   #svg-layer path.connection.highlight { stroke: #fbbf24; stroke-width: 3; }
   #svg-layer path.temp {
     fill: none;
@@ -123,9 +127,12 @@
   /* ===== Module Cluster ===== */
   .module-cluster {
     position: absolute;
-    transition: opacity 0.2s;
+    transition: opacity 0.3s;
+    z-index: 10; /* بالاتر از فلش‌ها */
   }
-  .module-cluster.dim { opacity: 0.18; }
+  /* حالت پیش‌فرض: کمرنگ */
+  .module-cluster { opacity: 0.4; }
+  .module-cluster.highlight { opacity: 1; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
 
   .module-card {
@@ -221,7 +228,7 @@
     text-align: center;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -231,8 +238,10 @@
     box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
     z-index: 10;
   }
-  .page-node.dim { opacity: 0.15; }
+  /* حالت پیش‌فرض: کمرنگ */
+  .page-node { opacity: 0.4; }
   .page-node.highlight {
+    opacity: 1;
     border-color: #fbbf24;
     box-shadow: 0 0 0 2px #fbbf24;
     z-index: 11;
@@ -240,9 +249,12 @@
     color: #fef3c7;
   }
   .page-node.selected {
+    opacity: 1;
     border-color: #fbbf24;
     box-shadow: 0 0 0 2px #fbbf24;
     z-index: 12;
+    background: #2a2416;
+    color: #fff;
   }
   .drag-handle {
     position: absolute;
@@ -273,14 +285,14 @@
 
   /* ===== حالت زوم اوت (خوانایی اسم ماژول) ===== */
   body.zoomed-out .module-title {
-    font-size: 22px; /* بزرگتر شدن اسم ماژول */
+    font-size: 22px;
     text-shadow: 0 2px 4px rgba(0,0,0,0.8);
   }
   body.zoomed-out .module-desc,
   body.zoomed-out .module-progress-row,
   body.zoomed-out .module-badge,
   body.zoomed-out .page-node {
-    opacity: 0.2; /* کمرنگ شدن جزئیات */
+    opacity: 0.1;
   }
 
   /* ===== UI ===== */
@@ -427,7 +439,7 @@ const MAX_COLS = 4;
 
 const state = {
   pan: { x: 50, y: 50 },
-  zoom: 0.8, // زوم اولیه بالاتر برای وضوح بیشتر
+  zoom: 0.8,
   connections: [],
   progress: {},
   selectedNode: null,
@@ -435,7 +447,7 @@ const state = {
   search: "",
   nextConnId: 1,
 };
-const LS_KEY = "module-map-state-v2";
+const LS_KEY = "module-map-state-v3";
 
 function saveState() {
   try {
@@ -618,6 +630,7 @@ function buildWorld() {
   
   renderConnections();
   applyFilters();
+  clearSelection(); // اعمال حالت کمرنگ در ابتدا
 }
 
 function posBadgeClass(pos) {
@@ -634,7 +647,7 @@ function escapeHtml(s) {
 }
 
 /* ============================================================
-   CONNECTIONS
+   CONNECTIONS (منظم کردن مسیر فلش‌ها)
    ============================================================ */
 function edgePoint(node, towardX, towardY) {
   const cx = node.x + node.w/2, cy = node.y + node.h/2;
@@ -650,11 +663,15 @@ function connectionPath(fromKey, toKey) {
   const acx = a.x + a.w/2, acy = a.y + a.h/2;
   const bcx = b.x + b.w/2, bcy = b.y + b.h/2;
   const p1 = edgePoint(a, bcx, bcy), p2 = edgePoint(b, acx, acy);
+  
   const dx = p2.x - p1.x, dy = p2.y - p1.y;
-  const dist = Math.sqrt(dx*dx + dy*dy);
-  const curv = Math.min(dist * 0.35, 120);
+  const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+  
+  // منحنی ساده و منظم‌تر (کاهش انحنا برای جلوگیری از تداخل)
+  const curv = Math.min(dist * 0.15, 50); 
   const mx = (p1.x + p2.x)/2, my = (p1.y + p2.y)/2;
   const nx = -dy/dist, ny = dx/dist;
+  
   return `M ${p1.x} ${p1.y} C ${mx+nx*curv} ${my+ny*curv}, ${mx-nx*curv} ${my-ny*curv}, ${p2.x} ${p2.y}`;
 }
 
@@ -674,6 +691,7 @@ function renderConnections() {
         state.connections = state.connections.filter(c => c.id !== conn.id);
         saveState(); renderConnections();
         if (state.selectedNode) applyHighlight(state.selectedNode);
+        else clearSelection();
       }
     });
     svgLayer.appendChild(path);
@@ -710,7 +728,7 @@ function startConnection(fromKey) {
     const p1 = edgePoint(fromNode, worldX, worldY);
     const dx = worldX - p1.x, dy = worldY - p1.y;
     const dist = Math.sqrt(dx*dx+dy*dy) || 1;
-    const curv = Math.min(dist*0.35, 120);
+    const curv = Math.min(dist*0.15, 50); // منحنی تمیزتر
     const mx = (p1.x+worldX)/2, my = (p1.y+worldY)/2;
     tempPath.setAttribute("d", `M ${p1.x} ${p1.y} C ${mx-dy/dist*curv} ${my+dx/dist*curv}, ${mx+dy/dist*curv} ${my-dx/dist*curv}, ${worldX} ${worldY}`);
   };
@@ -750,9 +768,15 @@ function toggleSelection(key) {
 
 function clearSelection() {
   state.selectedNode = null;
+  // حذف کلاس‌های هایلایت و دیمر
   document.querySelectorAll(".page-node").forEach(el => el.classList.remove("selected", "highlight", "dim"));
-  document.querySelectorAll(".module-cluster").forEach(el => el.classList.remove("highlight", "dim"));
-  svgLayer.querySelectorAll("path.connection").forEach(p => p.classList.remove("highlight", "dim"));
+  document.querySelectorAll(".module-cluster").forEach(el => el.classList.remove("highlight"));
+  
+  // کم‌رنگ کردن فلش‌ها به صورت پیش‌فرض
+  svgLayer.querySelectorAll("path.connection").forEach(p => {
+    p.classList.add("dim");
+    p.classList.remove("highlight");
+  });
 }
 
 function applyHighlight(key) {
@@ -762,27 +786,28 @@ function applyHighlight(key) {
     if (c.to === key) neighbors.add(c.from);
   });
   
+  // هایلایت کردن صفحات مرتبط و حذف کمرنگی از آن‌ها
   document.querySelectorAll(".page-node").forEach(el => {
     const k = el.dataset.nodeKey;
-    el.classList.remove("selected", "highlight", "dim");
+    el.classList.remove("selected", "highlight");
     if (neighbors.has(k)) {
       el.classList.add("highlight");
       if (k === key) el.classList.add("selected");
-    } else {
-      el.classList.add("dim");
     }
   });
   
+  // هایلایت کردن ماژول‌های مرتبط
   const relatedMods = new Set();
   neighbors.forEach(k => relatedMods.add(k.split(":")[0]));
   document.querySelectorAll(".module-cluster").forEach(el => {
     if (relatedMods.has(String(el.dataset.modId))) {
-      el.classList.remove("dim"); el.classList.add("highlight");
+      el.classList.add("highlight");
     } else {
-      el.classList.add("dim"); el.classList.remove("highlight");
+      el.classList.remove("highlight");
     }
   });
   
+  // هایلایت کردن فلش‌ها
   svgLayer.querySelectorAll("path.connection").forEach(p => {
     if (p.dataset.from === key || p.dataset.to === key) {
       p.classList.add("highlight"); p.classList.remove("dim");
@@ -793,16 +818,16 @@ function applyHighlight(key) {
 }
 
 /* ============================================================
-   PAN / ZOOM
+   PAN / ZOOM (بهینه‌سازی کیفیت)
    ============================================================ */
 const canvas = document.getElementById("canvas");
 let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 
 function applyTransform() {
-  world.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
+  // استفاده از translate3d برای استفاده از شتاب سخت‌افزاری و وضوح بالاتر
+  world.style.transform = `translate3d(${state.pan.x}px, ${state.pan.y}px, 0) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
   
-  // تشخیص حالت زوم اوت برای بزرگ کردن اسم ماژول‌ها
   if (state.zoom < 0.65) {
     document.body.classList.add("zoomed-out");
   } else {
@@ -816,6 +841,8 @@ canvas.addEventListener("mousedown", (e) => {
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
   canvas.classList.add("panning");
+  // اگر روی بوم خالی کلیک شد، انتخاب لغو شود
+  clearSelection();
 });
 
 window.addEventListener("mousemove", (e) => {
@@ -908,11 +935,10 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  // حذف حافظه قبلی برای اینکه زوم پیش‌فرض جدید (0.8) اعمال شود
-  if(!localStorage.getItem(LS_KEY + "_v3")) {
+  // پاک کردن حافظه قبلی برای اعمال زوم پیش‌فرض جدید
+  if(!localStorage.getItem(LS_KEY + "_v4")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v3", "true");
-    applyTransform();
+    localStorage.setItem(LS_KEY + "_v4", "true");
   }
   
   buildWorld();
