@@ -148,7 +148,7 @@
     font-size: 11px; color: #cbd5e1; text-align: center;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: pointer;
     transition: all 0.3s; display: flex; align-items: center; justify-content: center;
-    padding-left: 60px; /* فضای کافی برای 3 دکمه سمت چپ */
+    padding-left: 60px; /* فضای کافی برای 3 دکمه */
   }
   .page-node:hover {
     border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
@@ -191,17 +191,14 @@
   }
   .page-btn:hover { background: #334155; border-color: #94a3b8; }
   
-  /* دکمه تیک (Done) */
   .page-btn.done.active {
     background: #22c55e; border-color: #22c55e; color: #fff;
   }
   
-  /* دکمه Front */
   .page-btn.front.active {
     background: #3b82f6; border-color: #3b82f6; color: #fff;
   }
   
-  /* دکمه Back */
   .page-btn.back.active {
     background: #ef4444; border-color: #ef4444; color: #fff;
   }
@@ -210,6 +207,7 @@
     position: absolute; top: -4px; right: -4px; width: 10px; height: 10px;
     background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
     cursor: crosshair; opacity: 0; transition: opacity 0.15s;
+    z-index: 20;
   }
   .page-node:hover .drag-handle { opacity: 1; }
 
@@ -373,9 +371,9 @@ const state = {
   search: "",
   nextConnId: 1,
   customPositions: {},
-  pageStatus: { done: {}, front: {}, back: {} } // وضعیت دکمه‌های هر صفحه
+  pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v16";
+const LS_KEY = "module-map-state-v17";
 
 function saveState() {
   try {
@@ -398,7 +396,6 @@ function loadState() {
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
     if (s.pageStatus) {
-      // اطمینان از وجود کلیدهای آبجکت
       state.pageStatus = {
         done: s.pageStatus.done || {},
         front: s.pageStatus.front || {},
@@ -600,8 +597,8 @@ function buildWorld() {
       pageEl.style.height = PAGE_H + "px";
       
       const nodeKey = cl.mod.id + ":" + p.pageIdx;
+      pageEl.dataset.nodeKey = nodeKey; // حیاتی برای رسم فلش‌ها و هایلایت
       
-      // خواندن وضعیت‌ها
       const isDone = state.pageStatus.done[nodeKey] === true;
       const isFront = state.pageStatus.front[nodeKey] === true;
       const isBack = state.pageStatus.back[nodeKey] === true;
@@ -631,7 +628,6 @@ function buildWorld() {
         toggleSelection(nodeKey);
       });
       
-      // منطق دکمه‌ها
       const btnDone = pageEl.querySelector(".page-btn.done");
       const btnFront = pageEl.querySelector(".page-btn.front");
       const btnBack = pageEl.querySelector(".page-btn.back");
@@ -998,9 +994,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v16")) {
+  if(!localStorage.getItem(LS_KEY + "_v17")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v16", "true");
+    localStorage.setItem(LS_KEY + "_v17", "true");
   }
   
   buildWorld();
