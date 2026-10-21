@@ -315,10 +315,10 @@ const PAGE_H = 36;
 const PAGE_GAP = 10;
 const CLUSTER_PAD = 25;
 const CLUSTER_GAP_X = 60;
-const CLUSTER_GAP_Y = 80; // فاصله عمودی بیشتر
+const CLUSTER_GAP_Y = 80;
 const MAX_COLS = 4;
 
-const FIXED_CLUSTER_WIDTH = 700; 
+const FIXED_CLUSTER_WIDTH = 1000; // افزایش عرض برای جا شدن تمام صفحات کناری
 
 const state = {
   pan: { x: 50, y: 50 },
@@ -330,7 +330,7 @@ const state = {
   search: "",
   nextConnId: 1,
 };
-const LS_KEY = "module-map-state-v11";
+const LS_KEY = "module-map-state-v12";
 
 function saveState() {
   try {
@@ -357,7 +357,6 @@ function loadState() {
    GEOMETRY
    ============================================================ */
 function computeClusterSize(numPages) {
-  // عرض خوشه ثابت است
   const clusterW = FIXED_CLUSTER_WIDTH;
   
   const maxPerCol = Math.max(3, Math.ceil((MODULE_H + 30) / (PAGE_H + PAGE_GAP)));
@@ -375,7 +374,14 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   if (numPages === 0) return positions;
   
   const { colsPerSide, pagesPerCol } = info;
-  const centerX = clusterW / 2;
+  
+  // محاسبه فضای اشغال شده توسط کارت (در حالت زوم اوت کارت بزرگ‌تر است)
+  const cardW = isZoomedOut ? MODULE_W * 1.5 : MODULE_W;
+  const cardLeftEdge = (clusterW - cardW) / 2;
+  const cardRightEdge = cardLeftEdge + cardW;
+  
+  // فاصله استاندارد بین کارت و صفحات
+  const gapFromCard = isZoomedOut ? 30 : 10;
   
   const pagesPerSide = Math.ceil(numPages / 2);
   
@@ -383,8 +389,8 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(i / pagesPerCol);
     const rowIdx = i % pagesPerCol;
     
-    const offsetX = (colIdx + 1) * (PAGE_W + PAGE_GAP) + (isZoomedOut ? MODULE_W * 0.45 : 0);
-    const x = centerX - offsetX - PAGE_W;
+    // چیدن از لبه کارت به سمت چپ
+    const x = cardLeftEdge - gapFromCard - (colIdx + 1) * (PAGE_W + PAGE_GAP) + PAGE_GAP;
     
     const colStartY = (clusterH - Math.min(pagesPerCol, pagesPerSide - colIdx*pagesPerCol) * (PAGE_H + PAGE_GAP)) / 2;
     positions.push({ pageIdx: i, x, y: colStartY + rowIdx * (PAGE_H + PAGE_GAP) });
@@ -395,8 +401,8 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(localI / pagesPerCol);
     const rowIdx = localI % pagesPerCol;
     
-    const offsetX = (colIdx + 1) * (PAGE_W + PAGE_GAP) + (isZoomedOut ? MODULE_W * 0.45 : 0);
-    const x = centerX + offsetX;
+    // چیدن از لبه کارت به سمت راست
+    const x = cardRightEdge + gapFromCard + colIdx * (PAGE_W + PAGE_GAP);
     
     const pagesInThisCol = Math.min(pagesPerCol, numPages - pagesPerSide - colIdx*pagesPerCol);
     const colStartY = (clusterH - pagesInThisCol * (PAGE_H + PAGE_GAP)) / 2;
@@ -426,7 +432,6 @@ function buildWorld() {
   const cols = MAX_COLS;
   const rowHeights = [];
   
-  // محاسبه ارتفاع هر ردیف بر اساس بلندترین خوشه در آن ردیف
   for (let i = 0; i < clusters.length; i++) {
     const row = Math.floor(i / cols);
     rowHeights[row] = Math.max(rowHeights[row] || 0, clusters[i].h);
@@ -452,7 +457,6 @@ function buildWorld() {
     const cx = colX[col];
     const cy = rowY[row];
     
-    // ارتفاع تمام خوشه‌های یک ردیف را برابر با بلندترین خوشه می‌کنیم
     const clusterElHeight = rowHeights[row];
     
     const clusterEl = document.createElement("div");
@@ -460,7 +464,7 @@ function buildWorld() {
     clusterEl.style.left = cx + "px";
     clusterEl.style.top = cy + "px";
     clusterEl.style.width = cl.w + "px";
-    clusterEl.style.height = clusterElHeight + "px"; // ارتفاع یکسان
+    clusterEl.style.height = clusterElHeight + "px"; 
     clusterEl.dataset.modId = cl.mod.id;
     
     const card = document.createElement("div");
@@ -495,7 +499,6 @@ function buildWorld() {
       saveState();
     });
     
-    // برای چیدمان صفحات از ارتفاع کل خوشه (که حالا برابر با ماکس است) استفاده می‌کنیم
     const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, clusterElHeight, cl, false);
     const pageEls = [];
     
@@ -841,9 +844,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v11")) {
+  if(!localStorage.getItem(LS_KEY + "_v12")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v11", "true");
+    localStorage.setItem(LS_KEY + "_v12", "true");
   }
   
   buildWorld();
