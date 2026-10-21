@@ -95,10 +95,7 @@
     display: flex; flex-direction: column; gap: 8px;
     transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s;
     transform-origin: center center; 
-    
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    left: 50%; top: 50%; transform: translate(-50%, -50%);
   }
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
@@ -183,14 +180,12 @@
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
     transform: translate(-50%, -50%) scale(1.5); 
-    background: #1c2531;
-    border-color: #475569;
+    background: #1c2531; border-color: #475569;
   }
   body.zoomed-out .module-title {
     font-size: 50px; font-weight: 700; text-align: center;
     text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 10px; line-height: 1.1;
   }
-  
   body.zoomed-out .module-desc,
   body.zoomed-out .module-progress-row,
   body.zoomed-out .module-badge {
@@ -262,7 +257,7 @@
 
 <script>
 /* ============================================================
-   DATA
+   DATA (به‌روزرسانی شده با لیست جدید)
    ============================================================ */
 const MODULES_DATA = [
   { id:1, name:"رهگیری و ردیابی", position:"رهگیری", status:"آماده پیاده‌سازی", pages:["شناسنامه","ردیابی محصول","رهگیری کمی","رهگیری کیفی","بهای تمام‌شده"] },
@@ -317,7 +312,7 @@ const CLUSTER_GAP_X = 60;
 const CLUSTER_GAP_Y = 120; // فاصله بیشتر برای جلوگیری از تداخل در حالت زوم اوت
 const MAX_COLS = 4;
 
-const FIXED_CLUSTER_WIDTH = 1000; 
+const FIXED_CLUSTER_WIDTH = 1100; // افزایش عرض برای جا شدن تمام صفحات کناری
 
 const state = {
   pan: { x: 50, y: 50 },
@@ -390,7 +385,6 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const rowIdx = i % pagesPerCol;
     
     const x = cardLeftEdge - gapFromCard - (colIdx + 1) * (PAGE_W + PAGE_GAP) + PAGE_GAP;
-    // چیدن از بالا به پایین با فاصله استاندارد
     const colStartY = (clusterH - Math.min(pagesPerCol, pagesPerSide - colIdx*pagesPerCol) * (PAGE_H + PAGE_GAP)) / 2;
     const y = colStartY + rowIdx * (PAGE_H + PAGE_GAP);
     
