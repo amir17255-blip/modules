@@ -59,6 +59,7 @@
   }
   #canvas.panning { cursor: grabbing; }
   #canvas.connecting { cursor: crosshair; }
+  #canvas.dragging-module { cursor: grabbing; }
 
   #world {
     position: absolute; top: 0; left: 0; transform-origin: 0 0;
@@ -83,10 +84,11 @@
 
   /* ===== Module Cluster ===== */
   .module-cluster {
-    position: absolute; transition: opacity 0.3s; z-index: 10;
+    position: absolute; transition: opacity 0.3s, box-shadow 0.2s; z-index: 10;
   }
   .module-cluster { opacity: 1; }
   .module-cluster.dimmed { opacity: 0.2; }
+  .module-cluster.is-dragging { z-index: 50; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 
   .module-card {
     background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
@@ -96,18 +98,20 @@
     transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s;
     transform-origin: center center; 
     left: 50%; top: 50%; transform: translate(-50%, -50%);
+    cursor: grab; /* نشان دادن قابلیت جابه‌جایی */
   }
+  .module-card:active { cursor: grabbing; }
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
 
   .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
   .module-title {
     font-size: 16px; font-weight: 700; color: #f1f5f9; line-height: 1.3;
-    flex: 1; transition: font-size 0.3s;
+    flex: 1; transition: font-size 0.3s; pointer-events: none; /* جلوگیری از انتخاب متن هنگام درگ */
   }
   .module-badge {
     font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s; pointer-events: none;
   }
   .badge-reh { background: #422006; color: #fbbf24; border: 1px solid #78350f; }
   .badge-sys { background: #1e3a5f; color: #7dd3fc; border: 1px solid #1e40af; }
@@ -119,13 +123,16 @@
   .module-desc {
     font-size: 12px; color: #94a3b8; min-height: 32px; padding: 6px 8px;
     background: rgba(15,23,42,0.6); border-radius: 6px; border: 1px solid #1e293b;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s; pointer-events: none;
   }
 
   .module-progress-row {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    margin-top: auto; transition: opacity 0.3s;
+    margin-top: auto; transition: opacity 0.3s; pointer-events: none;
   }
+  /* فعال کردن ماوس برای سلکت داخل کارت */
+  .module-progress-row select { pointer-events: auto; }
+  
   .progress-select {
     padding: 2px 4px; background: #0f172a; border: 1px solid #334155;
     border-radius: 5px; color: #e6e6e6;
@@ -183,7 +190,7 @@
     background: #1c2531; border-color: #475569;
   }
   body.zoomed-out .module-title {
-    font-size: 35px; font-weight: 700; text-align: center;
+    font-size: 50px; font-weight: 700; text-align: center;
     text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 10px; line-height: 1.1;
   }
   body.zoomed-out .module-desc,
@@ -250,14 +257,14 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> بوم = پن | Wheel = زوم | از نقطه آبی صفحه بکشید تا فلش بسازید | کلیک روی صفحه = هایلایت | کلیک روی فلش = حذف
+  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت = جابه‌جایی ماژول | از نقطه آبی = ایجاد فلش
 </div>
 
 <div id="toast"></div>
 
 <script>
 /* ============================================================
-   DATA (به‌روزرسانی شده با لیست جدید)
+   DATA
    ============================================================ */
 const MODULES_DATA = [
   { id:1, name:"رهگیری و ردیابی", position:"رهگیری", status:"آماده پیاده‌سازی", pages:["شناسنامه","ردیابی محصول","رهگیری کمی","رهگیری کیفی","بهای تمام‌شده"] },
@@ -309,10 +316,10 @@ const PAGE_H = 36;
 const PAGE_GAP = 10;
 const CLUSTER_PAD = 25;
 const CLUSTER_GAP_X = 60;
-const CLUSTER_GAP_Y = 120; // فاصله بیشتر برای جلوگیری از تداخل در حالت زوم اوت
+const CLUSTER_GAP_Y = 120;
 const MAX_COLS = 4;
 
-const FIXED_CLUSTER_WIDTH = 1200; // افزایش عرض برای جا شدن تمام صفحات کناری
+const FIXED_CLUSTER_WIDTH = 1100;
 
 const state = {
   pan: { x: 50, y: 50 },
@@ -323,14 +330,16 @@ const state = {
   filterPosition: "all",
   search: "",
   nextConnId: 1,
+  customPositions: {} // ذخیره موقعیت دستی ماژول‌ها
 };
-const LS_KEY = "module-map-state-v13";
+const LS_KEY = "module-map-state-v14";
 
 function saveState() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       pan: state.pan, zoom: state.zoom, connections: state.connections,
-      progress: state.progress, nextConnId: state.nextConnId
+      progress: state.progress, nextConnId: state.nextConnId,
+      customPositions: state.customPositions
     }));
   } catch(e) {}
 }
@@ -344,6 +353,7 @@ function loadState() {
     if (Array.isArray(s.connections)) state.connections = s.connections;
     if (s.progress) state.progress = s.progress;
     if (s.nextConnId) state.nextConnId = s.nextConnId;
+    if (s.customPositions) state.customPositions = s.customPositions;
   } catch(e) {}
 }
 
@@ -352,62 +362,39 @@ function loadState() {
    ============================================================ */
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
-  
-  // حداکثر تعداد صفحات در هر ستون (مثلاً ۵ صفحه در هر ستون)
   const maxPerCol = 5; 
-  
-  // تعداد کل صفحات در یک سمت (چپ یا راست)
   const pagesPerSide = Math.ceil(numPages / 2);
-  
-  // تعداد ستون‌های مورد نیاز در یک سمت
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
-  
-  // ارتفاع لازم برای بلندترین ستون + فضای بالا و پایین
   const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 40;
-  
-  // ارتفاع خوشه باید حداقل برابر با ارتفاع کارت باشد
   const clusterH = Math.max(MODULE_H + 60, requiredHeight);
-  
   return { w: clusterW, h: clusterH, maxPerCol, colsPerSide };
 }
 
- function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
+function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const positions = [];
   if (numPages === 0) return positions;
-  
   const { colsPerSide, maxPerCol } = info;
   
   const cardW = isZoomedOut ? MODULE_W * 1.5 : MODULE_W;
   const cardLeftEdge = (clusterW - cardW) / 2;
   const cardRightEdge = cardLeftEdge + cardW;
-  
   const gapFromCard = isZoomedOut ? 30 : 10;
   const pagesPerSide = Math.ceil(numPages / 2);
   
-  // سمت چپ
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
-    
     const x = cardLeftEdge - gapFromCard - (colIdx + 1) * (PAGE_W + PAGE_GAP) + PAGE_GAP;
-    
-    // شروع از بالای خوشه با فاصله ثابت (نه از وسط)
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
-    
     positions.push({ pageIdx: i, x, y });
   }
   
-  // سمت راست
   for (let i = pagesPerSide; i < numPages; i++) {
     const localI = i - pagesPerSide;
     const colIdx = Math.floor(localI / maxPerCol);
     const rowIdx = localI % maxPerCol;
-    
     const x = cardRightEdge + gapFromCard + colIdx * (PAGE_W + PAGE_GAP);
-    
-    // شروع از بالای خوشه با فاصله ثابت
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
-    
     positions.push({ pageIdx: i, x, y });
   }
   return positions;
@@ -426,18 +413,13 @@ function buildWorld() {
   world.appendChild(svgLayer);
   svgLayer.innerHTML = "";
   
-  const isZoomedOut = state.zoom < 0.50;
-  
-  // ابتدا سایز اولیه خوشه‌ها را محاسبه می‌کنیم
   const clusters = MODULES_DATA.map(m => {
-    const size = computeClusterSize(m.pages.length, isZoomedOut);
+    const size = computeClusterSize(m.pages.length);
     return { mod: m, ...size };
   });
   
   const cols = MAX_COLS;
   const rowHeights = [];
-  
-  // پیدا کردن بلندترین خوشه در هر ردیف
   for (let i = 0; i < clusters.length; i++) {
     const row = Math.floor(i / cols);
     rowHeights[row] = Math.max(rowHeights[row] || 0, clusters[i].h);
@@ -460,10 +442,12 @@ function buildWorld() {
   clusters.forEach((cl, i) => {
     const col = i % cols;
     const row = Math.floor(i / cols);
-    const cx = colX[col];
-    const cy = rowY[row];
     
-    const clusterElHeight = rowHeights[row]; // ارتفاع کل ردیف به همه خوشه‌های آن ردیف داده می‌شود
+    // بررسی آیا موقعیت سفارشی (جابه‌جایی دستی) وجود دارد یا خیر
+    let cx = state.customPositions[cl.mod.id]?.x ?? colX[col];
+    let cy = state.customPositions[cl.mod.id]?.y ?? rowY[row];
+    
+    const clusterElHeight = rowHeights[row] || cl.h;
     
     const clusterEl = document.createElement("div");
     clusterEl.className = "module-cluster";
@@ -498,6 +482,62 @@ function buildWorld() {
       </div>
     `;
     clusterEl.appendChild(card);
+    
+    // منطق کشیدن و رها کردن (Drag & Drop) برای کارت ماژول
+    card.addEventListener("mousedown", (e) => {
+      // اگر روی سلکت درصد کلیک شده، درگ نکن
+      if (e.target.closest(".progress-select")) return;
+      if (e.button !== 0) return;
+      
+      e.stopPropagation(); // جلوگیری از پن شدن بوم
+      
+      const startMouseX = e.clientX;
+      const startMouseY = e.clientY;
+      const startLeft = parseFloat(clusterEl.style.left);
+      const startTop = parseFloat(clusterEl.style.top);
+      
+      let hasMoved = false;
+      
+      const onMove = (ev) => {
+        const dx = ev.clientX - startMouseX;
+        const dy = ev.clientY - startMouseY;
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) hasMoved = true;
+        if (!hasMoved) return;
+        
+        clusterEl.classList.add("is-dragging");
+        document.getElementById("canvas").classList.add("dragging-module");
+        
+        // تبدیل حرکت ماوس به مختصات بوم (با در نظر گرفتن زوم)
+        const newLeft = startLeft + (dx / state.zoom);
+        const newTop = startTop + (dy / state.zoom);
+        
+        clusterEl.style.left = newLeft + "px";
+        clusterEl.style.top = newTop + "px";
+        
+        // آپدیت لحظه‌ای موقعیت صفحات برای رسم صحیح فلش‌ها
+        updateNodePositions(cl.mod.id, newLeft, newTop);
+        renderConnections(); 
+      };
+      
+      const onUp = () => {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+        clusterEl.classList.remove("is-dragging");
+        document.getElementById("canvas").classList.remove("dragging-module");
+        
+        if (hasMoved) {
+          // ذخیره موقعیت جدید در حافظه
+          state.customPositions[cl.mod.id] = {
+            x: parseFloat(clusterEl.style.left),
+            y: parseFloat(clusterEl.style.top)
+          };
+          saveState();
+        }
+      };
+      
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
     
     card.querySelector(".progress-select").addEventListener("change", (e) => {
       state.progress[cl.mod.id] = parseInt(e.target.value, 10);
@@ -544,6 +584,24 @@ function buildWorld() {
   renderConnections();
   applyFilters();
   clearSelection(); 
+}
+
+// تابع کمکی برای آپدیت مختصات فلش‌ها هنگام جابه‌جایی ماژول
+function updateNodePositions(modId, newCx, newCy) {
+  const cl = clusterMap[modId];
+  if (!cl) return;
+  cl.x = newCx;
+  cl.y = newCy;
+  
+  cl.pageEls.forEach((pEl, i) => {
+    const left = parseFloat(pEl.el.style.left);
+    const top = parseFloat(pEl.el.style.top);
+    nodePositions[modId + ":" + pEl.idx] = { 
+      x: newCx + left, 
+      y: newCy + top, 
+      w: PAGE_W, h: PAGE_H 
+    };
+  });
 }
 
 function posBadgeClass(pos) {
@@ -616,8 +674,8 @@ function updateSvgSize() {
     maxX = Math.max(maxX, n.x + n.w);
     maxY = Math.max(maxY, n.y + n.h);
   });
-  svgLayer.setAttribute("width", maxX + 1000);
-  svgLayer.setAttribute("height", maxY + 1000);
+  svgLayer.setAttribute("width", maxX + 2000);
+  svgLayer.setAttribute("height", maxY + 2000);
 }
 
 let draggingConn = null;
@@ -748,11 +806,14 @@ function applyTransform() {
         cl.pageEls[i].el.style.top = p.y + "px";
       }
     });
+    // آپدیت موقعیت‌ها برای فلش‌ها پس از تغییر چیدمان
+    updateNodePositions(cl.mod.id, cl.x, cl.y);
   });
+  renderConnections(); // رندر مجدد فلش‌ها
 }
 
 canvas.addEventListener("mousedown", (e) => {
-  if (e.target.closest(".page-node") || e.target.closest(".module-card") || e.target.closest("#toolbar")) return;
+  if (e.target.closest(".module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar")) return;
   if (e.button !== 0) return;
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
@@ -850,9 +911,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v13")) {
+  if(!localStorage.getItem(LS_KEY + "_v14")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v13", "true");
+    localStorage.setItem(LS_KEY + "_v14", "true");
   }
   
   buildWorld();
