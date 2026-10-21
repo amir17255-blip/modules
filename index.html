@@ -66,7 +66,7 @@
     will-change: transform; backface-visibility: hidden;
   }
 
-  /* ===== SVG (پشت همه چیز) ===== */
+  /* ===== SVG ===== */
   #svg-layer {
     position: absolute; top: 0; left: 0; overflow: visible;
     pointer-events: none; z-index: 0;
@@ -98,7 +98,7 @@
     transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s;
     transform-origin: center center; 
     left: 50%; top: 50%; transform: translate(-50%, -50%);
-    cursor: grab; /* نشان دادن قابلیت جابه‌جایی */
+    cursor: grab;
   }
   .module-card:active { cursor: grabbing; }
   .module-card:hover { border-color: #475569; }
@@ -107,7 +107,7 @@
   .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
   .module-title {
     font-size: 16px; font-weight: 700; color: #f1f5f9; line-height: 1.3;
-    flex: 1; transition: font-size 0.3s; pointer-events: none; /* جلوگیری از انتخاب متن هنگام درگ */
+    flex: 1; transition: font-size 0.3s; pointer-events: none;
   }
   .module-badge {
     font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
@@ -130,7 +130,6 @@
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     margin-top: auto; transition: opacity 0.3s; pointer-events: none;
   }
-  /* فعال کردن ماوس برای سلکت داخل کارت */
   .module-progress-row select { pointer-events: auto; }
   
   .progress-select {
@@ -149,6 +148,7 @@
     font-size: 11px; color: #cbd5e1; text-align: center;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: pointer;
     transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+    padding-left: 25px; /* فضای خالی برای دکمه تیک */
   }
   .page-node:hover {
     border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
@@ -166,6 +166,30 @@
     opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24;
     z-index: 12; background: #2a2416; color: #fff;
   }
+  .page-node.is-done {
+    background: linear-gradient(145deg, #142a1e 0%, #0f1f16 100%);
+    border-color: #22c55e; color: #86efac;
+  }
+  
+  /* دکمه تیک (انجام شده) */
+  .page-done-btn {
+    position: absolute;
+    right: 4px; top: 50%;
+    transform: translateY(-50%);
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    background: #1e293b;
+    border: 1px solid #475569;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 10px; color: transparent;
+    transition: all 0.15s;
+  }
+  .page-done-btn:hover { background: #334155; border-color: #94a3b8; }
+  .page-node.is-done .page-done-btn {
+    background: #22c55e; border-color: #22c55e; color: #fff;
+  }
+  
   .drag-handle {
     position: absolute; top: -4px; right: -4px; width: 10px; height: 10px;
     background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
@@ -198,6 +222,8 @@
   body.zoomed-out .module-badge {
     display: none; 
   }
+  /* در حالت زوم اوت دکمه تیک کوچک‌تر می‌شود */
+  body.zoomed-out .page-done-btn { width: 14px; height: 14px; font-size: 9px; }
 
   /* ===== UI ===== */
   #toast {
@@ -257,7 +283,7 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت = جابه‌جایی ماژول | از نقطه آبی = ایجاد فلش
+  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت = جابه‌جایی ماژول | از نقطه آبی = ایجاد فلش | کلیک روی مربع = اتمام صفحه
 </div>
 
 <div id="toast"></div>
@@ -330,16 +356,17 @@ const state = {
   filterPosition: "all",
   search: "",
   nextConnId: 1,
-  customPositions: {} // ذخیره موقعیت دستی ماژول‌ها
+  customPositions: {}, // موقعیت دستی ماژول‌ها
+  pageStatus: {}       // وضعیت انجام شدن صفحات (true/false)
 };
-const LS_KEY = "module-map-state-v14";
+const LS_KEY = "module-map-state-v15";
 
 function saveState() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       pan: state.pan, zoom: state.zoom, connections: state.connections,
       progress: state.progress, nextConnId: state.nextConnId,
-      customPositions: state.customPositions
+      customPositions: state.customPositions, pageStatus: state.pageStatus
     }));
   } catch(e) {}
 }
@@ -354,6 +381,7 @@ function loadState() {
     if (s.progress) state.progress = s.progress;
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
+    if (s.pageStatus) state.pageStatus = s.pageStatus;
   } catch(e) {}
 }
 
@@ -443,7 +471,7 @@ function buildWorld() {
     const col = i % cols;
     const row = Math.floor(i / cols);
     
-    // بررسی آیا موقعیت سفارشی (جابه‌جایی دستی) وجود دارد یا خیر
+    // بررسی موقعیت سفارشی
     let cx = state.customPositions[cl.mod.id]?.x ?? colX[col];
     let cy = state.customPositions[cl.mod.id]?.y ?? rowY[row];
     
@@ -483,19 +511,16 @@ function buildWorld() {
     `;
     clusterEl.appendChild(card);
     
-    // منطق کشیدن و رها کردن (Drag & Drop) برای کارت ماژول
+    // Drag & Drop ماژول
     card.addEventListener("mousedown", (e) => {
-      // اگر روی سلکت درصد کلیک شده، درگ نکن
       if (e.target.closest(".progress-select")) return;
       if (e.button !== 0) return;
-      
-      e.stopPropagation(); // جلوگیری از پن شدن بوم
+      e.stopPropagation();
       
       const startMouseX = e.clientX;
       const startMouseY = e.clientY;
       const startLeft = parseFloat(clusterEl.style.left);
       const startTop = parseFloat(clusterEl.style.top);
-      
       let hasMoved = false;
       
       const onMove = (ev) => {
@@ -507,14 +532,12 @@ function buildWorld() {
         clusterEl.classList.add("is-dragging");
         document.getElementById("canvas").classList.add("dragging-module");
         
-        // تبدیل حرکت ماوس به مختصات بوم (با در نظر گرفتن زوم)
         const newLeft = startLeft + (dx / state.zoom);
         const newTop = startTop + (dy / state.zoom);
         
         clusterEl.style.left = newLeft + "px";
         clusterEl.style.top = newTop + "px";
         
-        // آپدیت لحظه‌ای موقعیت صفحات برای رسم صحیح فلش‌ها
         updateNodePositions(cl.mod.id, newLeft, newTop);
         renderConnections(); 
       };
@@ -526,7 +549,6 @@ function buildWorld() {
         document.getElementById("canvas").classList.remove("dragging-module");
         
         if (hasMoved) {
-          // ذخیره موقعیت جدید در حافظه
           state.customPositions[cl.mod.id] = {
             x: parseFloat(clusterEl.style.left),
             y: parseFloat(clusterEl.style.top)
@@ -556,24 +578,44 @@ function buildWorld() {
       pageEl.style.width = PAGE_W + "px";
       pageEl.style.height = PAGE_H + "px";
       pageEl.dataset.nodeKey = cl.mod.id + ":" + p.pageIdx;
+      
+      const nodeKey = cl.mod.id + ":" + p.pageIdx;
+      const isDone = state.pageStatus[nodeKey] === true;
+      if (isDone) pageEl.classList.add("is-done");
+      
       pageEl.innerHTML = `
-        <span>${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
+        <span style="flex:1; text-align:center;">${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
+        <div class="page-done-btn" title="اتمام صفحه">✓</div>
         ${statusDotClass(cl.mod.status) ? `<span class="page-status ${statusDotClass(cl.mod.status)}"></span>` : ""}
         <span class="drag-handle"></span>
       `;
+      
       clusterEl.appendChild(pageEl);
       pageEls.push({ el: pageEl, idx: p.pageIdx });
       
-      nodePositions[cl.mod.id + ":" + p.pageIdx] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
+      nodePositions[nodeKey] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
       
       pageEl.addEventListener("click", (e) => {
-        if (e.target.classList.contains("drag-handle") || draggingConn) return;
-        toggleSelection(cl.mod.id + ":" + p.pageIdx);
+        if (e.target.classList.contains("drag-handle") || e.target.classList.contains("page-done-btn") || draggingConn) return;
+        toggleSelection(nodeKey);
+      });
+      
+      // دکمه اتمام کار
+      pageEl.querySelector(".page-done-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (state.pageStatus[nodeKey]) {
+          delete state.pageStatus[nodeKey];
+          pageEl.classList.remove("is-done");
+        } else {
+          state.pageStatus[nodeKey] = true;
+          pageEl.classList.add("is-done");
+        }
+        saveState();
       });
       
       pageEl.querySelector(".drag-handle").addEventListener("mousedown", (e) => {
         e.stopPropagation(); e.preventDefault();
-        startConnection(cl.mod.id + ":" + p.pageIdx);
+        startConnection(nodeKey);
       });
     });
     
@@ -586,7 +628,6 @@ function buildWorld() {
   clearSelection(); 
 }
 
-// تابع کمکی برای آپدیت مختصات فلش‌ها هنگام جابه‌جایی ماژول
 function updateNodePositions(modId, newCx, newCy) {
   const cl = clusterMap[modId];
   if (!cl) return;
@@ -797,7 +838,6 @@ function applyTransform() {
   if (isZoomedOut) document.body.classList.add("zoomed-out");
   else document.body.classList.remove("zoomed-out");
   
-  // جابجایی داینامیک صفحات بر اساس زوم
   Object.values(clusterMap).forEach(cl => {
     const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, isZoomedOut);
     pagePositions.forEach((p, i) => {
@@ -806,10 +846,9 @@ function applyTransform() {
         cl.pageEls[i].el.style.top = p.y + "px";
       }
     });
-    // آپدیت موقعیت‌ها برای فلش‌ها پس از تغییر چیدمان
     updateNodePositions(cl.mod.id, cl.x, cl.y);
   });
-  renderConnections(); // رندر مجدد فلش‌ها
+  renderConnections(); 
 }
 
 canvas.addEventListener("mousedown", (e) => {
@@ -911,9 +950,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v14")) {
+  if(!localStorage.getItem(LS_KEY + "_v15")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v14", "true");
+    localStorage.setItem(LS_KEY + "_v15", "true");
   }
   
   buildWorld();
