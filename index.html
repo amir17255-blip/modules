@@ -350,56 +350,63 @@ function loadState() {
 /* ============================================================
    GEOMETRY
    ============================================================ */
-function computeClusterSize(numPages, isZoomedOut) {
+function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
   
-  const maxPerCol = Math.max(5, Math.ceil((MODULE_H + 30) / (PAGE_H + PAGE_GAP)));
+  // حداکثر تعداد صفحات در هر ستون (مثلاً ۵ صفحه در هر ستون)
+  const maxPerCol = 5; 
+  
+  // تعداد کل صفحات در یک سمت (چپ یا راست)
   const pagesPerSide = Math.ceil(numPages / 2);
+  
+  // تعداد ستون‌های مورد نیاز در یک سمت
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
-  const pagesPerCol = Math.ceil(pagesPerSide / colsPerSide);
   
-  // ارتفاع پایه برای کارت (در حالت زوم اوت کارت بزرگتر است)
-  const cardHeight = isZoomedOut ? MODULE_H * 2 : MODULE_H;
-  const requiredHeight = pagesPerCol * (PAGE_H + PAGE_GAP) + 80;
+  // ارتفاع لازم برای بلندترین ستون + فضای بالا و پایین
+  const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 40;
   
-  const clusterH = Math.max(cardHeight + CLUSTER_PAD*2, requiredHeight);
+  // ارتفاع خوشه باید حداقل برابر با ارتفاع کارت باشد
+  const clusterH = Math.max(MODULE_H + 60, requiredHeight);
   
-  return { w: clusterW, h: clusterH, maxPerCol, colsPerSide, pagesPerCol };
+  return { w: clusterW, h: clusterH, maxPerCol, colsPerSide };
 }
 
-function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
+ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const positions = [];
   if (numPages === 0) return positions;
   
-  const { colsPerSide, pagesPerCol } = info;
+  const { colsPerSide, maxPerCol } = info;
+  
   const cardW = isZoomedOut ? MODULE_W * 1.5 : MODULE_W;
   const cardLeftEdge = (clusterW - cardW) / 2;
   const cardRightEdge = cardLeftEdge + cardW;
   
   const gapFromCard = isZoomedOut ? 30 : 10;
-  
   const pagesPerSide = Math.ceil(numPages / 2);
   
+  // سمت چپ
   for (let i = 0; i < pagesPerSide; i++) {
-    const colIdx = Math.floor(i / pagesPerCol);
-    const rowIdx = i % pagesPerCol;
+    const colIdx = Math.floor(i / maxPerCol);
+    const rowIdx = i % maxPerCol;
     
     const x = cardLeftEdge - gapFromCard - (colIdx + 1) * (PAGE_W + PAGE_GAP) + PAGE_GAP;
-    const colStartY = (clusterH - Math.min(pagesPerCol, pagesPerSide - colIdx*pagesPerCol) * (PAGE_H + PAGE_GAP)) / 2;
-    const y = colStartY + rowIdx * (PAGE_H + PAGE_GAP);
+    
+    // شروع از بالای خوشه با فاصله ثابت (نه از وسط)
+    const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     
     positions.push({ pageIdx: i, x, y });
   }
   
+  // سمت راست
   for (let i = pagesPerSide; i < numPages; i++) {
     const localI = i - pagesPerSide;
-    const colIdx = Math.floor(localI / pagesPerCol);
-    const rowIdx = localI % pagesPerCol;
+    const colIdx = Math.floor(localI / maxPerCol);
+    const rowIdx = localI % maxPerCol;
     
     const x = cardRightEdge + gapFromCard + colIdx * (PAGE_W + PAGE_GAP);
-    const pagesInThisCol = Math.min(pagesPerCol, numPages - pagesPerSide - colIdx*pagesPerCol);
-    const colStartY = (clusterH - pagesInThisCol * (PAGE_H + PAGE_GAP)) / 2;
-    const y = colStartY + rowIdx * (PAGE_H + PAGE_GAP);
+    
+    // شروع از بالای خوشه با فاصله ثابت
+    const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     
     positions.push({ pageIdx: i, x, y });
   }
