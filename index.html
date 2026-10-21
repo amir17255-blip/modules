@@ -148,7 +148,7 @@
     font-size: 11px; color: #cbd5e1; text-align: center;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: pointer;
     transition: all 0.3s; display: flex; align-items: center; justify-content: center;
-    padding-left: 25px; /* فضای خالی برای دکمه تیک */
+    padding-left: 60px; /* فضای کافی برای 3 دکمه سمت چپ */
   }
   .page-node:hover {
     border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
@@ -171,23 +171,39 @@
     border-color: #22c55e; color: #86efac;
   }
   
-  /* دکمه تیک (انجام شده) */
-  .page-done-btn {
+  /* گروه دکمه‌ها */
+  .page-btn-group {
     position: absolute;
-    right: 4px; top: 50%;
+    left: 4px; top: 50%;
     transform: translateY(-50%);
-    width: 16px; height: 16px;
-    border-radius: 4px;
+    display: flex; gap: 3px;
+  }
+  
+  .page-btn {
+    width: 14px; height: 14px;
+    border-radius: 3px;
     background: #1e293b;
     border: 1px solid #475569;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    font-size: 10px; color: transparent;
+    font-size: 9px; color: transparent;
     transition: all 0.15s;
   }
-  .page-done-btn:hover { background: #334155; border-color: #94a3b8; }
-  .page-node.is-done .page-done-btn {
+  .page-btn:hover { background: #334155; border-color: #94a3b8; }
+  
+  /* دکمه تیک (Done) */
+  .page-btn.done.active {
     background: #22c55e; border-color: #22c55e; color: #fff;
+  }
+  
+  /* دکمه Front */
+  .page-btn.front.active {
+    background: #3b82f6; border-color: #3b82f6; color: #fff;
+  }
+  
+  /* دکمه Back */
+  .page-btn.back.active {
+    background: #ef4444; border-color: #ef4444; color: #fff;
   }
   
   .drag-handle {
@@ -198,7 +214,7 @@
   .page-node:hover .drag-handle { opacity: 1; }
 
   .page-status {
-    position: absolute; bottom: -3px; left: -3px; width: 8px; height: 8px;
+    position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px;
     border-radius: 50%; border: 1.5px solid #0f1419;
   }
   .st-done { background: #22c55e; }
@@ -222,8 +238,8 @@
   body.zoomed-out .module-badge {
     display: none; 
   }
-  /* در حالت زوم اوت دکمه تیک کوچک‌تر می‌شود */
-  body.zoomed-out .page-done-btn { width: 14px; height: 14px; font-size: 9px; }
+  body.zoomed-out .page-btn { width: 12px; height: 12px; font-size: 8px; }
+  body.zoomed-out .page-btn-group { left: 2px; }
 
   /* ===== UI ===== */
   #toast {
@@ -283,7 +299,7 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت = جابه‌جایی ماژول | از نقطه آبی = ایجاد فلش | کلیک روی مربع = اتمام صفحه
+  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت = جابه‌جایی ماژول | از نقطه آبی = ایجاد فلش
 </div>
 
 <div id="toast"></div>
@@ -356,10 +372,10 @@ const state = {
   filterPosition: "all",
   search: "",
   nextConnId: 1,
-  customPositions: {}, // موقعیت دستی ماژول‌ها
-  pageStatus: {}       // وضعیت انجام شدن صفحات (true/false)
+  customPositions: {},
+  pageStatus: { done: {}, front: {}, back: {} } // وضعیت دکمه‌های هر صفحه
 };
-const LS_KEY = "module-map-state-v15";
+const LS_KEY = "module-map-state-v16";
 
 function saveState() {
   try {
@@ -381,7 +397,14 @@ function loadState() {
     if (s.progress) state.progress = s.progress;
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
-    if (s.pageStatus) state.pageStatus = s.pageStatus;
+    if (s.pageStatus) {
+      // اطمینان از وجود کلیدهای آبجکت
+      state.pageStatus = {
+        done: s.pageStatus.done || {},
+        front: s.pageStatus.front || {},
+        back: s.pageStatus.back || {}
+      };
+    }
   } catch(e) {}
 }
 
@@ -471,7 +494,6 @@ function buildWorld() {
     const col = i % cols;
     const row = Math.floor(i / cols);
     
-    // بررسی موقعیت سفارشی
     let cx = state.customPositions[cl.mod.id]?.x ?? colX[col];
     let cy = state.customPositions[cl.mod.id]?.y ?? rowY[row];
     
@@ -511,7 +533,6 @@ function buildWorld() {
     `;
     clusterEl.appendChild(card);
     
-    // Drag & Drop ماژول
     card.addEventListener("mousedown", (e) => {
       if (e.target.closest(".progress-select")) return;
       if (e.button !== 0) return;
@@ -577,15 +598,25 @@ function buildWorld() {
       pageEl.style.top = p.y + "px";
       pageEl.style.width = PAGE_W + "px";
       pageEl.style.height = PAGE_H + "px";
-      pageEl.dataset.nodeKey = cl.mod.id + ":" + p.pageIdx;
       
       const nodeKey = cl.mod.id + ":" + p.pageIdx;
-      const isDone = state.pageStatus[nodeKey] === true;
+      
+      // خواندن وضعیت‌ها
+      const isDone = state.pageStatus.done[nodeKey] === true;
+      const isFront = state.pageStatus.front[nodeKey] === true;
+      const isBack = state.pageStatus.back[nodeKey] === true;
+      
       if (isDone) pageEl.classList.add("is-done");
       
       pageEl.innerHTML = `
-        <span style="flex:1; text-align:center;">${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
-        <div class="page-done-btn" title="اتمام صفحه">✓</div>
+        <span style="flex:1; text-align:center; pointer-events:none;">${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
+        
+        <div class="page-btn-group">
+          <div class="page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
+          <div class="page-btn front ${isFront ? 'active' : ''}" title="Front">F</div>
+          <div class="page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
+        </div>
+        
         ${statusDotClass(cl.mod.status) ? `<span class="page-status ${statusDotClass(cl.mod.status)}"></span>` : ""}
         <span class="drag-handle"></span>
       `;
@@ -596,20 +627,37 @@ function buildWorld() {
       nodePositions[nodeKey] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
       
       pageEl.addEventListener("click", (e) => {
-        if (e.target.classList.contains("drag-handle") || e.target.classList.contains("page-done-btn") || draggingConn) return;
+        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || draggingConn) return;
         toggleSelection(nodeKey);
       });
       
-      // دکمه اتمام کار
-      pageEl.querySelector(".page-done-btn").addEventListener("click", (e) => {
+      // منطق دکمه‌ها
+      const btnDone = pageEl.querySelector(".page-btn.done");
+      const btnFront = pageEl.querySelector(".page-btn.front");
+      const btnBack = pageEl.querySelector(".page-btn.back");
+      
+      btnDone.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (state.pageStatus[nodeKey]) {
-          delete state.pageStatus[nodeKey];
-          pageEl.classList.remove("is-done");
-        } else {
-          state.pageStatus[nodeKey] = true;
-          pageEl.classList.add("is-done");
-        }
+        const active = !state.pageStatus.done[nodeKey];
+        state.pageStatus.done[nodeKey] = active;
+        btnDone.classList.toggle("active", active);
+        pageEl.classList.toggle("is-done", active);
+        saveState();
+      });
+      
+      btnFront.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const active = !state.pageStatus.front[nodeKey];
+        state.pageStatus.front[nodeKey] = active;
+        btnFront.classList.toggle("active", active);
+        saveState();
+      });
+      
+      btnBack.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const active = !state.pageStatus.back[nodeKey];
+        state.pageStatus.back[nodeKey] = active;
+        btnBack.classList.toggle("active", active);
         saveState();
       });
       
@@ -950,9 +998,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v15")) {
+  if(!localStorage.getItem(LS_KEY + "_v16")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v15", "true");
+    localStorage.setItem(LS_KEY + "_v16", "true");
   }
   
   buildWorld();
