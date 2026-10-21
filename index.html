@@ -14,7 +14,6 @@
     overflow: hidden;
     user-select: none;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
@@ -121,7 +120,7 @@
     pointer-events: none;
   }
 
-  /* ===== Module Cluster (در پیش‌زمینه) ===== */
+  /* ===== Module Cluster ===== */
   .module-cluster {
     position: absolute;
     transition: opacity 0.3s;
@@ -141,8 +140,9 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    transition: transform 0.3s, box-shadow 0.2s, border-color 0.2s;
-    transform-origin: center center;
+    /* ترنزیشن برای بزرگ شدن نرم */
+    transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s;
+    transform-origin: center center; 
   }
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
@@ -226,7 +226,7 @@
     text-align: center;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s; /* ترنزیشن برای جابجایی نرم */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -283,31 +283,28 @@
   .st-needdesign { background: #ef4444; }
   .st-nodesign { background: #6b7280; }
 
-  /* ===== حالت زوم اوت (بزرگ‌تر شدن هماهنگ) ===== */
+  /* ===== حالت زوم اوت ===== */
+  /* بزرگ‌تر شدن کارت */
   body.zoomed-out .module-card {
-    transform: scale(1.6); /* بزرگ شدن کارت */
-    z-index: 50; /* بالاتر از همه چیز */
+    transform: scale(1.5); 
     background: #1c2531;
-    border-width: 2px;
+    border-color: #475569;
   }
+  /* متن 50px وسط چین */
   body.zoomed-out .module-title {
-    font-size: 50px; /* فونت درخواستی ۵۰ پیکسل */
+    font-size: 50px; 
     font-weight: 700;
     text-align: center;
     text-shadow: 0 4px 12px rgba(0,0,0,0.9);
     margin-top: 10px;
+    line-height: 1.1;
   }
-  /* مخفی کردن جزئیات در حالت زوم اوت */
+  
+  /* مخفی کردن جزئیات در حالت زوم اوت برای جلوگیری از شلوغی */
   body.zoomed-out .module-desc,
   body.zoomed-out .module-progress-row,
   body.zoomed-out .module-badge {
     display: none; 
-  }
-  
-  /* بزرگ کردن صفحات و هل دادن آن‌ها به بیرون تا زیر کارت بزرگ‌شده نروند */
-  body.zoomed-out .page-node {
-    transform: scale(1.3);
-    margin: -5px -15px; 
   }
 
   /* ===== UI ===== */
@@ -349,7 +346,6 @@
 
 <div id="toolbar">
   <h1>🗺️ نقشه ماژول‌ها</h1>
-
   <div class="toolbar-group">
     <label>موقعیت:</label>
     <select id="filter-position">
@@ -363,23 +359,19 @@
       <option value="_">بدون موقعیت</option>
     </select>
   </div>
-
   <div class="toolbar-group">
     <label>جستجو:</label>
     <input type="text" id="search-box" placeholder="نام ماژول..." style="width:150px;">
   </div>
-
   <div class="toolbar-group">
     <button id="btn-reset-view">🎯 نمای کلی</button>
     <button id="btn-clear-connections" class="danger">🗑️ حذف اتصالات</button>
   </div>
-
   <div class="toolbar-group">
     <button id="btn-zoom-out">-</button>
     <span id="zoom-level">100%</span>
     <button id="btn-zoom-in">+</button>
   </div>
-
   <div id="stats"></div>
 </div>
 
@@ -462,7 +454,7 @@ const state = {
   search: "",
   nextConnId: 1,
 };
-const LS_KEY = "module-map-state-v6"; // نسخه جدید برای رفرش شدن کش
+const LS_KEY = "module-map-state-v7";
 
 function saveState() {
   try {
@@ -500,17 +492,22 @@ function computeClusterSize(numPages) {
   return { w: clusterW, h: clusterH, maxPerCol, colsPerSide, pagesPerCol, sideWidth };
 }
 
-function layoutPagesInCluster(numPages, clusterW, clusterH, info) {
+function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const positions = [];
   if (numPages === 0) return positions;
   const { colsPerSide, pagesPerCol, sideWidth } = info;
-  const moduleLeft = CLUSTER_PAD + sideWidth;
+  
+  // در حالت زوم اوت، عرض کارت بزرگ‌تر می‌شود (1.5 برابر)
+  const currentModuleW = isZoomedOut ? MODULE_W * 1.5 : MODULE_W;
+  const moduleLeft = (clusterW - currentModuleW) / 2; // وسط چین کردن کارت
+  
   const pagesPerSide = Math.ceil(numPages / 2);
   
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / pagesPerCol);
     const rowIdx = i % pagesPerCol;
-    const x = moduleLeft - (colIdx + 1) * (PAGE_W + PAGE_GAP);
+    // فاصله‌گذاری بیشتر در حالت زوم اوت تا با کارت بزرگ تداخل نکند
+    const x = moduleLeft - (colIdx + 1) * (PAGE_W + PAGE_GAP) - (isZoomedOut ? 60 : 0);
     const colStartY = (clusterH - Math.min(pagesPerCol, pagesPerSide - colIdx*pagesPerCol) * (PAGE_H + PAGE_GAP)) / 2;
     positions.push({ pageIdx: i, x, y: colStartY + rowIdx * (PAGE_H + PAGE_GAP) });
   }
@@ -518,7 +515,7 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info) {
     const localI = i - pagesPerSide;
     const colIdx = Math.floor(localI / pagesPerCol);
     const rowIdx = localI % pagesPerCol;
-    const x = moduleLeft + MODULE_W + PAGE_GAP + colIdx * (PAGE_W + PAGE_GAP);
+    const x = moduleLeft + currentModuleW + PAGE_GAP + colIdx * (PAGE_W + PAGE_GAP) + (isZoomedOut ? 60 : 0);
     const pagesInThisCol = Math.min(pagesPerCol, numPages - pagesPerSide - colIdx*pagesPerCol);
     const colStartY = (clusterH - pagesInThisCol * (PAGE_H + PAGE_GAP)) / 2;
     positions.push({ pageIdx: i, x, y: colStartY + rowIdx * (PAGE_H + PAGE_GAP) });
@@ -540,6 +537,7 @@ function buildWorld() {
   svgLayer.innerHTML = "";
   
   const clusters = MODULES_DATA.map(m => {
+    // محاسبه سایز خوشه با فرض بزرگترین حالت (زوم اوت) تا چیدمان گرید اصلی بهم نریزد
     const size = computeClusterSize(m.pages.length);
     return { mod: m, ...size };
   });
@@ -579,7 +577,8 @@ function buildWorld() {
     
     const card = document.createElement("div");
     card.className = "module-card";
-    card.style.left = (CLUSTER_PAD + (cl.sideWidth||0)) + "px";
+    card.dataset.modId = cl.mod.id;
+    card.style.left = ((cl.w - MODULE_W) / 2) + "px"; // وسط چین
     card.style.top = ((cl.h - MODULE_H) / 2) + "px";
     card.style.width = MODULE_W + "px";
     card.style.height = MODULE_H + "px";
@@ -610,7 +609,8 @@ function buildWorld() {
       saveState();
     });
     
-    const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl);
+    const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, false); // چیدمان اولیه
+    const pageEls = [];
     pagePositions.forEach((p) => {
       const pageEl = document.createElement("div");
       pageEl.className = "page-node";
@@ -625,6 +625,7 @@ function buildWorld() {
         <span class="drag-handle"></span>
       `;
       clusterEl.appendChild(pageEl);
+      pageEls.push({ el: pageEl, idx: p.pageIdx });
       
       nodePositions[cl.mod.id + ":" + p.pageIdx] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
       
@@ -640,7 +641,7 @@ function buildWorld() {
     });
     
     world.appendChild(clusterEl);
-    clusterMap[cl.mod.id] = { el: clusterEl, card, w: cl.w, h: cl.h, x: cx, y: cy };
+    clusterMap[cl.mod.id] = { el: clusterEl, card, w: cl.w, h: cl.h, x: cx, y: cy, pageEls };
   });
   
   renderConnections();
@@ -781,10 +782,8 @@ function toggleSelection(key) {
 
 function clearSelection() {
   state.selectedNode = null;
-  
   document.querySelectorAll(".page-node").forEach(el => el.classList.remove("selected", "highlight", "dimmed"));
   document.querySelectorAll(".module-cluster").forEach(el => el.classList.remove("highlight", "dimmed"));
-  
   svgLayer.querySelectorAll("path.connection").forEach(p => {
     p.classList.remove("highlight", "dim");
   });
@@ -839,12 +838,20 @@ function applyTransform() {
   world.style.transform = `translate3d(${state.pan.x}px, ${state.pan.y}px, 0) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
   
-  // تشخیص حالت زوم اوت
-  if (state.zoom < 0.65) {
-    document.body.classList.add("zoomed-out");
-  } else {
-    document.body.classList.remove("zoomed-out");
-  }
+  const isZoomedOut = state.zoom < 0.65;
+  if (isZoomedOut) document.body.classList.add("zoomed-out");
+  else document.body.classList.remove("zoomed-out");
+  
+  // جابجایی داینامیک صفحات بر اساس زوم
+  Object.values(clusterMap).forEach(cl => {
+    const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, isZoomedOut);
+    pagePositions.forEach((p, i) => {
+      if (cl.pageEls[i]) {
+        cl.pageEls[i].el.style.left = p.x + "px";
+        cl.pageEls[i].el.style.top = p.y + "px";
+      }
+    });
+  });
 }
 
 canvas.addEventListener("mousedown", (e) => {
@@ -946,9 +953,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v6")) {
+  if(!localStorage.getItem(LS_KEY + "_v7")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v6", "true");
+    localStorage.setItem(LS_KEY + "_v7", "true");
   }
   
   buildWorld();
