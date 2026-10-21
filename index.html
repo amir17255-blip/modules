@@ -359,12 +359,17 @@ function loadState() {
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
   
-  const maxPerCol = Math.max(3, Math.ceil((MODULE_H + 30) / (PAGE_H + PAGE_GAP)));
+  // حداکثر تعداد صفحاتی که در یک ستون قرار می‌گیرند
+  const maxPerCol = Math.max(5, Math.ceil(numPages / 4)); 
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
   const pagesPerCol = Math.ceil(pagesPerSide / colsPerSide);
   
-  const clusterH = Math.max((MODULE_H * 1.5) + CLUSTER_PAD*2, pagesPerCol * (PAGE_H + PAGE_GAP) + CLUSTER_PAD*2);
+  // ارتفاع لازم برای جا دادن تمام صفحات در بلندترین ستون + فضای بالا و پایین
+  const requiredHeight = pagesPerCol * (PAGE_H + PAGE_GAP) + 80;
+  
+  // ارتفاع خوشه حداقل باید ۲۰۰ پیکسل باشد
+  const clusterH = Math.max((MODULE_H * 1.5) + CLUSTER_PAD*2, requiredHeight);
   
   return { w: clusterW, h: clusterH, maxPerCol, colsPerSide, pagesPerCol };
 }
@@ -375,42 +380,45 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   
   const { colsPerSide, pagesPerCol } = info;
   
-  // محاسبه فضای اشغال شده توسط کارت (در حالت زوم اوت کارت بزرگ‌تر است)
+  // محاسبه فضای اشغال شده توسط کارت
   const cardW = isZoomedOut ? MODULE_W * 1.5 : MODULE_W;
   const cardLeftEdge = (clusterW - cardW) / 2;
   const cardRightEdge = cardLeftEdge + cardW;
   
-  // فاصله استاندارد بین کارت و صفحات
   const gapFromCard = isZoomedOut ? 30 : 10;
   
   const pagesPerSide = Math.ceil(numPages / 2);
   
+  // چیدن سمت چپ
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / pagesPerCol);
     const rowIdx = i % pagesPerCol;
     
-    // چیدن از لبه کارت به سمت چپ
     const x = cardLeftEdge - gapFromCard - (colIdx + 1) * (PAGE_W + PAGE_GAP) + PAGE_GAP;
     
-    const colStartY = (clusterH - Math.min(pagesPerCol, pagesPerSide - colIdx*pagesPerCol) * (PAGE_H + PAGE_GAP)) / 2;
-    positions.push({ pageIdx: i, x, y: colStartY + rowIdx * (PAGE_H + PAGE_GAP) });
+    // اصلاح فرمول چیدمان: چیدن از بالا به پایین
+    const colStartY = 40; // یک فاصله از بالای خوشه
+    const y = colStartY + rowIdx * (PAGE_H + PAGE_GAP);
+    
+    positions.push({ pageIdx: i, x, y });
   }
   
+  // چیدن سمت راست
   for (let i = pagesPerSide; i < numPages; i++) {
     const localI = i - pagesPerSide;
     const colIdx = Math.floor(localI / pagesPerCol);
     const rowIdx = localI % pagesPerCol;
     
-    // چیدن از لبه کارت به سمت راست
     const x = cardRightEdge + gapFromCard + colIdx * (PAGE_W + PAGE_GAP);
     
-    const pagesInThisCol = Math.min(pagesPerCol, numPages - pagesPerSide - colIdx*pagesPerCol);
-    const colStartY = (clusterH - pagesInThisCol * (PAGE_H + PAGE_GAP)) / 2;
-    positions.push({ pageIdx: i, x, y: colStartY + rowIdx * (PAGE_H + PAGE_GAP) });
+    // اصلاح فرمول چیدمان: چیدن از بالا به پایین
+    const colStartY = 40;
+    const y = colStartY + rowIdx * (PAGE_H + PAGE_GAP);
+    
+    positions.push({ pageIdx: i, x, y });
   }
   return positions;
 }
-
 /* ============================================================
    BUILD WORLD
    ============================================================ */
