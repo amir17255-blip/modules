@@ -83,13 +83,13 @@
     fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
   
-  /* خط نامرئی با ضخامت 80 پیکسل برای گیرایی بالای موس */
+  /* خط نامرئی با ضخامت 40 پیکسل (کاهش یافت تا مزاحم کارت‌ها نشود) */
   #svg-layer path.hitbox {
-    fill: none; stroke: transparent; stroke-width: 80;
+    fill: none; stroke: transparent; stroke-width: 40;
     pointer-events: stroke; cursor: pointer;
   }
 
-  /* ===== Buttons Layer (برای دکمه‌های روی فلش) ===== */
+  /* ===== Buttons Layer ===== */
   #buttons-layer {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 100;
@@ -198,8 +198,8 @@
     font-size: 11px; color: #cbd5e1; text-align: center;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: pointer;
     transition: all 0.3s; display: flex; align-items: center; justify-content: center;
-    padding-left: 60px; /* فضای کافی برای دکمه‌ها */
-    overflow: hidden; /* جلوگیری از سرریز متن روی دکمه‌ها */
+    padding-left: 65px; /* فضای کافی برای دکمه‌ها */
+    overflow: hidden; /* جلوگیری از سرریز متن */
   }
   .page-node:hover {
     border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
@@ -222,18 +222,22 @@
     border-color: #22c55e; color: #86efac;
   }
   
-  /* گروه دکمه‌ها بالاتر از متن قرار می‌گیرد */
+  /* گروه دکمه‌ها بالاتر از متن قرار می‌گیرد و پس‌زمینه دارد */
   .page-btn-group {
     position: absolute;
     left: 4px; top: 50%;
     transform: translateY(-50%);
-    display: flex; gap: 3px;
-    z-index: 20; 
+    display: flex; gap: 4px;
+    z-index: 99; 
+    background: #1a2330;
+    padding: 2px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
   }
   
   .page-btn {
-    width: 16px; height: 16px; /* کمی بزرگتر برای کلیک راحت‌تر */
-    border-radius: 3px;
+    width: 18px; height: 18px; /* دکمه‌های بزرگتر */
+    border-radius: 4px;
     background: #1e293b;
     border: 1px solid #475569;
     display: flex; align-items: center; justify-content: center;
@@ -288,9 +292,9 @@
   body.zoomed-out .module-badge {
     display: none; 
   }
-  body.zoomed-out .page-btn { width: 14px; height: 14px; font-size: 9px; }
+  body.zoomed-out .page-btn { width: 16px; height: 16px; font-size: 9px; }
   body.zoomed-out .page-btn-group { left: 2px; }
-  body.zoomed-out .page-node { margin: 0; padding-left: 50px; }
+  body.zoomed-out .page-node { margin: 0; padding-left: 60px; }
 
   /* ===== UI ===== */
   #toast {
@@ -669,7 +673,7 @@ function buildWorld() {
       if (isDone) pageEl.classList.add("is-done");
       
       pageEl.innerHTML = `
-        <span style="flex:1; text-align:center; pointer-events:none; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
+        <span style="flex:1; text-align:center; pointer-events:none; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; padding-left: 5px;">${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
         
         <div class="page-btn-group">
           <div class="page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
@@ -865,7 +869,7 @@ function renderConnections() {
       path.setAttribute("marker-end", "url(#arrow-one)");
     }
 
-    // خط نامرئی ضخیم (80px) برای گیرایی راحت موس
+    // خط نامرئی ضخیم (40px) برای گیرایی راحت موس
     const hitbox = document.createElementNS("http://www.w3.org/2000/svg", "path");
     hitbox.setAttribute("d", pathD);
     hitbox.setAttribute("class", "hitbox");
@@ -919,7 +923,7 @@ function renderConnections() {
         if (!btnWrap.matches(':hover')) {
           btnWrap.classList.remove("visible");
         }
-      }, 200); 
+      }, 100); // کاهش تاخیر به 100ms تا کلیک کارت‌های اطراف را دزدیده نشود
     };
 
     // فعال‌سازی رویدادها روی خط اصلی و خط نامرئی
