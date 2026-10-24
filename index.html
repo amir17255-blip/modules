@@ -89,7 +89,7 @@
     pointer-events: stroke; cursor: pointer;
   }
 
-  /* ===== Buttons Layer ===== */
+  /* ===== Buttons Layer (برای دکمه‌های روی فلش) ===== */
   #buttons-layer {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 100;
@@ -99,8 +99,8 @@
     position: absolute;
     display: flex; gap: 8px;
     transform: translate(-50%, -50%);
-    pointer-events: none; /* غیرفعال تا زمانی که ظاهر شود */
-    opacity: 0;           /* پنهان به صورت پیش‌فرض */
+    pointer-events: none;
+    opacity: 0;
     transition: opacity 0.2s ease;
   }
   .conn-btn-wrap.visible {
@@ -198,7 +198,8 @@
     font-size: 11px; color: #cbd5e1; text-align: center;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: pointer;
     transition: all 0.3s; display: flex; align-items: center; justify-content: center;
-    padding-left: 60px;
+    padding-left: 60px; /* فضای کافی برای دکمه‌ها */
+    overflow: hidden; /* جلوگیری از سرریز متن روی دکمه‌ها */
   }
   .page-node:hover {
     border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
@@ -221,22 +222,25 @@
     border-color: #22c55e; color: #86efac;
   }
   
+  /* گروه دکمه‌ها بالاتر از متن قرار می‌گیرد */
   .page-btn-group {
     position: absolute;
     left: 4px; top: 50%;
     transform: translateY(-50%);
     display: flex; gap: 3px;
+    z-index: 20; 
   }
   
   .page-btn {
-    width: 14px; height: 14px;
+    width: 16px; height: 16px; /* کمی بزرگتر برای کلیک راحت‌تر */
     border-radius: 3px;
     background: #1e293b;
     border: 1px solid #475569;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    font-size: 9px; color: transparent;
+    font-size: 10px; color: transparent;
     transition: all 0.15s;
+    pointer-events: auto;
   }
   .page-btn:hover { background: #334155; border-color: #94a3b8; }
   
@@ -245,16 +249,17 @@
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
   
   .drag-handle {
-    position: absolute; top: -4px; right: -4px; width: 10px; height: 10px;
+    position: absolute; top: -4px; right: -4px; width: 12px; height: 12px;
     background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
     cursor: crosshair; opacity: 0; transition: opacity 0.15s;
-    z-index: 20;
+    z-index: 30;
   }
   .page-node:hover .drag-handle { opacity: 1; }
 
   .page-status {
     position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px;
     border-radius: 50%; border: 1.5px solid #0f1419;
+    pointer-events: none;
   }
   .st-done { background: #22c55e; }
   .st-test { background: #84cc16; }
@@ -265,8 +270,8 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 250px !important; 
-    height: 300px !important; 
+    width: 650px !important; 
+    height: 320px !important; 
     transform: translate(-50%, -50%); 
     background: #1c2531; 
     border-color: #475569;
@@ -283,9 +288,9 @@
   body.zoomed-out .module-badge {
     display: none; 
   }
-  body.zoomed-out .page-btn { width: 12px; height: 12px; font-size: 8px; }
+  body.zoomed-out .page-btn { width: 14px; height: 14px; font-size: 9px; }
   body.zoomed-out .page-btn-group { left: 2px; }
-  body.zoomed-out .page-node { margin: 0; }
+  body.zoomed-out .page-node { margin: 0; padding-left: 50px; }
 
   /* ===== UI ===== */
   #toast {
@@ -408,7 +413,7 @@ const CLUSTER_GAP_X = 60;
 const CLUSTER_GAP_Y = 120;
 const MAX_COLS = 4;
 
-const FIXED_CLUSTER_WIDTH = 1200;
+const FIXED_CLUSTER_WIDTH = 1100;
 
 const state = {
   pan: { x: 50, y: 50 },
@@ -664,7 +669,7 @@ function buildWorld() {
       if (isDone) pageEl.classList.add("is-done");
       
       pageEl.innerHTML = `
-        <span style="flex:1; text-align:center; pointer-events:none;">${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
+        <span style="flex:1; text-align:center; pointer-events:none; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
         
         <div class="page-btn-group">
           <div class="page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
@@ -1109,6 +1114,12 @@ window.addEventListener("mousemove", (e) => {
 
 window.addEventListener("mouseup", () => {
   if (isPanning) { isPanning = false; canvas.classList.remove("panning"); saveState(); }
+  // Fail-safe to clear dragging connection
+  if (draggingConn) {
+    if (draggingConn.tempPath) draggingConn.tempPath.remove();
+    draggingConn = null;
+    document.getElementById("canvas").classList.remove("connecting");
+  }
 });
 
 canvas.addEventListener("wheel", (e) => {
@@ -1199,9 +1210,7 @@ function init() {
   
   buildWorld();
   applyTransform(true);
- /*
- fitView();
- */
+  fitView();
   setTimeout(() => document.getElementById("hint").classList.add("hidden"), 8000);
 }
 
