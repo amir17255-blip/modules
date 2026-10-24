@@ -108,7 +108,7 @@
   .module-title {
     font-size: 16px; font-weight: 700; color: #f1f5f9; line-height: 1.3;
     flex: 1; transition: font-size 0.3s; pointer-events: none;
-    text-align: center; /* وسط‌چین کردن پیش‌فرض */
+    text-align: center; 
   }
   .module-badge {
     font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
@@ -221,12 +221,11 @@
     transform: translate(-50%, -50%); 
     background: #1c2531; 
     border-color: #475569;
-    /* مهم: کارت باید دقیقاً در مرکز خوشه (نه مرکز خودش) باشد */
     left: 50%; 
     top: 50%;
   }
   body.zoomed-out .module-title {
-    font-size: 42px; /* کمی کوچک‌تر برای طولانی‌ترین اسم‌ها */
+    font-size: 42px; 
     font-weight: 700; text-align: center;
     text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 20px; line-height: 1.2;
   }
@@ -373,7 +372,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v21";
+const LS_KEY = "module-map-state-v22";
 
 function saveState() {
   try {
@@ -417,6 +416,7 @@ function computeClusterSize(numPages) {
   const clusterH = Math.max(MODULE_H + 60, requiredHeight);
   return { w: clusterW, h: clusterH, maxPerCol, colsPerSide };
 }
+
 function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const positions = [];
   if (numPages === 0) return positions;
@@ -424,20 +424,18 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const { maxPerCol } = info;
   const pagesPerSide = Math.ceil(numPages / 2);
   
-  // پیدا کردن مرکز افقی خوشه
   const centerX = clusterW / 2;
   
-  // در حالت زوم اوت، فاصله شروع صفحات از مرکز را 320 پیکسل می‌گیریم
-  // (نصف عرض کارت 275 + فاصله 45 پیکسلی)
-  // در حالت عادی این فاصله 140 است (نصف عرض 130 + فاصله 10)
-  const offsetFromCenter = isZoomedOut ? 320 : 140; 
+  // در حالت زوم اوت، عرض کارت 550 است. بنابراین لبه‌های کارت از مرکز 275 پیکسل فاصله دارند.
+  // برای اینکه صفحات از لبه کارت فاصله بگیرند، 50 پیکسل دیگر به آن اضافه می‌کنیم (جمعاً 325).
+  // در حالت عادی عرض 260 است، لبه‌ها 130 فاصله دارند، 10 پیکسل فاصله اضافه (جمعاً 140).
+  const offsetFromCenter = isZoomedOut ? 325 : 140; 
   
   // چیدن سمت چپ
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
     
-    // محاسبه X از مرکز به سمت چپ
     const x = centerX - offsetFromCenter - (colIdx + 1) * (PAGE_W + PAGE_GAP) + PAGE_GAP;
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
@@ -449,13 +447,13 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(localI / maxPerCol);
     const rowIdx = localI % maxPerCol;
     
-    // محاسبه X از مرکز به سمت راست
     const x = centerX + offsetFromCenter + colIdx * (PAGE_W + PAGE_GAP);
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   return positions;
 }
+
 /* ============================================================
    BUILD WORLD
    ============================================================ */
@@ -1002,9 +1000,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v21")) {
+  if(!localStorage.getItem(LS_KEY + "_v22")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v21", "true");
+    localStorage.setItem(LS_KEY + "_v22", "true");
   }
   
   buildWorld();
