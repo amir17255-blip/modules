@@ -108,6 +108,7 @@
   .module-title {
     font-size: 16px; font-weight: 700; color: #f1f5f9; line-height: 1.3;
     flex: 1; transition: font-size 0.3s; pointer-events: none;
+    text-align: center; /* وسط‌چین کردن پیش‌فرض */
   }
   .module-badge {
     font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
@@ -123,7 +124,7 @@
   .module-desc {
     font-size: 12px; color: #94a3b8; min-height: 32px; padding: 6px 8px;
     background: rgba(15,23,42,0.6); border-radius: 6px; border: 1px solid #1e293b;
-    transition: opacity 0.3s; pointer-events: none;
+    transition: opacity 0.3s; pointer-events: none; text-align: center;
   }
 
   .module-progress-row {
@@ -215,13 +216,14 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 480px !important; 
+    width: 550px !important; /* افزایش عرض برای جا دادن نام‌های طولانی */
     height: 320px !important; 
     transform: translate(-50%, -50%); 
     background: #1c2531; border-color: #475569;
   }
   body.zoomed-out .module-title {
-    font-size: 50px; font-weight: 700; text-align: center;
+    font-size: 42px; /* کمی کوچک‌تر برای طولانی‌ترین اسم‌ها */
+    font-weight: 700; text-align: center;
     text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 20px; line-height: 1.2;
   }
   body.zoomed-out .module-desc,
@@ -367,7 +369,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v20";
+const LS_KEY = "module-map-state-v21";
 
 function saveState() {
   try {
@@ -417,11 +419,12 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   if (numPages === 0) return positions;
   const { colsPerSide, maxPerCol } = info;
   
-  // عرض کارت در حالت زوم اوت 480 است
-  const cardW = isZoomedOut ? 480 : MODULE_W; 
+  // عرض کارت در حالت زوم اوت 550 است
+  const cardW = isZoomedOut ? 550 : MODULE_W; 
   const cardLeftEdge = (clusterW - cardW) / 2;
   const cardRightEdge = cardLeftEdge + cardW;
-  const gapFromCard = isZoomedOut ? 60 : 10; // فاصله بیشتر در حالت زوم اوت
+  // افزایش فاصله از کارت در حالت زوم اوت به 80 پیکسل
+  const gapFromCard = isZoomedOut ? 80 : 10; 
   
   const pagesPerSide = Math.ceil(numPages / 2);
   
@@ -990,9 +993,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v20")) {
+  if(!localStorage.getItem(LS_KEY + "_v21")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v20", "true");
+    localStorage.setItem(LS_KEY + "_v21", "true");
   }
   
   buildWorld();
