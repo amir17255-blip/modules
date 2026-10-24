@@ -148,7 +148,7 @@
     font-size: 11px; color: #cbd5e1; text-align: center;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: pointer;
     transition: all 0.3s; display: flex; align-items: center; justify-content: center;
-    padding-left: 60px; /* فضای کافی برای 3 دکمه */
+    padding-left: 60px;
   }
   .page-node:hover {
     border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
@@ -171,7 +171,6 @@
     border-color: #22c55e; color: #86efac;
   }
   
-  /* گروه دکمه‌ها */
   .page-btn-group {
     position: absolute;
     left: 4px; top: 50%;
@@ -191,17 +190,9 @@
   }
   .page-btn:hover { background: #334155; border-color: #94a3b8; }
   
-  .page-btn.done.active {
-    background: #22c55e; border-color: #22c55e; color: #fff;
-  }
-  
-  .page-btn.front.active {
-    background: #3b82f6; border-color: #3b82f6; color: #fff;
-  }
-  
-  .page-btn.back.active {
-    background: #ef4444; border-color: #ef4444; color: #fff;
-  }
+  .page-btn.done.active { background: #22c55e; border-color: #22c55e; color: #fff; }
+  .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+  .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
   
   .drag-handle {
     position: absolute; top: -4px; right: -4px; width: 10px; height: 10px;
@@ -224,14 +215,14 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 500px !important;  /* افزایش عرض کارت برای جا دادن فونت 50 */
-    height: 300px !important; /* افزایش ارتفاع کارت */
-    transform: translate(-50%, -50%); /* حذف scale */
+    width: 480px !important; 
+    height: 320px !important; 
+    transform: translate(-50%, -50%); 
     background: #1c2531; border-color: #475569;
   }
   body.zoomed-out .module-title {
     font-size: 50px; font-weight: 700; text-align: center;
-    text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 10px; line-height: 1.2;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 20px; line-height: 1.2;
   }
   body.zoomed-out .module-desc,
   body.zoomed-out .module-progress-row,
@@ -376,7 +367,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v19";
+const LS_KEY = "module-map-state-v20";
 
 function saveState() {
   try {
@@ -426,8 +417,8 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   if (numPages === 0) return positions;
   const { colsPerSide, maxPerCol } = info;
   
-  // عرض کارت در حالت زوم اوت 500 است
-  const cardW = isZoomedOut ? 500 : MODULE_W; 
+  // عرض کارت در حالت زوم اوت 480 است
+  const cardW = isZoomedOut ? 480 : MODULE_W; 
   const cardLeftEdge = (clusterW - cardW) / 2;
   const cardRightEdge = cardLeftEdge + cardW;
   const gapFromCard = isZoomedOut ? 60 : 10; // فاصله بیشتر در حالت زوم اوت
@@ -999,9 +990,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v19")) {
+  if(!localStorage.getItem(LS_KEY + "_v20")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v19", "true");
+    localStorage.setItem(LS_KEY + "_v20", "true");
   }
   
   buildWorld();
