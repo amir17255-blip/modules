@@ -73,8 +73,7 @@
   }
   #svg-layer path.connection {
     fill: none; stroke: #38bdf8; stroke-width: 3; stroke-linecap: round;
-    pointer-events: none; /* کلیک‌ها توسط خط نامرئی گرفته می‌شود */
-    transition: all 0.2s;
+    pointer-events: stroke; cursor: pointer; transition: all 0.2s;
   }
   #svg-layer path.connection.hovered { stroke: #fbbf24; stroke-width: 4.5; }
   #svg-layer path.connection.dim { opacity: 0.1; }
@@ -84,9 +83,9 @@
     fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
   
-  /* خط نامرئی با ضخامت 60 پیکسل برای گیرایی بالای موس */
+  /* خط نامرئی با ضخامت 80 پیکسل برای گیرایی بالای موس */
   #svg-layer path.hitbox {
-    fill: none; stroke: transparent; stroke-width: 60;
+    fill: none; stroke: transparent; stroke-width: 80;
     pointer-events: stroke; cursor: pointer;
   }
 
@@ -386,7 +385,7 @@ const MODULES_DATA = [
   { id:27, name:"مدیریت تکثیر و پرورش", position:"تخصصی", status:"آماده پیاده‌سازی", pages:["تکثیر کسب‌وکارها","سوابق تکثیر کسب‌وکارها","سوابق تکثیر","مدیریت جایگاه‌ها","گزارش مراکز تکثیر و پرورش","گزارش مرکز تکثیر و پرورش من","جانداران تکثیر و پرورش","جانداران تکثیر و پرورش من","برنامه رشد","سوابق اطلاعات جانداران","اطلاعات جانداران موجود","گزارش کل جایگاه‌ها","گزارش جایگاه‌های من","تکثیر","کنترل جایگاه","عملیات جایگاه","مدیریت جایگاه","برنامه‌ریزی جایگاه","ساختار جایگاه","حسگرها و عامل‌ها","همه جایگاه‌ها","جایگاه‌های من","انواع جایگاه","فرآیندهای کنترل و ممیزی تکثیر و پرورش","بازدید مراکز تکثیر و پرورش","بازدید مرکز تکثیر و پرورش من","پروفایل","مدیریت مشخصات ژنتیکی مولد"] },
   { id:28, name:"مدیریت کارخانه", position:"تخصصی", status:"آماده پیاده‌سازی", pages:["سیستم‌های ایمنی کارخانه","گزارش سیستم‌های ایمنی","گزارشات تولید من","گزارشات تولید کارخانه‌ها","پروفایل","بازدید خطوط تولید من","درخواست‌های تولید کسب‌وکارها","فرآیندهای تولید کسب‌وکارها","مدیریت درخواست‌های تولید","پذیرش درخواست تولید","ثبت درخواست تولید","فرآیندهای تولید من"] },
   { id:29, name:"مدیریت سردخانه", position:"تخصصی", status:"آماده پیاده‌سازی", pages:["گزارش سیستم‌های سردخانه","گزارش سردخانه‌های کسب‌وکارها","گزارش سردخانه","سیستم‌های سردخانه","تأیید حواله‌های دریافتی","حواله‌های خروج","حواله‌های ورود","سردخانه من","فرآیندهای کنترل و ممیزی سردخانه","بازدید سردخانه من","بازدید سردخانه‌ها","کارکردهای سردخانه","گزارش سردخانه‌های من"] },
-  { id:30, name:"مدیریت بازسازی ذخایر", position:"تخصصی", status:"تست‌شده", pages:["گزارش بازسازی ذخایر کل","گزارش کسب‌وکار بازسازی ذخایر من","پایش سابقه شناورها","پایش شناورها","گزارش بازسازی ذخایر کسب‌وکارها","گزارش شناورها","گزارش بازسازی ذخایر زیستگاه‌ها","بازسازی ذخایر از خشکی","دستگاه‌های موقعیت‌یاب","گزارش بازسازی ذخایر من","سوابق سفرهای زیستگاه","سفرهای جاری زیستگاه","مدیریت شناور","وضعیت آب‌وهوا","بازدید از صیدگاه‌ها و زیستگاه‌ها","بازدید از زیستگاه‌های من","بازدید از صیدگاه‌های من","بازدید از صیدگاه‌ها و زیستگاه‌های من","بازدید شناورها","بازدید از شناورهای من","فصل رها‌سازی زیستگاه‌ها","فصل بازسازی ذخایر","پروفایل","تجهیزات بازسازی ذخایر من","چرخه سفر بازسازی ذخایر","همه شناورها","شناورهای من","انواع شناور","زیستگاه‌ها","صیدگاه‌ها","روش‌های بازسازی ذخایر","مناطق صیادی و زیستگاهی","حواله‌ دریافتی"] },
+  { id:30, name:"مدیریت بازسازی ذخایر", position:"تخصصی", status:"تست‌شده", pages:["گزارش بازسازی ذخایر کل","گزارش کسب‌وکار بازسازی ذخایر من","پایش سابقه شناورها","پایش شناورها","گزارش بازسازی ذخایر کسب‌وکارها","گزارش شناورها","گزارش بازسازی ذخایر زیستگاه‌ها","بازسازی ذخایر از خشکی","دستگاه‌های موقعیت‌یاب","گزارش بازسازی ذخایر من","سوابق سفرهای زیستگاه","سفرهای جاری زیستگاه","مدیریت شناور","وضعیت آب‌وهوا","بازدید از صیدگاه‌ها و زیستگاه‌ها","بازدید از زیستگاه‌های من","بازدید از صیدگاه‌های من","بازدید از صیدگاه‌ها و زیستگاه‌های من","بازدید شناورها","بازدید از شناورهای من","فصل رها‌سازی زیستگاه‌ها","فصل بازسازی ذخایر","پروفایل","تجهیزات بازسازی ذخایر من","چرخه سفر بازسازی ذخایر","همه شناورها","شناورهای من","انواع شناور","زیستگاه‌ها","صیدگاه‌ها","روش‌های بازسازی ذخایر","مناطق صیادی و زیستگاهی"] },
   { id:31, name:"مدیریت صید آبزیان", position:"تخصصی", status:"تست‌شده", pages:["گزارش کسب‌وکار صیادی من","گزارش صید کل","پایش سابقه شناورها","پایش شناورها","گزارش صید کسب‌وکارها","گزارش شناورها","گزارش صید صیدگاه‌ها","گزارش صید من","صید از خشکی","دستگاه‌های موقعیت‌یاب","سوابق سفرهای صیدگاه","سفرهای جاری صیدگاه","مدیریت شناور","وضعیت آب‌وهوا","بازدید از صیدگاه‌ها","بازدید از صیدگاه‌های من","بازدید شناورها","بازدید شناورهای من","فصل صید صیدگاه‌ها","فصل صید","پروفایل","تجهیزات صید من","چرخه سفر صیادی","همه شناورها","شناورهای من","انواع شناور","صیدگاه‌ها","مناطق صیادی و زیستگاهی","روش‌های صید"] },
   { id:32, name:"مدیریت تخلیه و بارگیری (بندرگاه)", position:"تخصصی", status:"نهایی‌شده", pages:["گزارش تخلیه","گزارش بارگیری","بندرگاه‌های مجاز کسب‌وکارها","بازدید از بندرگاه‌ها","بازدید از بندرگاه من","تخلیه و بارگیری در بندرگاه‌ها","تخلیه و بارگیری در بندرگاه من","سفرهای برنامه‌ریزی‌شده بندرگاه‌ها","سفرهای برنامه‌ریزی‌شده بندرگاه من","وضعیت لحظه‌ای بندرگاه","عملیات بندرگاه‌ها","عملیات بندرگاه من","شناورهای بندرگاه‌ها","شناورهای بندرگاه من","بندرگاه‌های مجاز به تردد","بندرگاه من","بندرگاه‌ها","انواع بندرگاه","مؤلفه‌های بندرگاه"] },
   { id:33, name:"مدیریت توزیع", position:"تخصصی", status:"آماده پیاده‌سازی", pages:["سفارشات من","تراکنش‌های جاری حمل‌ونقل","گزارش توزیع","فرآیندهای کنترل و ممیزی توزیع","بازدید از فروشگاه‌ها","بازدید از فروشگاه من","تأیید پروفایل فروشگاه زنجیره‌ای","پروفایل","مشتریان منتخب من","تأمین‌کنندگان منتخب من","گزارش فروش کل","گزارش فروش","محصولات مجاز من","ثبت اطلاعات فروش","گزارش نظرسنجی‌ها","تنظیمات","موجودی محصولات"] },
@@ -407,13 +406,13 @@ const PAGE_GAP = 10;
 const CLUSTER_PAD = 25;
 const CLUSTER_GAP_X = 60;
 const CLUSTER_GAP_Y = 120;
-const MAX_COLS = 7;
+const MAX_COLS = 4;
 
 const FIXED_CLUSTER_WIDTH = 1200;
 
 const state = {
   pan: { x: 50, y: 50 },
-  zoom: 0.31,
+  zoom: 0.8,
   connections: [],
   progress: {},
   selectedNode: null,
@@ -423,6 +422,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
+// کلید ذخیره‌سازی دست‌نخورده باقی مانده تا داده‌های شما پاک نشود
 const LS_KEY = "module-map-state-v31";
 
 function saveState() {
@@ -462,7 +462,7 @@ function loadState() {
    ============================================================ */
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
-  const maxPerCol = 8; 
+  const maxPerCol = 5; 
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
   const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 40;
@@ -771,7 +771,6 @@ function edgePoint(node, towardX, towardY) {
   return { x: cx + dx*scale, y: cy + dy*scale };
 }
 
-// تابع جدید برای رسم مسیر ارتوگونال (بدون تداخل با کارت‌ها)
 function connectionPath(fromKey, toKey, idx) {
   const a = nodePositions[fromKey], b = nodePositions[toKey];
   if (!a || !b) return "";
@@ -784,10 +783,8 @@ function connectionPath(fromKey, toKey, idx) {
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
   
-  // آفست برای جلوگیری از روی هم افتادن خطوط موازی
   const offset = (idx % 5 - 2) * 12;
   
-  // اگر فاصله افقی بیشتر است، خط را از فضای خالی بین ستون‌ها عبور می‌دهیم
   if (Math.abs(dx) > Math.abs(dy)) {
     const midX = p1.x + dx / 2 + offset;
     const r = Math.min(25, Math.abs(dy) / 2, Math.abs(midX - p1.x), Math.abs(p2.x - midX));
@@ -805,7 +802,6 @@ function connectionPath(fromKey, toKey, idx) {
             Q ${midX} ${p2.y} ${midX + dir1 * r} ${p2.y}
             L ${p2.x} ${p2.y}`;
   } else {
-    // اگر فاصله عمودی بیشتر است، از فضای خالی بین ردیف‌ها عبور می‌دهیم
     const midY = p1.y + dy / 2 + offset;
     const r = Math.min(25, Math.abs(dx) / 2, Math.abs(midY - p1.y), Math.abs(p2.y - midY));
     const dir1 = dy > 0 ? 1 : -1;
@@ -845,7 +841,6 @@ function renderConnections() {
     
     const pathD = connectionPath(conn.from, conn.to, idx);
     
-    // محاسبه نقطه وسط برای قرار دادن دکمه‌ها
     const acx = a.x + a.w/2, acy = a.y + a.h/2;
     const bcx = b.x + b.w/2, bcy = b.y + b.h/2;
     const midX = (acx + bcx) / 2;
@@ -865,11 +860,11 @@ function renderConnections() {
       path.setAttribute("marker-end", "url(#arrow-one)");
     }
 
+    // خط نامرئی ضخیم (80px) برای گیرایی راحت موس
     const hitbox = document.createElementNS("http://www.w3.org/2000/svg", "path");
     hitbox.setAttribute("d", pathD);
     hitbox.setAttribute("class", "hitbox");
 
-    // فاصله دکمه‌ها از هم و از خط
     const btnOffsetY = (idx % 2 === 0) ? -20 : 20; 
     
     const btnWrap = document.createElement("div");
@@ -919,17 +914,25 @@ function renderConnections() {
         if (!btnWrap.matches(':hover')) {
           btnWrap.classList.remove("visible");
         }
-      }, 150);
+      }, 200); 
     };
 
+    // فعال‌سازی رویدادها روی خط اصلی و خط نامرئی
+    path.addEventListener("mouseenter", showButtons);
+    path.addEventListener("mouseleave", hideButtons);
+    
     hitbox.addEventListener("mouseenter", showButtons);
     hitbox.addEventListener("mouseleave", hideButtons);
-    hitbox.addEventListener("click", (e) => {
+    
+    // تغییر نوع با کلیک روی هر جای خط
+    const toggleType = (e) => {
       e.stopPropagation();
       conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way';
       saveState();
       renderConnections();
-    });
+    };
+    path.addEventListener("click", toggleType);
+    hitbox.addEventListener("click", toggleType);
 
     btnWrap.addEventListener("mouseenter", () => clearTimeout(hideTimeout));
     btnWrap.addEventListener("mouseleave", hideButtons);
@@ -971,7 +974,6 @@ function startConnection(fromKey) {
     const worldY = (e.clientY - rect.top - state.pan.y) / state.zoom;
     const p1 = edgePoint(fromNode, worldX, worldY);
     
-    // در حین کشیدن، از یک منحنی ساده استفاده می‌کنیم
     const dx = worldX - p1.x, dy = worldY - p1.y;
     const dist = Math.sqrt(dx*dx+dy*dy) || 1;
     const curv = Math.min(dist*0.15, 40);
@@ -1191,15 +1193,15 @@ function showToast(msg) {
 function init() {
   loadState();
   if(!localStorage.getItem(LS_KEY + "_v31")) {
-    state.zoom = 0.31;
+    state.zoom = 0.8;
     localStorage.setItem(LS_KEY + "_v31", "true");
   }
   
   buildWorld();
   applyTransform(true);
- /* ============================================================
- # fitView();#
-   ============================================================ */
+ /*
+ fitView();
+ */
   setTimeout(() => document.getElementById("hint").classList.add("hidden"), 8000);
 }
 
