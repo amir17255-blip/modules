@@ -216,7 +216,7 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 550px !important; 
+    width: 650px !important; /* عرض را به 650 افزایش دادیم تا متن 42 پیکسلی راحت جا شود */
     height: 320px !important; 
     transform: translate(-50%, -50%); 
     background: #1c2531; 
@@ -372,7 +372,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v22";
+const LS_KEY = "module-map-state-v23";
 
 function saveState() {
   try {
@@ -424,19 +424,23 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const { maxPerCol } = info;
   const pagesPerSide = Math.ceil(numPages / 2);
   
+  // عرض کارت در حالت زوم اوت 650 و در حالت عادی 260 است
+  const cardW = isZoomedOut ? 650 : MODULE_W; 
+  const halfCardW = cardW / 2;
+  
   const centerX = clusterW / 2;
   
-  // در حالت زوم اوت، عرض کارت 550 است. بنابراین لبه‌های کارت از مرکز 275 پیکسل فاصله دارند.
-  // برای اینکه صفحات از لبه کارت فاصله بگیرند، 50 پیکسل دیگر به آن اضافه می‌کنیم (جمعاً 325).
-  // در حالت عادی عرض 260 است، لبه‌ها 130 فاصله دارند، 10 پیکسل فاصله اضافه (جمعاً 140).
-  const offsetFromCenter = isZoomedOut ? 325 : 140; 
+  // فاصله ایمن بین لبه کارت و شروع صفحات
+  const gap = isZoomedOut ? 60 : 10;
+  const offset = halfCardW + gap;
   
   // چیدن سمت چپ
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
     
-    const x = centerX - offsetFromCenter - (colIdx + 1) * (PAGE_W + PAGE_GAP) + PAGE_GAP;
+    // محاسبه X دقیق از لبه چپ کارت
+    const x = centerX - offset - (colIdx + 1) * PAGE_W - colIdx * PAGE_GAP;
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
@@ -447,7 +451,8 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(localI / maxPerCol);
     const rowIdx = localI % maxPerCol;
     
-    const x = centerX + offsetFromCenter + colIdx * (PAGE_W + PAGE_GAP);
+    // محاسبه X دقیق از لبه راست کارت
+    const x = centerX + offset + colIdx * (PAGE_W + PAGE_GAP);
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
@@ -1000,9 +1005,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v22")) {
+  if(!localStorage.getItem(LS_KEY + "_v23")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v22", "true");
+    localStorage.setItem(LS_KEY + "_v23", "true");
   }
   
   buildWorld();
