@@ -66,7 +66,7 @@
     will-change: transform; backface-visibility: hidden;
   }
 
-  /* ===== SVG (فقط برای خطوط) ===== */
+  /* ===== SVG ===== */
   #svg-layer {
     position: absolute; top: 0; left: 0; overflow: visible;
     pointer-events: none; z-index: 1;
@@ -82,7 +82,7 @@
     fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
 
-  /* ===== Buttons Layer (برای دکمه‌های وسط فلش) ===== */
+  /* ===== Buttons Layer ===== */
   #buttons-layer {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 100;
@@ -92,7 +92,13 @@
     position: absolute;
     display: flex; gap: 6px;
     transform: translate(-50%, -50%);
+    pointer-events: none; /* غیرفعال تا زمانی که ظاهر شود */
+    opacity: 0;           /* پنهان به صورت پیش‌فرض */
+    transition: opacity 0.2s ease;
+  }
+  .conn-btn-wrap.visible {
     pointer-events: auto;
+    opacity: 1;
   }
 
   .conn-btn {
@@ -252,8 +258,8 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 250px !important; 
-    height: 300px !important; 
+    width: 650px !important; 
+    height: 320px !important; 
     transform: translate(-50%, -50%); 
     background: #1c2531; 
     border-color: #475569;
@@ -409,7 +415,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v27";
+const LS_KEY = "module-map-state-v28";
 
 function saveState() {
   try {
@@ -821,8 +827,6 @@ function renderConnections() {
     });
     svgLayer.appendChild(path);
 
-    // --- ساخت دکمه‌های HTML روی لایه مجزا ---
-    // برای جلوگیری از روی هم افتادن، یک آفست عمودی بر اساس ایندکس ارتباط ایجاد می‌کنیم
     const offsetY = (idx % 2 === 0) ? -15 : 15;
     
     const btnWrap = document.createElement("div");
@@ -830,12 +834,11 @@ function renderConnections() {
     btnWrap.style.left = mid.x + "px";
     btnWrap.style.top = (mid.y + offsetY) + "px";
     
-    // دکمه تغییر نوع
     const btnToggle = document.createElement("div");
     btnToggle.className = "conn-btn";
     btnToggle.textContent = conn.type === 'two-way' ? '⇄' : '➔';
     btnToggle.title = "تغییر نوع ارتباط";
-    btnToggle.addEventListener("mousedown", (e) => e.stopPropagation()); // جلوگیری از پن
+    btnToggle.addEventListener("mousedown", (e) => e.stopPropagation());
     btnToggle.addEventListener("click", (e) => {
       e.stopPropagation();
       conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way';
@@ -843,12 +846,11 @@ function renderConnections() {
       renderConnections();
     });
     
-    // دکمه حذف
     const btnDelete = document.createElement("div");
     btnDelete.className = "conn-btn btn-delete";
     btnDelete.textContent = '✕';
     btnDelete.title = "حذف ارتباط";
-    btnDelete.addEventListener("mousedown", (e) => e.stopPropagation()); // جلوگیری از پن
+    btnDelete.addEventListener("mousedown", (e) => e.stopPropagation());
     btnDelete.addEventListener("click", (e) => {
       e.stopPropagation();
       state.connections = state.connections.filter(c => c.id !== conn.id);
@@ -861,6 +863,29 @@ function renderConnections() {
     btnWrap.appendChild(btnToggle);
     btnWrap.appendChild(btnDelete);
     buttonsLayer.appendChild(btnWrap);
+
+    // منطق نمایش دکمه‌ها با رفتن موس روی خط یا خود دکمه
+    let hideTimeout;
+    path.addEventListener("mouseenter", () => {
+      clearTimeout(hideTimeout);
+      btnWrap.classList.add("visible");
+    });
+    path.addEventListener("mouseleave", () => {
+      hideTimeout = setTimeout(() => {
+        if (!btnWrap.matches(':hover')) {
+          btnWrap.classList.remove("visible");
+        }
+      }, 150);
+    });
+    btnWrap.addEventListener("mouseenter", () => {
+      clearTimeout(hideTimeout);
+      btnWrap.classList.add("visible");
+    });
+    btnWrap.addEventListener("mouseleave", () => {
+      hideTimeout = setTimeout(() => {
+        btnWrap.classList.remove("visible");
+      }, 150);
+    });
   });
   
   updateSvgSize();
@@ -1113,9 +1138,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v27")) {
+  if(!localStorage.getItem(LS_KEY + "_v28")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v27", "true");
+    localStorage.setItem(LS_KEY + "_v28", "true");
   }
   
   buildWorld();
