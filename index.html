@@ -73,13 +73,21 @@
   }
   #svg-layer path.connection {
     fill: none; stroke: #38bdf8; stroke-width: 3; stroke-linecap: round;
-    pointer-events: stroke; cursor: pointer; transition: all 0.2s;
+    pointer-events: none; /* کلیک‌ها توسط خط نامرئی گرفته می‌شود */
+    transition: all 0.2s;
   }
-  #svg-layer path.connection:hover { stroke: #f87171; stroke-width: 4.5; }
+  #svg-layer path.connection.hovered { stroke: #fbbf24; stroke-width: 4.5; }
   #svg-layer path.connection.dim { opacity: 0.1; }
   #svg-layer path.connection.highlight { stroke: #fbbf24; stroke-width: 4; opacity: 1; }
+  
   #svg-layer path.temp {
     fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
+  }
+  
+  /* خط نامرئی برای افزایش گیرایی موس */
+  #svg-layer path.hitbox {
+    fill: none; stroke: transparent; stroke-width: 30;
+    pointer-events: stroke; cursor: pointer;
   }
 
   /* ===== Buttons Layer ===== */
@@ -90,7 +98,7 @@
 
   .conn-btn-wrap {
     position: absolute;
-    display: flex; gap: 6px;
+    display: flex; gap: 8px;
     transform: translate(-50%, -50%);
     pointer-events: none; /* غیرفعال تا زمانی که ظاهر شود */
     opacity: 0;           /* پنهان به صورت پیش‌فرض */
@@ -102,16 +110,16 @@
   }
 
   .conn-btn {
-    width: 26px; height: 26px;
+    width: 32px; height: 32px;
     border-radius: 50%;
     background: #1e293b;
     border: 2px solid #38bdf8;
     color: #e6e6e6;
     display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: bold; font-family: Tahoma;
+    font-size: 16px; font-weight: bold; font-family: Tahoma;
     cursor: pointer;
     transition: all 0.15s;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
   }
   .conn-btn:hover {
     transform: scale(1.15);
@@ -415,7 +423,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v28";
+const LS_KEY = "module-map-state-v29";
 
 function saveState() {
   try {
@@ -820,14 +828,12 @@ function renderConnections() {
       path.setAttribute("marker-end", "url(#arrow-one)");
     }
 
-    path.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (state.selectedNode) applyHighlight(state.selectedNode);
-      else clearSelection();
-    });
-    svgLayer.appendChild(path);
+    // خط نامرئی برای افزایش گیرایی موس
+    const hitbox = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    hitbox.setAttribute("d", pathD);
+    hitbox.setAttribute("class", "hitbox");
 
-    const offsetY = (idx % 2 === 0) ? -15 : 15;
+    const offsetY = (idx % 2 === 0) ? -18 : 18; // کمی فاصله برای جلوگیری از تداخل دکمه‌ها در خطوط موازی
     
     const btnWrap = document.createElement("div");
     btnWrap.className = "conn-btn-wrap";
@@ -864,28 +870,38 @@ function renderConnections() {
     btnWrap.appendChild(btnDelete);
     buttonsLayer.appendChild(btnWrap);
 
-    // منطق نمایش دکمه‌ها با رفتن موس روی خط یا خود دکمه
     let hideTimeout;
-    path.addEventListener("mouseenter", () => {
+    const showButtons = () => {
       clearTimeout(hideTimeout);
+      path.classList.add("hovered");
       btnWrap.classList.add("visible");
-    });
-    path.addEventListener("mouseleave", () => {
+    };
+    const hideButtons = () => {
+      path.classList.remove("hovered");
       hideTimeout = setTimeout(() => {
         if (!btnWrap.matches(':hover')) {
           btnWrap.classList.remove("visible");
         }
       }, 150);
+    };
+
+    // اضافه کردن رویدادها به خط نامرئی
+    hitbox.addEventListener("mouseenter", showButtons);
+    hitbox.addEventListener("mouseleave", hideButtons);
+    hitbox.addEventListener("click", (e) => {
+      e.stopPropagation();
+      // کلیک روی خط باعث تغییر نوع ارتباط می‌شود
+      conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way';
+      saveState();
+      renderConnections();
     });
-    btnWrap.addEventListener("mouseenter", () => {
-      clearTimeout(hideTimeout);
-      btnWrap.classList.add("visible");
-    });
-    btnWrap.addEventListener("mouseleave", () => {
-      hideTimeout = setTimeout(() => {
-        btnWrap.classList.remove("visible");
-      }, 150);
-    });
+
+    // اضافه کردن رویدادها به خود دکمه‌ها
+    btnWrap.addEventListener("mouseenter", () => clearTimeout(hideTimeout));
+    btnWrap.addEventListener("mouseleave", hideButtons);
+
+    svgLayer.appendChild(path);
+    svgLayer.appendChild(hitbox);
   });
   
   updateSvgSize();
@@ -1050,7 +1066,7 @@ window.addEventListener("mousemove", (e) => {
   if (!isPanning) return;
   state.pan.x = panStart.panX + (e.clientX - panStart.x);
   state.pan.y = panStart.panY + (e.clientY - panStart.y);
-  applyTransform(false); // فقط ترنسفورم را تغییر بده، دوباره رندر نکن
+  applyTransform(false); 
 });
 
 window.addEventListener("mouseup", () => {
@@ -1066,7 +1082,7 @@ canvas.addEventListener("wheel", (e) => {
   state.zoom = newZoom;
   state.pan.x = mx - worldX * newZoom;
   state.pan.y = my - worldY * newZoom;
-  applyTransform(true); // در زوم، رندر کن
+  applyTransform(true); 
   saveState();
 }, { passive: false });
 
@@ -1138,9 +1154,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v28")) {
+  if(!localStorage.getItem(LS_KEY + "_v29")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v28", "true");
+    localStorage.setItem(LS_KEY + "_v29", "true");
   }
   
   buildWorld();
