@@ -82,6 +82,22 @@
     fill: none; stroke: #fbbf24; stroke-width: 2; stroke-dasharray: 6 4; pointer-events: none;
   }
 
+  /* استایل دکمه‌های وسط فلش */
+  .conn-btn-group { pointer-events: all; }
+  .conn-btn-group circle {
+    fill: #1e293b; stroke: #475569; stroke-width: 1.5;
+    transition: all 0.2s; cursor: pointer;
+  }
+  .conn-btn-group circle:hover { fill: #334155; stroke: #94a3b8; }
+  .conn-btn-group text {
+    fill: #cbd5e1; font-size: 10px; font-family: Tahoma;
+    text-anchor: middle; dominant-baseline: central;
+    pointer-events: none; font-weight: bold;
+  }
+  .conn-btn-delete circle { fill: #451a1a; stroke: #7f1d1d; }
+  .conn-btn-delete circle:hover { fill: #7f1d1d; stroke: #f87171; }
+  .conn-btn-delete text { fill: #fca5a5; }
+
   /* ===== Module Cluster ===== */
   .module-cluster {
     position: absolute; transition: opacity 0.3s, box-shadow 0.2s; z-index: 10;
@@ -216,8 +232,8 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 250px !important; /* عرض را به 650 افزایش دادیم تا متن 42 پیکسلی راحت جا شود */
-    height: 300px !important; 
+    width: 650px !important; /* عرض را اصلاح کردیم */
+    height: 320px !important; 
     transform: translate(-50%, -50%); 
     background: #1c2531; 
     border-color: #475569;
@@ -372,7 +388,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v23";
+const LS_KEY = "module-map-state-v24";
 
 function saveState() {
   try {
@@ -390,7 +406,10 @@ function loadState() {
     const s = JSON.parse(raw);
     if (s.pan) state.pan = s.pan;
     if (typeof s.zoom === "number") state.zoom = s.zoom;
-    if (Array.isArray(s.connections)) state.connections = s.connections;
+    if (Array.isArray(s.connections)) {
+      // افزودن نوع پیش‌فرض به اتصالات قدیمی
+      state.connections = s.connections.map(c => ({ ...c, type: c.type || 'one-way' }));
+    }
     if (s.progress) state.progress = s.progress;
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
@@ -424,34 +443,25 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const { maxPerCol } = info;
   const pagesPerSide = Math.ceil(numPages / 2);
   
-  // عرض کارت در حالت زوم اوت 650 و در حالت عادی 260 است
   const cardW = isZoomedOut ? 650 : MODULE_W; 
   const halfCardW = cardW / 2;
   
   const centerX = clusterW / 2;
-  
-  // فاصله ایمن بین لبه کارت و شروع صفحات
   const gap = isZoomedOut ? 60 : 10;
   const offset = halfCardW + gap;
   
-  // چیدن سمت چپ
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
-    
-    // محاسبه X دقیق از لبه چپ کارت
     const x = centerX - offset - (colIdx + 1) * PAGE_W - colIdx * PAGE_GAP;
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   
-  // چیدن سمت راست
   for (let i = pagesPerSide; i < numPages; i++) {
     const localI = i - pagesPerSide;
     const colIdx = Math.floor(localI / maxPerCol);
     const rowIdx = localI % maxPerCol;
-    
-    // محاسبه X دقیق از لبه راست کارت
     const x = centerX + offset + colIdx * (PAGE_W + PAGE_GAP);
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
@@ -724,43 +734,125 @@ function edgePoint(node, towardX, towardY) {
   return { x: cx + dx*scale, y: cy + dy*scale };
 }
 
-function connectionPath(fromKey, toKey) {
-  const a = nodePositions[fromKey], b = nodePositions[toKey];
-  if (!a || !b) return "";
-  const acx = a.x + a.w/2, acy = a.y + a.h/2;
-  const bcx = b.x + b.w/2, bcy = b.y + b.h/2;
-  const p1 = edgePoint(a, bcx, bcy), p2 = edgePoint(b, acx, acy);
-  
-  const dx = p2.x - p1.x, dy = p2.y - p1.y;
-  const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-  const curv = Math.min(dist * 0.15, 40); 
-  const mx = (p1.x + p2.x)/2, my = (p1.y + p2.y)/2;
-  const nx = -dy/dist, ny = dx/dist;
-  
-  return `M ${p1.x} ${p1.y} C ${mx+nx*curv} ${my+ny*curv}, ${mx-nx*curv} ${my-ny*curv}, ${p2.x} ${p2.y}`;
+function getBezierMidpoint(p1, c1, c2, p2) {
+  const t = 0.5, mt = 1 - t;
+  return {
+    x: mt*mt*mt*p1.x + 3*mt*mt*t*c1.x + 3*mt*t*t*c2.x + t*t*t*p2.x,
+    y: mt*mt*mt*p1.y + 3*mt*mt*t*c1.y + 3*mt*t*t*c2.y + t*t*t*p2.y
+  };
 }
 
 function renderConnections() {
-  svgLayer.querySelectorAll("path.connection").forEach(p => p.remove());
+  svgLayer.innerHTML = "";
+  
+  // تعریف مارکرهای فلش در SVG
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  defs.innerHTML = `
+    <marker id="arrow-one" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
+    </marker>
+    <marker id="arrow-two" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
+    </marker>
+  `;
+  svgLayer.appendChild(defs);
+
   state.connections.forEach(conn => {
-    if (!nodePositions[conn.from] || !nodePositions[conn.to]) return;
+    const a = nodePositions[conn.from], b = nodePositions[conn.to];
+    if (!a || !b) return;
+    
+    const acx = a.x + a.w/2, acy = a.y + a.h/2;
+    const bcx = b.x + b.w/2, bcy = b.y + b.h/2;
+    const p1 = edgePoint(a, bcx, bcy), p2 = edgePoint(b, acx, acy);
+    
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+    const curv = Math.min(dist * 0.15, 40); 
+    const mx = (p1.x + p2.x)/2, my = (p1.y + p2.y)/2;
+    const nx = -dy/dist, ny = dx/dist;
+    
+    const c1x = mx + nx*curv, c1y = my + ny*curv;
+    const c2x = mx - nx*curv, c2y = my - ny*curv;
+    
+    const pathD = `M ${p1.x} ${p1.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
+    const mid = getBezierMidpoint(p1, {x: c1x, y: c1y}, {x: c2x, y: c2y}, p2);
+    
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    group.setAttribute("class", "connection-group");
+    
+    // مسیر منحنی
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("class", "connection");
-    path.setAttribute("d", connectionPath(conn.from, conn.to));
+    path.setAttribute("d", pathD);
     path.dataset.connId = conn.id;
     path.dataset.from = conn.from;
     path.dataset.to = conn.to;
+    
+    // اعمال مارکر (نوک فلش) بر اساس نوع ارتباط
+    if (conn.type === 'two-way') {
+      path.setAttribute("marker-start", "url(#arrow-two)");
+      path.setAttribute("marker-end", "url(#arrow-two)");
+    } else {
+      path.setAttribute("marker-end", "url(#arrow-one)");
+    }
+
     path.addEventListener("click", (e) => {
       e.stopPropagation();
-      if (confirm("این اتصال حذف شود؟")) {
-        state.connections = state.connections.filter(c => c.id !== conn.id);
-        saveState(); renderConnections();
-        if (state.selectedNode) applyHighlight(state.selectedNode);
-        else clearSelection();
-      }
+      if (state.selectedNode) applyHighlight(state.selectedNode);
+      else clearSelection();
     });
-    svgLayer.appendChild(path);
+    
+    // دکمه تغییر نوع (چپ)
+    const toggleGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    toggleGroup.setAttribute("class", "conn-btn-group");
+    toggleGroup.setAttribute("transform", `translate(${mid.x - 14}, ${mid.y}) scale(${1/state.zoom})`);
+    
+    const toggleCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    toggleCircle.setAttribute("r", "10");
+    
+    const toggleText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    toggleText.textContent = conn.type === 'two-way' ? '⇄' : '➔';
+    
+    toggleGroup.appendChild(toggleCircle);
+    toggleGroup.appendChild(toggleText);
+    
+    toggleGroup.addEventListener("click", (e) => {
+      e.stopPropagation();
+      conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way';
+      saveState();
+      renderConnections();
+    });
+    
+    // دکمه حذف (راست)
+    const delGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    delGroup.setAttribute("class", "conn-btn-group conn-btn-delete");
+    delGroup.setAttribute("transform", `translate(${mid.x + 14}, ${mid.y}) scale(${1/state.zoom})`);
+    
+    const delCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    delCircle.setAttribute("r", "10");
+    
+    const delText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    delText.textContent = '✕';
+    
+    delGroup.appendChild(delCircle);
+    delGroup.appendChild(delText);
+    
+    delGroup.addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.connections = state.connections.filter(c => c.id !== conn.id);
+      saveState();
+      renderConnections();
+      if (state.selectedNode) applyHighlight(state.selectedNode);
+      else clearSelection();
+    });
+    
+    group.appendChild(path);
+    group.appendChild(toggleGroup);
+    group.appendChild(delGroup);
+    
+    svgLayer.appendChild(group);
   });
+  
   updateSvgSize();
 }
 
@@ -808,7 +900,8 @@ function startConnection(fromKey) {
       if (targetNode && targetNode.dataset.nodeKey !== fromKey) {
         const toKey = targetNode.dataset.nodeKey;
         if (!state.connections.some(c => (c.from===fromKey && c.to===toKey) || (c.from===toKey && c.to===fromKey))) {
-          state.connections.push({ id: state.nextConnId++, from: fromKey, to: toKey });
+          // نوع پیش‌فرض ارتباط جدید: یک طرفه
+          state.connections.push({ id: state.nextConnId++, from: fromKey, to: toKey, type: 'one-way' });
           saveState(); renderConnections();
           if (state.selectedNode) applyHighlight(state.selectedNode);
           showToast("اتصال ساخته شد ✅");
@@ -1005,9 +1098,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v23")) {
+  if(!localStorage.getItem(LS_KEY + "_v24")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v23", "true");
+    localStorage.setItem(LS_KEY + "_v24", "true");
   }
   
   buildWorld();
