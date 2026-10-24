@@ -216,10 +216,14 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 550px !important; /* افزایش عرض برای جا دادن نام‌های طولانی */
+    width: 550px !important; 
     height: 320px !important; 
     transform: translate(-50%, -50%); 
-    background: #1c2531; border-color: #475569;
+    background: #1c2531; 
+    border-color: #475569;
+    /* مهم: کارت باید دقیقاً در مرکز خوشه (نه مرکز خودش) باشد */
+    left: 50%; 
+    top: 50%;
   }
   body.zoomed-out .module-title {
     font-size: 42px; /* کمی کوچک‌تر برای طولانی‌ترین اسم‌ها */
@@ -417,42 +421,41 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const positions = [];
   if (numPages === 0) return positions;
   
-  const { colsPerSide, maxPerCol } = info;
-  
-  // 1. عرض دقیق کارت در هر دو حالت (زوم اوت و عادی)
-  const currentCardW = isZoomedOut ? 550 : MODULE_W; 
-  
-  // 2. محاسبه دقیق لبه‌های چپ و راست کارت
-  const cardLeftEdge = (clusterW - currentCardW) / 2;
-  const cardRightEdge = cardLeftEdge + currentCardW;
-  
-  // 3. فاصله‌ی صفحه‌ها از لبه‌ی کارت (در زوم اوت 100px و در حالت عادی 10px)
-  const gapFromCard = isZoomedOut ? 100 : 10; 
+  const { maxPerCol } = info;
   const pagesPerSide = Math.ceil(numPages / 2);
   
-  // چیدن سمت چپ: شروع از لبه‌ی چپ کارت به سمت بیرون
+  // پیدا کردن مرکز افقی خوشه
+  const centerX = clusterW / 2;
+  
+  // در حالت زوم اوت، فاصله شروع صفحات از مرکز را 320 پیکسل می‌گیریم
+  // (نصف عرض کارت 275 + فاصله 45 پیکسلی)
+  // در حالت عادی این فاصله 140 است (نصف عرض 130 + فاصله 10)
+  const offsetFromCenter = isZoomedOut ? 320 : 140; 
+  
+  // چیدن سمت چپ
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
-    // محاسبه X بر اساس لبه‌ی چپ
-    const x = cardLeftEdge - gapFromCard - (colIdx + 1) * (PAGE_W + PAGE_GAP) + PAGE_GAP;
+    
+    // محاسبه X از مرکز به سمت چپ
+    const x = centerX - offsetFromCenter - (colIdx + 1) * (PAGE_W + PAGE_GAP) + PAGE_GAP;
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   
-  // چیدن سمت راست: شروع از لبه‌ی راست کارت به سمت بیرون
+  // چیدن سمت راست
   for (let i = pagesPerSide; i < numPages; i++) {
     const localI = i - pagesPerSide;
     const colIdx = Math.floor(localI / maxPerCol);
     const rowIdx = localI % maxPerCol;
-    // محاسبه X بر اساس لبه‌ی راست
-    const x = cardRightEdge + gapFromCard + colIdx * (PAGE_W + PAGE_GAP);
+    
+    // محاسبه X از مرکز به سمت راست
+    const x = centerX + offsetFromCenter + colIdx * (PAGE_W + PAGE_GAP);
     const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   return positions;
 }
-
 /* ============================================================
    BUILD WORLD
    ============================================================ */
