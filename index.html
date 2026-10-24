@@ -84,9 +84,9 @@
     fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
   
-  /* خط نامرئی برای افزایش گیرایی موس */
+  /* خط نامرئی با ضخامت 60 پیکسل برای گیرایی بالای موس */
   #svg-layer path.hitbox {
-    fill: none; stroke: transparent; stroke-width: 30;
+    fill: none; stroke: transparent; stroke-width: 60;
     pointer-events: stroke; cursor: pointer;
   }
 
@@ -423,7 +423,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v29";
+const LS_KEY = "module-map-state-v31";
 
 function saveState() {
   try {
@@ -771,12 +771,57 @@ function edgePoint(node, towardX, towardY) {
   return { x: cx + dx*scale, y: cy + dy*scale };
 }
 
-function getBezierMidpoint(p1, c1, c2, p2) {
-  const t = 0.5, mt = 1 - t;
-  return {
-    x: mt*mt*mt*p1.x + 3*mt*mt*t*c1.x + 3*mt*t*t*c2.x + t*t*t*p2.x,
-    y: mt*mt*mt*p1.y + 3*mt*mt*t*c1.y + 3*mt*t*t*c2.y + t*t*t*p2.y
-  };
+// تابع جدید برای رسم مسیر ارتوگونال (بدون تداخل با کارت‌ها)
+function connectionPath(fromKey, toKey, idx) {
+  const a = nodePositions[fromKey], b = nodePositions[toKey];
+  if (!a || !b) return "";
+  
+  const acx = a.x + a.w/2, acy = a.y + a.h/2;
+  const bcx = b.x + b.w/2, bcy = b.y + b.h/2;
+  const p1 = edgePoint(a, bcx, bcy);
+  const p2 = edgePoint(b, acx, acy);
+  
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  
+  // آفست برای جلوگیری از روی هم افتادن خطوط موازی
+  const offset = (idx % 5 - 2) * 12;
+  
+  // اگر فاصله افقی بیشتر است، خط را از فضای خالی بین ستون‌ها عبور می‌دهیم
+  if (Math.abs(dx) > Math.abs(dy)) {
+    const midX = p1.x + dx / 2 + offset;
+    const r = Math.min(25, Math.abs(dy) / 2, Math.abs(midX - p1.x), Math.abs(p2.x - midX));
+    const dir1 = dx > 0 ? 1 : -1;
+    const dir2 = dy > 0 ? 1 : -1;
+    
+    if (Math.abs(dy) < r * 2 || r < 2) {
+      return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+    }
+    
+    return `M ${p1.x} ${p1.y}
+            L ${midX - dir1 * r} ${p1.y}
+            Q ${midX} ${p1.y} ${midX} ${p1.y + dir2 * r}
+            L ${midX} ${p2.y - dir2 * r}
+            Q ${midX} ${p2.y} ${midX + dir1 * r} ${p2.y}
+            L ${p2.x} ${p2.y}`;
+  } else {
+    // اگر فاصله عمودی بیشتر است، از فضای خالی بین ردیف‌ها عبور می‌دهیم
+    const midY = p1.y + dy / 2 + offset;
+    const r = Math.min(25, Math.abs(dx) / 2, Math.abs(midY - p1.y), Math.abs(p2.y - midY));
+    const dir1 = dy > 0 ? 1 : -1;
+    const dir2 = dx > 0 ? 1 : -1;
+    
+    if (Math.abs(dx) < r * 2 || r < 2) {
+      return `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+    }
+    
+    return `M ${p1.x} ${p1.y}
+            L ${p1.x} ${midY - dir1 * r}
+            Q ${p1.x} ${midY} ${p1.x + dir2 * r} ${midY}
+            L ${p2.x - dir2 * r} ${midY}
+            Q ${p2.x} ${midY} ${p2.x} ${midY + dir1 * r}
+            L ${p2.x} ${p2.y}`;
+  }
 }
 
 function renderConnections() {
@@ -798,21 +843,13 @@ function renderConnections() {
     const a = nodePositions[conn.from], b = nodePositions[conn.to];
     if (!a || !b) return;
     
+    const pathD = connectionPath(conn.from, conn.to, idx);
+    
+    // محاسبه نقطه وسط برای قرار دادن دکمه‌ها
     const acx = a.x + a.w/2, acy = a.y + a.h/2;
     const bcx = b.x + b.w/2, bcy = b.y + b.h/2;
-    const p1 = edgePoint(a, bcx, bcy), p2 = edgePoint(b, acx, acy);
-    
-    const dx = p2.x - p1.x, dy = p2.y - p1.y;
-    const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-    const curv = Math.min(dist * 0.15, 40); 
-    const mx = (p1.x + p2.x)/2, my = (p1.y + p2.y)/2;
-    const nx = -dy/dist, ny = dx/dist;
-    
-    const c1x = mx + nx*curv, c1y = my + ny*curv;
-    const c2x = mx - nx*curv, c2y = my - ny*curv;
-    
-    const pathD = `M ${p1.x} ${p1.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
-    const mid = getBezierMidpoint(p1, {x: c1x, y: c1y}, {x: c2x, y: c2y}, p2);
+    const midX = (acx + bcx) / 2;
+    const midY = (acy + bcy) / 2;
     
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("class", "connection");
@@ -828,17 +865,17 @@ function renderConnections() {
       path.setAttribute("marker-end", "url(#arrow-one)");
     }
 
-    // خط نامرئی برای افزایش گیرایی موس
     const hitbox = document.createElementNS("http://www.w3.org/2000/svg", "path");
     hitbox.setAttribute("d", pathD);
     hitbox.setAttribute("class", "hitbox");
 
-    const offsetY = (idx % 2 === 0) ? -18 : 18; // کمی فاصله برای جلوگیری از تداخل دکمه‌ها در خطوط موازی
+    // فاصله دکمه‌ها از هم و از خط
+    const btnOffsetY = (idx % 2 === 0) ? -20 : 20; 
     
     const btnWrap = document.createElement("div");
     btnWrap.className = "conn-btn-wrap";
-    btnWrap.style.left = mid.x + "px";
-    btnWrap.style.top = (mid.y + offsetY) + "px";
+    btnWrap.style.left = midX + "px";
+    btnWrap.style.top = (midY + btnOffsetY) + "px";
     
     const btnToggle = document.createElement("div");
     btnToggle.className = "conn-btn";
@@ -885,18 +922,15 @@ function renderConnections() {
       }, 150);
     };
 
-    // اضافه کردن رویدادها به خط نامرئی
     hitbox.addEventListener("mouseenter", showButtons);
     hitbox.addEventListener("mouseleave", hideButtons);
     hitbox.addEventListener("click", (e) => {
       e.stopPropagation();
-      // کلیک روی خط باعث تغییر نوع ارتباط می‌شود
       conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way';
       saveState();
       renderConnections();
     });
 
-    // اضافه کردن رویدادها به خود دکمه‌ها
     btnWrap.addEventListener("mouseenter", () => clearTimeout(hideTimeout));
     btnWrap.addEventListener("mouseleave", hideButtons);
 
@@ -936,6 +970,8 @@ function startConnection(fromKey) {
     const worldX = (e.clientX - rect.left - state.pan.x) / state.zoom;
     const worldY = (e.clientY - rect.top - state.pan.y) / state.zoom;
     const p1 = edgePoint(fromNode, worldX, worldY);
+    
+    // در حین کشیدن، از یک منحنی ساده استفاده می‌کنیم
     const dx = worldX - p1.x, dy = worldY - p1.y;
     const dist = Math.sqrt(dx*dx+dy*dy) || 1;
     const curv = Math.min(dist*0.15, 40);
@@ -1154,9 +1190,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v29")) {
+  if(!localStorage.getItem(LS_KEY + "_v31")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v29", "true");
+    localStorage.setItem(LS_KEY + "_v31", "true");
   }
   
   buildWorld();
