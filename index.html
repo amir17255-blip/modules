@@ -266,8 +266,8 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 650px !important; 
-    height: 320px !important; 
+    width: 250px !important; 
+    height: 300px !important; 
     transform: translate(-50%, -50%); 
     background: #1c2531; 
     border-color: #475569;
@@ -409,7 +409,7 @@ const CLUSTER_GAP_X = 60;
 const CLUSTER_GAP_Y = 120;
 const MAX_COLS = 4;
 
-const FIXED_CLUSTER_WIDTH = 1100;
+const FIXED_CLUSTER_WIDTH = 1200;
 
 const state = {
   pan: { x: 50, y: 50 },
@@ -462,7 +462,7 @@ function loadState() {
    ============================================================ */
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
-  const maxPerCol = 5; 
+  const maxPerCol = 8; 
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
   const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 40;
