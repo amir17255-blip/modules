@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -39,14 +40,19 @@
   }
   .toolbar-group:last-child { border-left: none; }
   .toolbar-group label { font-size: 12px; color: #94a3b8; }
+  
+  /* استایل دکمه‌های نوار ابزار */
   select, button, input {
     font-family: inherit; font-size: 12px; background: #232c38; color: #e6e6e6;
-    border: 1px solid #334155; border-radius: 6px; padding: 6px 10px;
-    cursor: pointer; transition: all 0.15s;
+    border: 1px solid #334155; border-radius: 6px; padding: 6px 12px;
+    cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px;
   }
   select:hover, button:hover, input:hover { background: #2d3846; border-color: #475569; }
-  button.danger { background: #7f1d1d; border-color: #991b1b; }
-  button.danger:hover { background: #991b1b; }
+  button.danger { background: #7f1d1d; border-color: #991b1b; color: #fca5a5; }
+  button.danger:hover { background: #991b1b; color: #fff; }
+  #btn-reset-view { background: #1e3a5f; border-color: #3b82f6; color: #7dd3fc; }
+  #btn-reset-view:hover { background: #1e40af; color: #fff; }
+  
   #zoom-level { font-size: 12px; color: #94a3b8; min-width: 44px; text-align: center; }
   #stats { font-size: 11px; color: #64748b; margin-right: auto; }
 
@@ -83,7 +89,7 @@
     fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
   
-  /* خط نامرئی با ضخامت 40 پیکسل (کاهش یافت تا مزاحم کارت‌ها نشود) */
+  /* خط نامرئی برای گیرایی بالای موس */
   #svg-layer path.hitbox {
     fill: none; stroke: transparent; stroke-width: 40;
     pointer-events: stroke; cursor: pointer;
@@ -191,15 +197,15 @@
     height: 100%; background: linear-gradient(90deg, #3b82f6, #22d3ee); transition: width 0.3s ease;
   }
 
-  /* ===== Page Node ===== */
+  /* ===== Page Node (کارت صفحات) ===== */
   .page-node {
     position: absolute; background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
-    border: 1px solid #2d3a4a; border-radius: 8px; padding: 6px 9px;
-    font-size: 11px; color: #cbd5e1; text-align: center;
+    border: 1px solid #2d3a4a; border-radius: 8px; 
+    padding: 6px 9px 6px 75px; /* فضای کافی در سمت چپ برای دکمه‌ها */
+    font-size: 11px; color: #cbd5e1; text-align: right; /* متن راست‌چین */
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: pointer;
-    transition: all 0.3s; display: flex; align-items: center; justify-content: center;
-    padding-left: 65px; /* فضای کافی برای دکمه‌ها */
-    overflow: hidden; /* جلوگیری از سرریز متن */
+    transition: all 0.3s; display: flex; align-items: center; 
+    overflow: hidden; /* جلوگیری از بیرون زدن از کادر */
   }
   .page-node:hover {
     border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
@@ -222,15 +228,26 @@
     border-color: #22c55e; color: #86efac;
   }
   
-  /* گروه دکمه‌ها بالاتر از متن قرار می‌گیرد و پس‌زمینه دارد */
+  /* استایل متن داخل کارت برای شکستن خطوط طولانی */
+  .page-node span {
+    flex: 1;
+    word-break: break-word;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* حداکثر 3 خط نمایش داده شود */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* گروه دکمه‌ها */
   .page-btn-group {
     position: absolute;
-    left: 4px; top: 50%;
+    left: 6px; top: 50%;
     transform: translateY(-50%);
     display: flex; gap: 4px;
     z-index: 99; 
     background: #1a2330;
-    padding: 2px;
+    padding: 3px;
     border-radius: 6px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.5);
   }
@@ -293,8 +310,8 @@
     display: none; 
   }
   body.zoomed-out .page-btn { width: 16px; height: 16px; font-size: 9px; }
-  body.zoomed-out .page-btn-group { left: 2px; }
-  body.zoomed-out .page-node { margin: 0; padding-left: 60px; }
+  body.zoomed-out .page-btn-group { left: 4px; }
+  body.zoomed-out .page-node { margin: 0; padding-left: 65px; }
 
   /* ===== UI ===== */
   #toast {
@@ -409,15 +426,15 @@ const MODULES_DATA = [
    ============================================================ */
 const MODULE_W = 260;
 const MODULE_H = 160;
-const PAGE_W = 120;
-const PAGE_H = 36;
-const PAGE_GAP = 10;
+const PAGE_W = 180;  // عرض کارت صفحه افزایش یافت تا متن جا شود
+const PAGE_H = 50;   // ارتفاع کارت صفحه افزایش یافت
+const PAGE_GAP = 12;
 const CLUSTER_PAD = 25;
 const CLUSTER_GAP_X = 60;
 const CLUSTER_GAP_Y = 120;
 const MAX_COLS = 4;
 
-const FIXED_CLUSTER_WIDTH = 1100;
+const FIXED_CLUSTER_WIDTH = 1500; // عرض خوشه برای جا دادن کارت‌های عریض‌تر
 
 const state = {
   pan: { x: 50, y: 50 },
@@ -431,7 +448,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-// کلید ذخیره‌سازی دست‌نخورده باقی مانده تا داده‌های شما پاک نشود
+// کلید ذخیره‌سازی دست‌نخورده تا اطلاعات پاک نشود
 const LS_KEY = "module-map-state-v31";
 
 function saveState() {
@@ -673,7 +690,7 @@ function buildWorld() {
       if (isDone) pageEl.classList.add("is-done");
       
       pageEl.innerHTML = `
-        <span style="flex:1; text-align:center; pointer-events:none; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; padding-left: 5px;">${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
+        <span>${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
         
         <div class="page-btn-group">
           <div class="page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
@@ -923,17 +940,14 @@ function renderConnections() {
         if (!btnWrap.matches(':hover')) {
           btnWrap.classList.remove("visible");
         }
-      }, 100); // کاهش تاخیر به 100ms تا کلیک کارت‌های اطراف را دزدیده نشود
+      }, 100); 
     };
 
-    // فعال‌سازی رویدادها روی خط اصلی و خط نامرئی
     path.addEventListener("mouseenter", showButtons);
     path.addEventListener("mouseleave", hideButtons);
-    
     hitbox.addEventListener("mouseenter", showButtons);
     hitbox.addEventListener("mouseleave", hideButtons);
     
-    // تغییر نوع با کلیک روی هر جای خط
     const toggleType = (e) => {
       e.stopPropagation();
       conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way';
@@ -1143,6 +1157,9 @@ document.getElementById("btn-zoom-in").addEventListener("click", () => { state.z
 document.getElementById("btn-zoom-out").addEventListener("click", () => { state.zoom = Math.max(0.15, state.zoom * 0.8); applyTransform(true); });
 document.getElementById("btn-reset-view").addEventListener("click", fitView);
 
+/* ============================================================
+   OVERVIEW (FIT VIEW) - مرتب شده
+   ============================================================ */
 function fitView() {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   Object.values(clusterMap).forEach(c => {
@@ -1152,11 +1169,23 @@ function fitView() {
     }
   });
   if (!isFinite(minX)) return;
-  const pad = 40, rect = canvas.getBoundingClientRect();
-  const z = Math.min((rect.width - pad*2) / (maxX - minX), (rect.height - pad*2) / (maxY - minY), 1.2);
+  
+  const pad = 80; // حاشیه بیشتر برای زیبایی
+  const rect = canvas.getBoundingClientRect();
+  const mapW = maxX - minX;
+  const mapH = maxY - minY;
+  
+  // محاسبه زوم مناسب با محدودیت
+  const zoomX = (rect.width - pad*2) / mapW;
+  const zoomY = (rect.height - pad*2) / mapH;
+  const z = Math.min(zoomX, zoomY, 1.0); // حداکثر زوم 100%
+  
   state.zoom = Math.max(0.15, z);
-  state.pan.x = pad - minX * state.zoom + (rect.width - pad*2 - (maxX-minX)*state.zoom)/2;
-  state.pan.y = pad - minY * state.zoom + (rect.height - pad*2 - (maxY-minY)*state.zoom)/2;
+  
+  // وسط چین کردن دقیق
+  state.pan.x = (rect.width - mapW * state.zoom) / 2 - minX * state.zoom;
+  state.pan.y = (rect.height - mapH * state.zoom) / 2 - minY * state.zoom;
+  
   applyTransform(true); 
   saveState();
 }
