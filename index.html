@@ -84,9 +84,9 @@
     fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
   
-  /* خط نامرئی با ضخامت 60 پیکسل برای گیرایی بالای موس */
+  /* خط نامرئی با ضخامت 80 پیکسل برای گیرایی بالای موس */
   #svg-layer path.hitbox {
-    fill: none; stroke: transparent; stroke-width: 60;
+    fill: none; stroke: transparent; stroke-width: 80;
     pointer-events: stroke; cursor: pointer;
   }
 
@@ -919,7 +919,7 @@ function renderConnections() {
         if (!btnWrap.matches(':hover')) {
           btnWrap.classList.remove("visible");
         }
-      }, 150);
+      }, 200);
     };
 
     hitbox.addEventListener("mouseenter", showButtons);
