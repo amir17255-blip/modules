@@ -420,18 +420,18 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   
   const { colsPerSide, maxPerCol } = info;
   
-  // عرض واقعی کارت: در حالت زوم اوت 550 و در حالت عادی 260 است
+  // عرض کارت در حالت زوم اوت 550 و در حالت عادی 260 است
   const currentCardW = isZoomedOut ? 550 : MODULE_W; 
   
-  // پیدا کردن لبه چپ و راست کارت بر اساس عرض واقعی
+  // محاسبه دقیق لبه چپ و راست کارت
   const cardLeftEdge = (clusterW - currentCardW) / 2;
   const cardRightEdge = cardLeftEdge + currentCardW;
   
-  // فاصله صفحات از لبه کارت (در زوم اوت 80 و در حالت عادی 10)
-  const gapFromCard = isZoomedOut ? 80 : 10; 
+  // فاصله ایمن بین لبه کارت و شروع صفحات (در زوم اوت 100 پیکسل)
+  const gapFromCard = isZoomedOut ? 100 : 10; 
   const pagesPerSide = Math.ceil(numPages / 2);
   
-  // چیدن سمت چپ
+  // چیدن سمت چپ: از لبه چپ کارت به سمت بیرون
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
@@ -440,7 +440,7 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     positions.push({ pageIdx: i, x, y });
   }
   
-  // چیدن سمت راست
+  // چیدن سمت راست: از لبه راست کارت به سمت بیرون
   for (let i = pagesPerSide; i < numPages; i++) {
     const localI = i - pagesPerSide;
     const colIdx = Math.floor(localI / maxPerCol);
