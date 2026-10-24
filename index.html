@@ -69,7 +69,8 @@
   /* ===== SVG ===== */
   #svg-layer {
     position: absolute; top: 0; left: 0; overflow: visible;
-    pointer-events: none; z-index: 0;
+    pointer-events: none; /* اجازه عبور کلیک به بوم */
+    z-index: 0;
   }
   #svg-layer path.connection {
     fill: none; stroke: #38bdf8; stroke-width: 3; stroke-linecap: round;
@@ -85,17 +86,17 @@
   /* استایل دکمه‌های وسط فلش */
   .conn-btn-group { pointer-events: all; cursor: pointer; }
   .conn-btn-group circle {
-    fill: #1e293b; stroke: #38bdf8; stroke-width: 2;
+    fill: #1e293b; stroke: #38bdf8; stroke-width: 2.5;
     transition: all 0.2s;
   }
-  .conn-btn-group circle:hover { fill: #334155; stroke: #7dd3fc; }
+  .conn-btn-group:hover circle { fill: #334155; stroke: #7dd3fc; }
   .conn-btn-group text {
-    fill: #e6e6e6; font-size: 14px; font-family: Tahoma;
+    fill: #e6e6e6; font-size: 16px; font-family: Tahoma;
     text-anchor: middle; dominant-baseline: central;
     pointer-events: none; font-weight: bold;
   }
   .conn-btn-delete circle { fill: #451a1a; stroke: #ef4444; }
-  .conn-btn-delete circle:hover { fill: #7f1d1d; stroke: #fca5a5; }
+  .conn-btn-delete:hover circle { fill: #7f1d1d; stroke: #fca5a5; }
   .conn-btn-delete text { fill: #fca5a5; }
 
   /* ===== Module Cluster ===== */
@@ -388,7 +389,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v25";
+const LS_KEY = "module-map-state-v26";
 
 function saveState() {
   try {
@@ -801,10 +802,10 @@ function renderConnections() {
     // دکمه تغییر نوع
     const toggleGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     toggleGroup.setAttribute("class", "conn-btn-group");
-    toggleGroup.setAttribute("transform", `translate(${mid.x - 18}, ${mid.y})`);
+    toggleGroup.setAttribute("transform", `translate(${mid.x - 20}, ${mid.y})`);
     
     const toggleCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    toggleCircle.setAttribute("r", "12");
+    toggleCircle.setAttribute("r", "16");
     
     const toggleText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     toggleText.textContent = conn.type === 'two-way' ? '⇄' : '➔';
@@ -812,6 +813,7 @@ function renderConnections() {
     toggleGroup.appendChild(toggleCircle);
     toggleGroup.appendChild(toggleText);
     
+    toggleGroup.addEventListener("mousedown", (e) => e.stopPropagation());
     toggleGroup.addEventListener("click", (e) => {
       e.stopPropagation();
       conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way';
@@ -822,10 +824,10 @@ function renderConnections() {
     // دکمه حذف
     const delGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     delGroup.setAttribute("class", "conn-btn-group conn-btn-delete");
-    delGroup.setAttribute("transform", `translate(${mid.x + 18}, ${mid.y})`);
+    delGroup.setAttribute("transform", `translate(${mid.x + 20}, ${mid.y})`);
     
     const delCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    delCircle.setAttribute("r", "12");
+    delCircle.setAttribute("r", "16");
     
     const delText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     delText.textContent = '✕';
@@ -833,6 +835,7 @@ function renderConnections() {
     delGroup.appendChild(delCircle);
     delGroup.appendChild(delText);
     
+    delGroup.addEventListener("mousedown", (e) => e.stopPropagation());
     delGroup.addEventListener("click", (e) => {
       e.stopPropagation();
       state.connections = state.connections.filter(c => c.id !== conn.id);
@@ -973,7 +976,7 @@ function applyHighlight(key) {
 const canvas = document.getElementById("canvas");
 let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 
-function applyTransform() {
+function applyTransform(needRender = false) {
   world.style.transform = `translate3d(${state.pan.x}px, ${state.pan.y}px, 0) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
   
@@ -981,21 +984,23 @@ function applyTransform() {
   if (isZoomedOut) document.body.classList.add("zoomed-out");
   else document.body.classList.remove("zoomed-out");
   
-  Object.values(clusterMap).forEach(cl => {
-    const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, isZoomedOut);
-    pagePositions.forEach((p, i) => {
-      if (cl.pageEls[i]) {
-        cl.pageEls[i].el.style.left = p.x + "px";
-        cl.pageEls[i].el.style.top = p.y + "px";
-      }
+  if (needRender) {
+    Object.values(clusterMap).forEach(cl => {
+      const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, isZoomedOut);
+      pagePositions.forEach((p, i) => {
+        if (cl.pageEls[i]) {
+          cl.pageEls[i].el.style.left = p.x + "px";
+          cl.pageEls[i].el.style.top = p.y + "px";
+        }
+      });
+      updateNodePositions(cl.mod.id, cl.x, cl.y);
     });
-    updateNodePositions(cl.mod.id, cl.x, cl.y);
-  });
-  renderConnections(); 
+    renderConnections();
+  }
 }
 
 canvas.addEventListener("mousedown", (e) => {
-  if (e.target.closest(".module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar")) return;
+  if (e.target.closest(".module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar") || e.target.closest(".conn-btn-group")) return;
   if (e.button !== 0) return;
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
@@ -1007,7 +1012,7 @@ window.addEventListener("mousemove", (e) => {
   if (!isPanning) return;
   state.pan.x = panStart.panX + (e.clientX - panStart.x);
   state.pan.y = panStart.panY + (e.clientY - panStart.y);
-  applyTransform();
+  applyTransform(false); // فقط ترنسفورم را تغییر بده، دوباره رندر نکن
 });
 
 window.addEventListener("mouseup", () => {
@@ -1023,11 +1028,12 @@ canvas.addEventListener("wheel", (e) => {
   state.zoom = newZoom;
   state.pan.x = mx - worldX * newZoom;
   state.pan.y = my - worldY * newZoom;
-  applyTransform(); saveState();
+  applyTransform(true); // در زوم، رندر کن
+  saveState();
 }, { passive: false });
 
-document.getElementById("btn-zoom-in").addEventListener("click", () => { state.zoom = Math.min(2.5, state.zoom * 1.2); applyTransform(); });
-document.getElementById("btn-zoom-out").addEventListener("click", () => { state.zoom = Math.max(0.15, state.zoom * 0.8); applyTransform(); });
+document.getElementById("btn-zoom-in").addEventListener("click", () => { state.zoom = Math.min(2.5, state.zoom * 1.2); applyTransform(true); });
+document.getElementById("btn-zoom-out").addEventListener("click", () => { state.zoom = Math.max(0.15, state.zoom * 0.8); applyTransform(true); });
 document.getElementById("btn-reset-view").addEventListener("click", fitView);
 
 function fitView() {
@@ -1044,7 +1050,8 @@ function fitView() {
   state.zoom = Math.max(0.15, z);
   state.pan.x = pad - minX * state.zoom + (rect.width - pad*2 - (maxX-minX)*state.zoom)/2;
   state.pan.y = pad - minY * state.zoom + (rect.height - pad*2 - (maxY-minY)*state.zoom)/2;
-  applyTransform(); saveState();
+  applyTransform(true); 
+  saveState();
 }
 
 /* ============================================================
@@ -1093,13 +1100,13 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v25")) {
+  if(!localStorage.getItem(LS_KEY + "_v26")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v25", "true");
+    localStorage.setItem(LS_KEY + "_v26", "true");
   }
   
   buildWorld();
-  applyTransform();
+  applyTransform(true);
   fitView();
   setTimeout(() => document.getElementById("hint").classList.add("hidden"), 8000);
 }
