@@ -72,30 +72,30 @@
     pointer-events: none; z-index: 0;
   }
   #svg-layer path.connection {
-    fill: none; stroke: #38bdf8; stroke-width: 2; stroke-linecap: round;
+    fill: none; stroke: #38bdf8; stroke-width: 3; stroke-linecap: round;
     pointer-events: stroke; cursor: pointer; transition: all 0.2s;
   }
-  #svg-layer path.connection:hover { stroke: #f87171; stroke-width: 3.5; }
+  #svg-layer path.connection:hover { stroke: #f87171; stroke-width: 4.5; }
   #svg-layer path.connection.dim { opacity: 0.1; }
-  #svg-layer path.connection.highlight { stroke: #fbbf24; stroke-width: 3; opacity: 1; }
+  #svg-layer path.connection.highlight { stroke: #fbbf24; stroke-width: 4; opacity: 1; }
   #svg-layer path.temp {
-    fill: none; stroke: #fbbf24; stroke-width: 2; stroke-dasharray: 6 4; pointer-events: none;
+    fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
 
   /* استایل دکمه‌های وسط فلش */
-  .conn-btn-group { pointer-events: all; }
+  .conn-btn-group { pointer-events: all; cursor: pointer; }
   .conn-btn-group circle {
-    fill: #1e293b; stroke: #475569; stroke-width: 1.5;
-    transition: all 0.2s; cursor: pointer;
+    fill: #1e293b; stroke: #38bdf8; stroke-width: 2;
+    transition: all 0.2s;
   }
-  .conn-btn-group circle:hover { fill: #334155; stroke: #94a3b8; }
+  .conn-btn-group circle:hover { fill: #334155; stroke: #7dd3fc; }
   .conn-btn-group text {
-    fill: #cbd5e1; font-size: 10px; font-family: Tahoma;
+    fill: #e6e6e6; font-size: 14px; font-family: Tahoma;
     text-anchor: middle; dominant-baseline: central;
     pointer-events: none; font-weight: bold;
   }
-  .conn-btn-delete circle { fill: #451a1a; stroke: #7f1d1d; }
-  .conn-btn-delete circle:hover { fill: #7f1d1d; stroke: #f87171; }
+  .conn-btn-delete circle { fill: #451a1a; stroke: #ef4444; }
+  .conn-btn-delete circle:hover { fill: #7f1d1d; stroke: #fca5a5; }
   .conn-btn-delete text { fill: #fca5a5; }
 
   /* ===== Module Cluster ===== */
@@ -232,8 +232,8 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 250px !important; /* عرض را اصلاح کردیم */
-    height: 300px !important; 
+    width: 650px !important; 
+    height: 320px !important; 
     transform: translate(-50%, -50%); 
     background: #1c2531; 
     border-color: #475569;
@@ -388,7 +388,7 @@ const state = {
   customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v24";
+const LS_KEY = "module-map-state-v25";
 
 function saveState() {
   try {
@@ -407,7 +407,6 @@ function loadState() {
     if (s.pan) state.pan = s.pan;
     if (typeof s.zoom === "number") state.zoom = s.zoom;
     if (Array.isArray(s.connections)) {
-      // افزودن نوع پیش‌فرض به اتصالات قدیمی
       state.connections = s.connections.map(c => ({ ...c, type: c.type || 'one-way' }));
     }
     if (s.progress) state.progress = s.progress;
@@ -745,7 +744,6 @@ function getBezierMidpoint(p1, c1, c2, p2) {
 function renderConnections() {
   svgLayer.innerHTML = "";
   
-  // تعریف مارکرهای فلش در SVG
   const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
   defs.innerHTML = `
     <marker id="arrow-one" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
@@ -780,7 +778,6 @@ function renderConnections() {
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.setAttribute("class", "connection-group");
     
-    // مسیر منحنی
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("class", "connection");
     path.setAttribute("d", pathD);
@@ -788,7 +785,6 @@ function renderConnections() {
     path.dataset.from = conn.from;
     path.dataset.to = conn.to;
     
-    // اعمال مارکر (نوک فلش) بر اساس نوع ارتباط
     if (conn.type === 'two-way') {
       path.setAttribute("marker-start", "url(#arrow-two)");
       path.setAttribute("marker-end", "url(#arrow-two)");
@@ -802,13 +798,13 @@ function renderConnections() {
       else clearSelection();
     });
     
-    // دکمه تغییر نوع (چپ)
+    // دکمه تغییر نوع
     const toggleGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     toggleGroup.setAttribute("class", "conn-btn-group");
-    toggleGroup.setAttribute("transform", `translate(${mid.x - 14}, ${mid.y}) scale(${1/state.zoom})`);
+    toggleGroup.setAttribute("transform", `translate(${mid.x - 18}, ${mid.y})`);
     
     const toggleCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    toggleCircle.setAttribute("r", "10");
+    toggleCircle.setAttribute("r", "12");
     
     const toggleText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     toggleText.textContent = conn.type === 'two-way' ? '⇄' : '➔';
@@ -823,13 +819,13 @@ function renderConnections() {
       renderConnections();
     });
     
-    // دکمه حذف (راست)
+    // دکمه حذف
     const delGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     delGroup.setAttribute("class", "conn-btn-group conn-btn-delete");
-    delGroup.setAttribute("transform", `translate(${mid.x + 14}, ${mid.y}) scale(${1/state.zoom})`);
+    delGroup.setAttribute("transform", `translate(${mid.x + 18}, ${mid.y})`);
     
     const delCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    delCircle.setAttribute("r", "10");
+    delCircle.setAttribute("r", "12");
     
     const delText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     delText.textContent = '✕';
@@ -900,7 +896,6 @@ function startConnection(fromKey) {
       if (targetNode && targetNode.dataset.nodeKey !== fromKey) {
         const toKey = targetNode.dataset.nodeKey;
         if (!state.connections.some(c => (c.from===fromKey && c.to===toKey) || (c.from===toKey && c.to===fromKey))) {
-          // نوع پیش‌فرض ارتباط جدید: یک طرفه
           state.connections.push({ id: state.nextConnId++, from: fromKey, to: toKey, type: 'one-way' });
           saveState(); renderConnections();
           if (state.selectedNode) applyHighlight(state.selectedNode);
@@ -1098,9 +1093,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v24")) {
+  if(!localStorage.getItem(LS_KEY + "_v25")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v24", "true");
+    localStorage.setItem(LS_KEY + "_v25", "true");
   }
   
   buildWorld();
