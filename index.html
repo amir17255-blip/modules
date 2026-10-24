@@ -413,7 +413,7 @@ const FIXED_CLUSTER_WIDTH = 1200;
 
 const state = {
   pan: { x: 50, y: 50 },
-  zoom: 0.26,
+  zoom: 0.31,
   connections: [],
   progress: {},
   selectedNode: null,
@@ -1191,7 +1191,7 @@ function showToast(msg) {
 function init() {
   loadState();
   if(!localStorage.getItem(LS_KEY + "_v31")) {
-    state.zoom = 0.26;
+    state.zoom = 0.31;
     localStorage.setItem(LS_KEY + "_v31", "true");
   }
   
