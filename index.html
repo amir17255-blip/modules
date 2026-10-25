@@ -291,8 +291,8 @@
 
   /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card {
-    width: 650px !important; 
-    height: 320px !important; 
+    width: 250px !important; 
+    height: 300px !important; 
     transform: translate(-50%, -50%); 
     background: #1c2531; 
     border-color: #475569;
@@ -1095,7 +1095,7 @@ function applyTransform(needRender = false) {
   world.style.transform = `translate3d(${state.pan.x}px, ${state.pan.y}px, 0) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
   
-  const isZoomedOut = state.zoom < 0.65;
+  const isZoomedOut = state.zoom < 0.50;
   if (isZoomedOut) document.body.classList.add("zoomed-out");
   else document.body.classList.remove("zoomed-out");
   
