@@ -66,7 +66,8 @@
   #canvas.panning { cursor: grabbing; }
   #canvas.connecting { cursor: crosshair; }
   #canvas.dragging-module { cursor: grabbing; }
-
+  #canvas.dragging-page { cursor: grabbing; }
+ 
   #world {
     position: absolute; top: 0; left: 0; transform-origin: 0 0;
     will-change: transform; backface-visibility: hidden;
@@ -182,15 +183,14 @@
     transition: opacity 0.3s; pointer-events: none; text-align: center;
   }
 
-  .module-progress-row {
+    .module-progress-row {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     margin-top: auto; transition: opacity 0.3s; pointer-events: none;
   }
-  .module-progress-row select { pointer-events: auto; }
   
-  .progress-select {
-    padding: 2px 4px; background: #0f172a; border: 1px solid #334155;
-    border-radius: 5px; color: #e6e6e6;
+  .progress-pct {
+    font-size: 12px; font-weight: 700; color: #7dd3fc; min-width: 36px; text-align: center;
+    background: #0f172a; border: 1px solid #334155; border-radius: 5px; padding: 2px 6px;
   }
   .progress-bar-wrap { flex: 1; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
   .progress-bar-fill {
@@ -214,7 +214,17 @@
   
   .page-node { opacity: 1; }
   .page-node.dimmed { opacity: 0.2; }
-  
+  .page-node.is-dragging-page {
+    z-index: 200 !important;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.7), 0 0 0 2px #fbbf24 !important;
+    border-color: #fbbf24 !important;
+    transition: none;
+  }
+  .page-node.swap-target {
+    box-shadow: 0 0 0 2px #22c55e, 0 0 20px rgba(34,197,94,0.4) !important;
+    border-color: #22c55e !important;
+  }
+ 
   .page-node.highlight {
     opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24;
     z-index: 11; background: #2a2416; color: #fef3c7;
@@ -443,23 +453,25 @@ const state = {
   pan: { x: 50, y: 50 },
   zoom: 0.8,
   connections: [],
-  progress: {},
+  progress: {},            // deprecated
   selectedNode: null,
   filterPosition: "all",
   search: "",
   nextConnId: 1,
-  customPositions: {},
+  customPositions: {},        // موقعیت کل خوشه ماژول
+  pageCustomPositions: {},    // موقعیت دستی کارت‌های صفحه
   pageStatus: { done: {}, front: {}, back: {} }
 };
-// کلید ذخیره‌سازی دست‌نخورده تا اطلاعات پاک نشود
-const LS_KEY = "module-map-state-v31";
+const LS_KEY = "module-map-state-v32";
 
 function saveState() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       pan: state.pan, zoom: state.zoom, connections: state.connections,
-      progress: state.progress, nextConnId: state.nextConnId,
-      customPositions: state.customPositions, pageStatus: state.pageStatus
+      nextConnId: state.nextConnId,
+      customPositions: state.customPositions,
+      pageCustomPositions: state.pageCustomPositions,
+      pageStatus: state.pageStatus
     }));
   } catch(e) {}
 }
@@ -473,9 +485,9 @@ function loadState() {
     if (Array.isArray(s.connections)) {
       state.connections = s.connections.map(c => ({ ...c, type: c.type || 'one-way' }));
     }
-    if (s.progress) state.progress = s.progress;
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
+    if (s.pageCustomPositions) state.pageCustomPositions = s.pageCustomPositions;
     if (s.pageStatus) {
       state.pageStatus = {
         done: s.pageStatus.done || {},
