@@ -269,14 +269,17 @@
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
   
-  .drag-handle {
-    position: absolute; top: -4px; right: -4px; width: 12px; height: 12px;
-    background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
-    cursor: crosshair; opacity: 0; transition: opacity 0.15s;
+     .drag-handle {
+    position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
+    background: radial-gradient(circle at 30% 30%, #7dd3fc, #38bdf8);
+    border-radius: 50%; border: 3px solid #0f1419;
+    cursor: crosshair; opacity: 0; transition: opacity 0.15s, transform 0.15s;
     z-index: 30;
+    box-shadow: 0 2px 8px rgba(56,189,248,0.6), 0 0 0 2px rgba(56,189,248,0.3);
   }
   .page-node:hover .drag-handle { opacity: 1; }
-
+  .drag-handle:hover { transform: scale(1.2); box-shadow: 0 3px 12px rgba(56,189,248,0.9), 0 0 0 3px rgba(56,189,248,0.5); }
+ 
   .page-status {
     position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px;
     border-radius: 50%; border: 1.5px solid #0f1419;
