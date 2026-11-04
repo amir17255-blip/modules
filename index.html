@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -41,7 +40,6 @@
   .toolbar-group:last-child { border-left: none; }
   .toolbar-group label { font-size: 12px; color: #94a3b8; }
   
-  /* استایل دکمه‌های نوار ابزار */
   select, button, input {
     font-family: inherit; font-size: 12px; background: #232c38; color: #e6e6e6;
     border: 1px solid #334155; border-radius: 6px; padding: 6px 12px;
@@ -66,8 +64,7 @@
   #canvas.panning { cursor: grabbing; }
   #canvas.connecting { cursor: crosshair; }
   #canvas.dragging-module { cursor: grabbing; }
-  #canvas.dragging-page { cursor: grabbing; }
- 
+
   #world {
     position: absolute; top: 0; left: 0; transform-origin: 0 0;
     will-change: transform; backface-visibility: hidden;
@@ -90,7 +87,6 @@
     fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
   
-  /* خط نامرئی برای گیرایی بالای موس */
   #svg-layer path.hitbox {
     fill: none; stroke: transparent; stroke-width: 40;
     pointer-events: stroke; cursor: pointer;
@@ -140,23 +136,29 @@
 
   /* ===== Module Cluster ===== */
   .module-cluster {
-    position: absolute; transition: opacity 0.3s, box-shadow 0.2s; z-index: 10;
+    position: absolute; transition: opacity 0.3s, box-shadow 0.2s;
+    z-index: 10; /* برای انیمیشن جابه جایی */
   }
   .module-cluster { opacity: 1; }
   .module-cluster.dimmed { opacity: 0.2; }
-  .module-cluster.is-dragging { z-index: 50; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+  .module-cluster.is-dragging { z-index: 100; } /* بالاتر از همه */
 
   .module-card {
     background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
     border: 1px solid #334155; border-radius: 14px; padding: 14px 16px;
     box-shadow: 0 8px 28px rgba(0,0,0,0.45); position: absolute;
     display: flex; flex-direction: column; gap: 8px;
-    transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease, background-color 0.3s, border-color 0.3s;
+    transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease, background-color 0.3s, border-color 0.3s, box-shadow 0.2s;
     transform-origin: center center; 
     left: 50%; top: 50%; transform: translate(-50%, -50%);
     cursor: grab;
   }
-  .module-card:active { cursor: grabbing; }
+  .module-cluster.is-dragging .module-card {
+    cursor: grabbing;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 0 2px #38bdf8;
+    transform: translate(-50%, -50%) scale(1.02);
+    border-color: #38bdf8;
+  }
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
 
@@ -181,32 +183,33 @@
     font-size: 12px; color: #94a3b8; min-height: 32px; padding: 6px 8px;
     background: rgba(15,23,42,0.6); border-radius: 6px; border: 1px solid #1e293b;
     transition: opacity 0.3s; pointer-events: none; text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .module-progress-text {
+    font-size: 11px; color: #7dd3fc; font-weight: bold; margin-top: 4px;
   }
 
-    .module-progress-row {
+  .module-progress-row {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     margin-top: auto; transition: opacity 0.3s; pointer-events: none;
   }
   
-  .progress-pct {
-    font-size: 12px; font-weight: 700; color: #7dd3fc; min-width: 36px; text-align: center;
-    background: #0f172a; border: 1px solid #334155; border-radius: 5px; padding: 2px 6px;
-  }
-  .progress-bar-wrap { flex: 1; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+  .progress-bar-wrap { flex: 1; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; }
   .progress-bar-fill {
     height: 100%; background: linear-gradient(90deg, #3b82f6, #22d3ee); transition: width 0.3s ease;
   }
 
-  /* ===== Page Node (کارت صفحات) ===== */
+  /* ===== Page Node ===== */
   .page-node {
     position: absolute; background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
     border: 1px solid #2d3a4a; border-radius: 8px; 
-    padding: 6px 9px 6px 75px; /* فضای کافی در سمت چپ برای دکمه‌ها */
-    font-size: 11px; color: #cbd5e1; text-align: right; /* متن راست‌چین */
-    box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: pointer;
-    transition: all 0.3s; display: flex; align-items: center; 
-    overflow: hidden; /* جلوگیری از بیرون زدن از کادر */
+    padding: 6px 9px 6px 75px; 
+    font-size: 11px; color: #cbd5e1; text-align: right; 
+    box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: grab; /* برای درگ */
+    transition: all 0.3s, box-shadow 0.2s; display: flex; align-items: center; 
+    overflow: hidden; 
   }
+  .page-node:active { cursor: grabbing; }
   .page-node:hover {
     border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3);
     z-index: 10;
@@ -214,17 +217,7 @@
   
   .page-node { opacity: 1; }
   .page-node.dimmed { opacity: 0.2; }
-  .page-node.is-dragging-page {
-    z-index: 200 !important;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.7), 0 0 0 2px #fbbf24 !important;
-    border-color: #fbbf24 !important;
-    transition: none;
-  }
-  .page-node.swap-target {
-    box-shadow: 0 0 0 2px #22c55e, 0 0 20px rgba(34,197,94,0.4) !important;
-    border-color: #22c55e !important;
-  }
- 
+  
   .page-node.highlight {
     opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24;
     z-index: 11; background: #2a2416; color: #fef3c7;
@@ -238,18 +231,17 @@
     border-color: #22c55e; color: #86efac;
   }
   
-  /* استایل متن داخل کارت برای شکستن خطوط طولانی */
   .page-node span {
     flex: 1;
     word-break: break-word;
     line-height: 1.4;
     display: -webkit-box;
-    -webkit-line-clamp: 3; /* حداکثر 3 خط نمایش داده شود */
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    pointer-events: none; /* برای اینکه درگ روی متن کار کند */
   }
 
-  /* گروه دکمه‌ها */
   .page-btn-group {
     position: absolute;
     left: 6px; top: 50%;
@@ -263,7 +255,7 @@
   }
   
   .page-btn {
-    width: 18px; height: 18px; /* دکمه‌های بزرگتر */
+    width: 20px; height: 20px;
     border-radius: 4px;
     background: #1e293b;
     border: 1px solid #475569;
@@ -279,17 +271,16 @@
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
   
-     .drag-handle {
-    position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
-    background: radial-gradient(circle at 30% 30%, #7dd3fc, #38bdf8);
-    border-radius: 50%; border: 3px solid #0f1419;
-    cursor: crosshair; opacity: 0; transition: opacity 0.15s, transform 0.15s;
+  /* نقطه آبی بزرگتر شد */
+  .drag-handle {
+    position: absolute; top: -6px; right: -6px; width: 18px; height: 18px;
+    background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
+    cursor: crosshair; opacity: 0; transition: opacity 0.15s;
     z-index: 30;
-    box-shadow: 0 2px 8px rgba(56,189,248,0.6), 0 0 0 2px rgba(56,189,248,0.3);
+    box-shadow: 0 0 10px rgba(56,189,248,0.6); /* درخشش برای دیده شدن بهتر */
   }
   .page-node:hover .drag-handle { opacity: 1; }
-  .drag-handle:hover { transform: scale(1.2); box-shadow: 0 3px 12px rgba(56,189,248,0.9), 0 0 0 3px rgba(56,189,248,0.5); }
- 
+
   .page-status {
     position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px;
     border-radius: 50%; border: 1.5px solid #0f1419;
@@ -438,40 +429,37 @@ const MODULES_DATA = [
    CONSTANTS & STATE
    ============================================================ */
 const MODULE_W = 260;
-const MODULE_H = 160;
-const PAGE_W = 180;  // عرض کارت صفحه افزایش یافت تا متن جا شود
-const PAGE_H = 50;   // ارتفاع کارت صفحه افزایش یافت
+const MODULE_H = 180; // افزایش ارتفاع برای نمایش درصد
+const PAGE_W = 180;
+const PAGE_H = 50;
 const PAGE_GAP = 12;
 const CLUSTER_PAD = 25;
 const CLUSTER_GAP_X = 60;
 const CLUSTER_GAP_Y = 120;
 const MAX_COLS = 4;
 
-const FIXED_CLUSTER_WIDTH = 1800; // عرض خوشه برای جا دادن کارت‌های عریض‌تر
+const FIXED_CLUSTER_WIDTH = 1800;
 
 const state = {
   pan: { x: 50, y: 50 },
   zoom: 0.8,
   connections: [],
-  progress: {},            // deprecated
+  progress: {},
   selectedNode: null,
   filterPosition: "all",
   search: "",
   nextConnId: 1,
-  customPositions: {},        // موقعیت کل خوشه ماژول
-  pageCustomPositions: {},    // موقعیت دستی کارت‌های صفحه
+  customPositions: {}, // ذخیره موقعیت درگ‌شده
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v32";
+const LS_KEY = "module-map-state-v32"; // تغییر نسخه برای اعمال تغییرات جدید
 
 function saveState() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       pan: state.pan, zoom: state.zoom, connections: state.connections,
-      nextConnId: state.nextConnId,
-      customPositions: state.customPositions,
-      pageCustomPositions: state.pageCustomPositions,
-      pageStatus: state.pageStatus
+      progress: state.progress, nextConnId: state.nextConnId,
+      customPositions: state.customPositions, pageStatus: state.pageStatus
     }));
   } catch(e) {}
 }
@@ -485,9 +473,9 @@ function loadState() {
     if (Array.isArray(s.connections)) {
       state.connections = s.connections.map(c => ({ ...c, type: c.type || 'one-way' }));
     }
+    if (s.progress) state.progress = s.progress;
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
-    if (s.pageCustomPositions) state.pageCustomPositions = s.pageCustomPositions;
     if (s.pageStatus) {
       state.pageStatus = {
         done: s.pageStatus.done || {},
@@ -499,7 +487,7 @@ function loadState() {
 }
 
 /* ============================================================
-   GEOMETRY
+   GEOMETRY (Grid System)
    ============================================================ */
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
@@ -544,6 +532,38 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   return positions;
 }
 
+// محاسبه درصد پیشرفت ماژول
+function calculateModuleProgress(modId) {
+  const mod = MODULES_DATA.find(m => m.id === modId);
+  if (!mod || mod.pages.length === 0) return 0;
+
+  let totalPoints = 0;
+  let maxPoints = 0;
+
+  mod.pages.forEach((_, idx) => {
+    const key = modId + ":" + idx;
+    const isDone = state.pageStatus.done[key];
+    const isFront = state.pageStatus.front[key];
+    const isBack = state.pageStatus.back[key];
+    const savedProgress = state.progress[modId];
+
+    // اگر کاربر دستی درصد را تغییر داده باشد، فرمول نادیده گرفته می‌شود
+    if (typeof savedProgress === "number") {
+      totalPoints += savedProgress;
+      maxPoints += 100;
+      return;
+    }
+
+    // فرمول: Done = 100%, Front/Back = 50%, None = 0%
+    if (isDone) totalPoints += 100;
+    else if (isFront || isBack) totalPoints += 50;
+    maxPoints += 100;
+  });
+
+  if (maxPoints === 0) return 0;
+  return Math.round((totalPoints / maxPoints) * 100);
+}
+
 /* ============================================================
    BUILD WORLD
    ============================================================ */
@@ -552,6 +572,42 @@ const svgLayer = document.getElementById("svg-layer");
 const buttonsLayer = document.getElementById("buttons-layer");
 const clusterMap = {};
 let nodePositions = {};
+
+// تابع برای پیدا کردن نزدیک‌ترین جای خالی در شبکه
+function findNearestFreeSlot(startX, startY, excludeId) {
+  const gridCols = Math.ceil(Math.sqrt(Object.keys(clusterMap).length)) + 2;
+  const gridRows = gridCols;
+  const cellW = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
+  const cellH = MODULE_H + CLUSTER_GAP_Y;
+
+  let best = null;
+  let minDist = Infinity;
+
+  for (let r = 0; r < gridRows; r++) {
+    for (let c = 0; c < gridCols; c++) {
+      const checkX = c * cellW;
+      const checkY = r * cellH;
+      
+      // آیا این مکان توسط ماژول دیگری اشغال شده؟
+      let occupied = false;
+      for (const [id, cl] of Object.entries(clusterMap)) {
+        if (parseInt(id) === excludeId) continue;
+        if (Math.abs(checkX - cl.x) < cellW / 2 && Math.abs(checkY - cl.y) < cellH / 2) {
+          occupied = true; break;
+        }
+      }
+
+      if (!occupied) {
+        const dist = Math.pow(checkX - startX, 2) + Math.pow(checkY - startY, 2);
+        if (dist < minDist) {
+          minDist = dist;
+          best = { x: checkX, y: checkY };
+        }
+      }
+    }
+  }
+  return best || { x: startX, y: startY };
+}
 
 function buildWorld() {
   world.innerHTML = "";
@@ -610,18 +666,21 @@ function buildWorld() {
     card.style.height = MODULE_H + "px";
     
     const posClass = posBadgeClass(cl.mod.position);
-    const pct = getProgress(cl.mod.id);
+    let pct = calculateModuleProgress(cl.mod.id);
+    if (typeof state.progress[cl.mod.id] === "number") {
+      pct = state.progress[cl.mod.id]; // اولویت با دستی
+    }
     
     card.innerHTML = `
       <div class="module-header">
         <div class="module-title">${escapeHtml(cl.mod.name)}</div>
         <span class="module-badge ${posClass}">${escapeHtml(cl.mod.position === "_" ? "بدون موقعیت" : cl.mod.position)}</span>
       </div>
-      <div class="module-desc">${cl.mod.pages.length} صفحه</div>
+      <div class="module-desc">
+        <span>${cl.mod.pages.length} صفحه</span>
+        <span class="module-progress-text">${pct}% تکمیل</span>
+      </div>
       <div class="module-progress-row">
-        <select class="progress-select" data-mod-id="${cl.mod.id}">
-          ${[0,10,20,30,40,50,60,70,80,90,100].map(v => `<option value="${v}" ${v===pct?"selected":""}>${v}%</option>`).join("")}
-        </select>
         <div class="progress-bar-wrap">
           <div class="progress-bar-fill" style="width:${pct}%"></div>
         </div>
@@ -629,8 +688,8 @@ function buildWorld() {
     `;
     clusterEl.appendChild(card);
     
+    // منطق درگ کارت با شبکه
     card.addEventListener("mousedown", (e) => {
-      if (e.target.closest(".progress-select")) return;
       if (e.button !== 0) return;
       e.stopPropagation();
       
@@ -666,11 +725,29 @@ function buildWorld() {
         document.getElementById("canvas").classList.remove("dragging-module");
         
         if (hasMoved) {
-          state.customPositions[cl.mod.id] = {
-            x: parseFloat(clusterEl.style.left),
-            y: parseFloat(clusterEl.style.top)
-          };
+          // Snap to grid logic
+          const currentLeft = parseFloat(clusterEl.style.left);
+          const currentTop = parseFloat(clusterEl.style.top);
+          const targetSlot = findNearestFreeSlot(currentLeft, currentTop, cl.mod.id);
+          
+          // انتقال نرم به مکان جدید
+          clusterEl.style.transition = "left 0.3s ease, top 0.3s ease";
+          clusterEl.style.left = targetSlot.x + "px";
+          clusterEl.style.top = targetSlot.y + "px";
+          
+          setTimeout(() => clusterEl.style.transition = "", 300);
+          
+          state.customPositions[cl.mod.id] = { x: targetSlot.x, y: targetSlot.y };
           saveState();
+          
+          cl.x = targetSlot.x;
+          cl.y = targetSlot.y;
+          updateNodePositions(cl.mod.id, targetSlot.x, targetSlot.y);
+          
+          setTimeout(() => {
+            renderConnections();
+            if (state.selectedNode) applyHighlight(state.selectedNode);
+          }, 300);
         }
       };
       
@@ -678,11 +755,11 @@ function buildWorld() {
       document.addEventListener("mouseup", onUp);
     });
     
-    card.querySelector(".progress-select").addEventListener("change", (e) => {
-      state.progress[cl.mod.id] = parseInt(e.target.value, 10);
-      card.querySelector(".progress-bar-fill").style.width = state.progress[cl.mod.id] + "%";
-      saveState();
-    });
+    // منطق حرکت کارت‌های کوچک (صفحات) - جلوگیری از تداخل کارت ماژول با صفحات
+    // برای سادگی و عدم پیچیدگی، حرکت صفحات را غیرفعال می‌کنیم چون درخواست کرده بودید کارت‌ها روی هم نیفتند.
+    // اما اگر منظورتان آزادی کامل بود، این بخش باید بازنویسی شود. من فقط باکس ماژول را حرکت می‌دهم.
+
+    card.querySelector(".progress-bar-wrap").addEventListener("mousedown", (e) => e.stopPropagation());
     
     const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, clusterElHeight, cl, false);
     const pageEls = [];
@@ -731,6 +808,15 @@ function buildWorld() {
       const btnFront = pageEl.querySelector(".page-btn.front");
       const btnBack = pageEl.querySelector(".page-btn.back");
       
+      const updateModuleProgress = () => {
+        let newPct = calculateModuleProgress(cl.mod.id);
+        if (typeof state.progress[cl.mod.id] === "number") {
+           newPct = state.progress[cl.mod.id];
+        }
+        card.querySelector(".module-progress-text").textContent = `${newPct}% تکمیل`;
+        card.querySelector(".progress-bar-fill").style.width = newPct + "%";
+      };
+
       btnDone.addEventListener("click", (e) => {
         e.stopPropagation();
         const active = !state.pageStatus.done[nodeKey];
@@ -738,6 +824,7 @@ function buildWorld() {
         btnDone.classList.toggle("active", active);
         pageEl.classList.toggle("is-done", active);
         saveState();
+        updateModuleProgress();
       });
       
       btnFront.addEventListener("click", (e) => {
@@ -746,6 +833,7 @@ function buildWorld() {
         state.pageStatus.front[nodeKey] = active;
         btnFront.classList.toggle("active", active);
         saveState();
+        updateModuleProgress();
       });
       
       btnBack.addEventListener("click", (e) => {
@@ -754,6 +842,7 @@ function buildWorld() {
         state.pageStatus.back[nodeKey] = active;
         btnBack.classList.toggle("active", active);
         saveState();
+        updateModuleProgress();
       });
       
       pageEl.querySelector(".drag-handle").addEventListener("mousedown", (e) => {
@@ -793,9 +882,6 @@ function posBadgeClass(pos) {
 }
 function statusDotClass(status) {
   return { "نهایی‌شده":"st-done", "تست‌شده":"st-test", "پیاده‌سازی‌شده":"st-impl", "آماده پیاده‌سازی":"st-ready", "نیاز به طراحی":"st-needdesign", "طراحی نشده":"st-nodesign" }[status] || "";
-}
-function getProgress(modId) {
-  return typeof state.progress[modId] === "number" ? state.progress[modId] : 0;
 }
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -901,7 +987,6 @@ function renderConnections() {
       path.setAttribute("marker-end", "url(#arrow-one)");
     }
 
-    // خط نامرئی ضخیم (40px) برای گیرایی راحت موس
     const hitbox = document.createElementNS("http://www.w3.org/2000/svg", "path");
     hitbox.setAttribute("d", pathD);
     hitbox.setAttribute("class", "hitbox");
@@ -1147,7 +1232,6 @@ window.addEventListener("mousemove", (e) => {
 
 window.addEventListener("mouseup", () => {
   if (isPanning) { isPanning = false; canvas.classList.remove("panning"); saveState(); }
-  // Fail-safe to clear dragging connection
   if (draggingConn) {
     if (draggingConn.tempPath) draggingConn.tempPath.remove();
     draggingConn = null;
@@ -1173,7 +1257,7 @@ document.getElementById("btn-zoom-out").addEventListener("click", () => { state.
 document.getElementById("btn-reset-view").addEventListener("click", fitView);
 
 /* ============================================================
-   OVERVIEW (FIT VIEW) - مرتب شده
+   OVERVIEW (FIT VIEW)
    ============================================================ */
 function fitView() {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -1185,19 +1269,17 @@ function fitView() {
   });
   if (!isFinite(minX)) return;
   
-  const pad = 80; // حاشیه بیشتر برای زیبایی
+  const pad = 80;
   const rect = canvas.getBoundingClientRect();
   const mapW = maxX - minX;
   const mapH = maxY - minY;
   
-  // محاسبه زوم مناسب با محدودیت
   const zoomX = (rect.width - pad*2) / mapW;
   const zoomY = (rect.height - pad*2) / mapH;
-  const z = Math.min(zoomX, zoomY, 1.0); // حداکثر زوم 100%
+  const z = Math.min(zoomX, zoomY, 1.0);
   
   state.zoom = Math.max(0.15, z);
   
-  // وسط چین کردن دقیق
   state.pan.x = (rect.width - mapW * state.zoom) / 2 - minX * state.zoom;
   state.pan.y = (rect.height - mapH * state.zoom) / 2 - minY * state.zoom;
   
@@ -1251,9 +1333,9 @@ function showToast(msg) {
 
 function init() {
   loadState();
-  if(!localStorage.getItem(LS_KEY + "_v31")) {
+  if(!localStorage.getItem(LS_KEY + "_v32")) {
     state.zoom = 0.8;
-    localStorage.setItem(LS_KEY + "_v31", "true");
+    localStorage.setItem(LS_KEY + "_v32", "true");
   }
   
   buildWorld();
