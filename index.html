@@ -283,8 +283,8 @@ const PAGE_W = 180;
 const PAGE_H = 50;
 const PAGE_GAP = 12;
 const FIXED_CLUSTER_WIDTH = 1600; 
-const CLUSTER_GAP_X = 200; 
-const CLUSTER_GAP_Y = 200; 
+const CLUSTER_GAP_X = 300; // افزایش فاصله افقی
+const CLUSTER_GAP_Y = 300; // افزایش فاصله عمودی
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
 const GRID_CELL_H = 600; 
 
@@ -299,7 +299,7 @@ const state = {
   customPositions: {}, 
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v33"; 
+const LS_KEY = "module-map-state-v34"; // نسخه جدید برای رفع مشکل دکمه‌ها
 
 function saveState() {
   try {
@@ -555,7 +555,6 @@ function buildWorld() {
       pageEls.push({ el: pageEl, idx: p.pageIdx });
       nodePositions[nodeKey] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
       
-      // --- درگ کردن کارت‌های کوچک (Swap) ---
       pageEl.addEventListener("mousedown", (e) => {
         if (e.button !== 0 || e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || draggingConn) return;
         e.stopPropagation();
@@ -658,58 +657,55 @@ function buildWorld() {
         card.querySelector(".progress-bar-fill").style.width = newPct + "%";
       };
 
-      // --- تغییرات منطقی دکمه‌ها ---
-      
-      // 1. کلیک روی Done
-      pageEl.querySelector(".page-btn.done").addEventListener("click", (e) => {
+      // منطق دکمه‌ها (مستقیم روی دکمه‌ها، بدون e.target)
+      const btnDone = pageEl.querySelector(".page-btn.done");
+      const btnFront = pageEl.querySelector(".page-btn.front");
+      const btnBack = pageEl.querySelector(".page-btn.back");
+
+      btnDone.addEventListener("click", (e) => {
         e.stopPropagation(); 
         const active = !state.pageStatus.done[nodeKey];
         state.pageStatus.done[nodeKey] = active;
         
         if (active) {
-          // اگر Done فعال شد، F و B خاموش شوند
           state.pageStatus.front[nodeKey] = false;
           state.pageStatus.back[nodeKey] = false;
-          pageEl.querySelector(".page-btn.front").classList.remove("active");
-          pageEl.querySelector(".page-btn.back").classList.remove("active");
+          btnFront.classList.remove("active");
+          btnBack.classList.remove("active");
         }
         
-        e.target.classList.toggle("active", active); 
+        btnDone.classList.toggle("active", active); 
         pageEl.classList.toggle("is-done", active);
         saveState(); updateModuleProgress();
       });
 
-      // 2. کلیک روی Front
-      pageEl.querySelector(".page-btn.front").addEventListener("click", (e) => {
+      btnFront.addEventListener("click", (e) => {
         e.stopPropagation(); 
         const active = !state.pageStatus.front[nodeKey];
         state.pageStatus.front[nodeKey] = active;
         
         if (active) {
-          // اگر Front فعال شد، Done خاموش شود
           state.pageStatus.done[nodeKey] = false;
-          pageEl.querySelector(".page-btn.done").classList.remove("active");
+          btnDone.classList.remove("active");
           pageEl.classList.remove("is-done");
         }
         
-        e.target.classList.toggle("active", active);
+        btnFront.classList.toggle("active", active);
         saveState(); updateModuleProgress();
       });
 
-      // 3. کلیک روی Back
-      pageEl.querySelector(".page-btn.back").addEventListener("click", (e) => {
+      btnBack.addEventListener("click", (e) => {
         e.stopPropagation(); 
         const active = !state.pageStatus.back[nodeKey];
         state.pageStatus.back[nodeKey] = active;
         
         if (active) {
-          // اگر Back فعال شد، Done خاموش شود
           state.pageStatus.done[nodeKey] = false;
-          pageEl.querySelector(".page-btn.done").classList.remove("active");
+          btnDone.classList.remove("active");
           pageEl.classList.remove("is-done");
         }
         
-        e.target.classList.toggle("active", active);
+        btnBack.classList.toggle("active", active);
         saveState(); updateModuleProgress();
       });
       
