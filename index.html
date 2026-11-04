@@ -13,6 +13,7 @@
     color: #e6e6e6;
     overflow: hidden;
     user-select: none;
+    /* بهبود کیفیت رندر فونت در مرورگر */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -61,6 +62,7 @@
   #canvas.connecting { cursor: crosshair; }
   #canvas.dragging-module { cursor: grabbing; }
 
+  /* حذف will-change و backface-visibility برای جلوگیری از تار شدن در زوم */
   #world { 
     position: absolute; top: 0; left: 0; transform-origin: 0 0; 
   }
@@ -105,6 +107,7 @@
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
 
   .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  /* افزایش سایز فونت تایتل */
   .module-title { font-size: 17px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: center; }
   .module-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; transition: opacity 0.3s; pointer-events: none; }
   .badge-reh { background: #422006; color: #fbbf24; border: 1px solid #78350f; }
@@ -130,10 +133,10 @@
   .page-node {
     position: absolute; background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
     border: 1px solid #2d3a4a; border-radius: 8px; padding: 6px 9px 6px 75px; 
+    /* افزایش سایز فونت کارت‌های کوچک */
     font-size: 12px; color: #cbd5e1; text-align: right; 
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: grab;
-    transition: all 0.3s, box-shadow 0.2s; display: flex; align-items: center; 
-    /* overflow: hidden حذف شد تا نقطه آبی بریده نشود */
+    transition: all 0.3s, box-shadow 0.2s; display: flex; align-items: center; overflow: hidden; 
   }
   .page-node:active { cursor: grabbing; }
   .page-node:hover { border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3); z-index: 10; }
@@ -150,7 +153,6 @@
     border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; transform: scale(1.05);
   }
 
-  /* overflow: hidden برای متن است تا از کادر بیرون نزند */
   .page-node span { flex: 1; word-break: break-word; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; pointer-events: none; }
 
   .page-btn-group {
@@ -167,12 +169,11 @@
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
   
-  /* نقطه آبی به داخل کادر منتقل شد تا قابل کلیک باشد */
   .drag-handle {
-    position: absolute; top: 2px; right: 2px; width: 16px; height: 16px;
+    position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
     background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
     cursor: crosshair; opacity: 0; transition: opacity 0.15s, transform 0.15s;
-    z-index: 100; box-shadow: 0 0 10px rgba(56,189,248,0.8);
+    z-index: 30; box-shadow: 0 0 12px rgba(56,189,248,0.8);
   }
   .page-node:hover .drag-handle { opacity: 1; transform: scale(1.1); }
 
@@ -306,7 +307,7 @@ const state = {
   customPositions: {}, 
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v35"; // نسخه جدید برای پاک شدن کش قبلی
+const LS_KEY = "module-map-state-v34"; 
 
 function saveState() {
   try {
@@ -844,7 +845,6 @@ function updateSvgSize() {
 let draggingConn = null;
 function startConnection(fromKey) {
   const fromNode = nodePositions[fromKey]; if (!fromNode) return;
-  if (draggingConn) return; // جلوگیری از ایجاد چند اتصال همزمان
   draggingConn = { fromKey };
   document.getElementById("canvas").classList.add("connecting");
   const tempPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -861,7 +861,7 @@ function startConnection(fromKey) {
     tempPath.setAttribute("d", `M ${p1.x} ${p1.y} C ${mx-dy/dist*curv} ${my+dx/dist*curv}, ${mx+dy/dist*curv} ${my-dx/dist*curv}, ${worldX} ${worldY}`);
   };
   const onUp = (e) => {
-    window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp);
+    document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp);
     document.getElementById("canvas").classList.remove("connecting");
     if (draggingConn) {
       tempPath.remove();
@@ -876,7 +876,7 @@ function startConnection(fromKey) {
       draggingConn = null;
     }
   };
-  window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
+  document.addEventListener("mousemove", onMove); document.addEventListener("mouseup", onUp);
 }
 
 /* ============================================================
@@ -911,6 +911,7 @@ const canvas = document.getElementById("canvas");
 let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 
 function applyTransform(needRender = false) {
+  // استفاده از translate به جای translate3d برای شارپ ماندن متن‌ها در زوم
   world.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
   const isZoomedOut = state.zoom < 0.50;
@@ -943,6 +944,7 @@ window.addEventListener("mousemove", (e) => {
 });
 window.addEventListener("mouseup", () => {
   if (isPanning) { isPanning = false; canvas.classList.remove("panning"); saveState(); }
+  if (draggingConn) { if (draggingConn.tempPath) draggingConn.tempPath.remove(); draggingConn = null; document.getElementById("canvas").classList.remove("connecting"); }
 });
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
