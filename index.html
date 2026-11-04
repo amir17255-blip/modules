@@ -13,7 +13,10 @@
     color: #e6e6e6;
     overflow: hidden;
     user-select: none;
+    /* بهبود کیفیت رندر فونت در مرورگر */
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   /* ===== Top Toolbar ===== */
@@ -59,7 +62,10 @@
   #canvas.connecting { cursor: crosshair; }
   #canvas.dragging-module { cursor: grabbing; }
 
-  #world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; backface-visibility: hidden; }
+  /* حذف will-change و backface-visibility برای جلوگیری از تار شدن در زوم */
+  #world { 
+    position: absolute; top: 0; left: 0; transform-origin: 0 0; 
+  }
 
   /* ===== SVG ===== */
   #svg-layer { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; z-index: 1; }
@@ -101,7 +107,8 @@
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
 
   .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-  .module-title { font-size: 16px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: center; }
+  /* افزایش سایز فونت تایتل */
+  .module-title { font-size: 17px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: center; }
   .module-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; transition: opacity 0.3s; pointer-events: none; }
   .badge-reh { background: #422006; color: #fbbf24; border: 1px solid #78350f; }
   .badge-sys { background: #1e3a5f; color: #7dd3fc; border: 1px solid #1e40af; }
@@ -126,7 +133,8 @@
   .page-node {
     position: absolute; background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
     border: 1px solid #2d3a4a; border-radius: 8px; padding: 6px 9px 6px 75px; 
-    font-size: 11px; color: #cbd5e1; text-align: right; 
+    /* افزایش سایز فونت کارت‌های کوچک */
+    font-size: 12px; color: #cbd5e1; text-align: right; 
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: grab;
     transition: all 0.3s, box-shadow 0.2s; display: flex; align-items: center; overflow: hidden; 
   }
@@ -283,8 +291,8 @@ const PAGE_W = 180;
 const PAGE_H = 50;
 const PAGE_GAP = 12;
 const FIXED_CLUSTER_WIDTH = 1600; 
-const CLUSTER_GAP_X = 300; // افزایش فاصله افقی
-const CLUSTER_GAP_Y = 300; // افزایش فاصله عمودی
+const CLUSTER_GAP_X = 300; 
+const CLUSTER_GAP_Y = 300; 
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
 const GRID_CELL_H = 600; 
 
@@ -299,7 +307,7 @@ const state = {
   customPositions: {}, 
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v34"; // نسخه جدید برای رفع مشکل دکمه‌ها
+const LS_KEY = "module-map-state-v34"; 
 
 function saveState() {
   try {
@@ -657,7 +665,6 @@ function buildWorld() {
         card.querySelector(".progress-bar-fill").style.width = newPct + "%";
       };
 
-      // منطق دکمه‌ها (مستقیم روی دکمه‌ها، بدون e.target)
       const btnDone = pageEl.querySelector(".page-btn.done");
       const btnFront = pageEl.querySelector(".page-btn.front");
       const btnBack = pageEl.querySelector(".page-btn.back");
@@ -904,7 +911,8 @@ const canvas = document.getElementById("canvas");
 let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 
 function applyTransform(needRender = false) {
-  world.style.transform = `translate3d(${state.pan.x}px, ${state.pan.y}px, 0) scale(${state.zoom})`;
+  // استفاده از translate به جای translate3d برای شارپ ماندن متن‌ها در زوم
+  world.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
   const isZoomedOut = state.zoom < 0.50;
   if (isZoomedOut) document.body.classList.add("zoomed-out"); else document.body.classList.remove("zoomed-out");
