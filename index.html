@@ -167,16 +167,14 @@
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
   
-  /* ✅ دسته‌ی کشیدن اتصال — pointer-events: auto برای اینکه از قانون span والد خارج شود */
+  /* نقطه آبی به داخل کادر منتقل شد تا قابل کلیک باشد */
   .drag-handle {
-    position: absolute; top: 1px; right: 1px; width: 18px; height: 18px;
+    position: absolute; top: 2px; right: 2px; width: 16px; height: 16px;
     background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
-    cursor: crosshair; opacity: 0.35; transition: opacity 0.15s, transform 0.15s;
+    cursor: crosshair; opacity: 0; transition: opacity 0.15s, transform 0.15s;
     z-index: 100; box-shadow: 0 0 10px rgba(56,189,248,0.8);
-    pointer-events: auto;                /* ✅ فیکس اصلی */
   }
-  .page-node:hover .drag-handle { opacity: 1; transform: scale(1.15); }
-  body.zoomed-out .drag-handle { width: 12px; height: 12px; }
+  .page-node:hover .drag-handle { opacity: 1; transform: scale(1.1); }
 
   .page-status { position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #0f1419; pointer-events: none; }
   .st-done { background: #22c55e; } .st-test { background: #84cc16; } .st-impl { background: #eab308; }
@@ -308,7 +306,7 @@ const state = {
   customPositions: {}, 
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v35";
+const LS_KEY = "module-map-state-v35"; // نسخه جدید برای پاک شدن کش قبلی
 
 function saveState() {
   try {
@@ -846,7 +844,7 @@ function updateSvgSize() {
 let draggingConn = null;
 function startConnection(fromKey) {
   const fromNode = nodePositions[fromKey]; if (!fromNode) return;
-  if (draggingConn) return;
+  if (draggingConn) return; // جلوگیری از ایجاد چند اتصال همزمان
   draggingConn = { fromKey };
   document.getElementById("canvas").classList.add("connecting");
   const tempPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
