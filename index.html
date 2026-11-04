@@ -173,7 +173,8 @@
     position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
     background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
     cursor: crosshair; opacity: 0; transition: opacity 0.15s, transform 0.15s;
-    z-index: 30; box-shadow: 0 0 12px rgba(56,189,248,0.8);
+    z-index: 100; box-shadow: 0 0 12px rgba(56,189,248,0.8);
+    pointer-event: auto;
   }
   .page-node:hover .drag-handle { opacity: 1; transform: scale(1.1); }
 
