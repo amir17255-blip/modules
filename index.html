@@ -82,7 +82,7 @@
   /* ===== Module Cluster ===== */
   .module-cluster { position: absolute; transition: opacity 0.3s, box-shadow 0.2s, left 0.3s ease, top 0.3s ease; z-index: 10; }
   .module-cluster.dimmed { opacity: 0.2; }
-  .module-cluster.is-dragging { z-index: 100; transition: none; } /* حذف انیمیشن موقع درگ */
+  .module-cluster.is-dragging { z-index: 100; transition: none; }
 
   .module-card {
     background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
@@ -137,7 +137,6 @@
   .page-node.selected { opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; z-index: 12; background: #2a2416; color: #fff; }
   .page-node.is-done { background: linear-gradient(145deg, #142a1e 0%, #0f1f16 100%); border-color: #22c55e; color: #86efac; }
   
-  /* استایل درگ کردن صفحات */
   .page-node.is-dragging-page {
     z-index: 1000 !important; opacity: 0.9; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     pointer-events: none; border-color: #38bdf8;
@@ -162,7 +161,6 @@
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
   
-  /* نقطه آبی بزرگتر و درخشان‌تر */
   .drag-handle {
     position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
     background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
@@ -284,9 +282,9 @@ const MODULE_H = 180;
 const PAGE_W = 180;
 const PAGE_H = 50;
 const PAGE_GAP = 12;
-const FIXED_CLUSTER_WIDTH = 1600; // عرض کمتر برای جمع‌وجورتر شدن
-const CLUSTER_GAP_X = 200; // فاصله افقی بسیار زیاد بین ماژول‌ها
-const CLUSTER_GAP_Y = 200; // فاصله عمودی بسیار زیاد
+const FIXED_CLUSTER_WIDTH = 1600; 
+const CLUSTER_GAP_X = 200; 
+const CLUSTER_GAP_Y = 200; 
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
 const GRID_CELL_H = 600; 
 
@@ -301,7 +299,6 @@ const state = {
   customPositions: {}, 
   pageStatus: { done: {}, front: {}, back: {} }
 };
-// تغییر نسخه برای پاک شدن حافظه‌های تداخل‌دار قبلی
 const LS_KEY = "module-map-state-v33"; 
 
 function saveState() {
@@ -368,7 +365,6 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   return positions;
 }
 
-// فرمول درصد پیشرفت: هر Done=100%، هر Front/Back=50%
 function calculateModuleProgress(modId) {
   const mod = MODULES_DATA.find(m => m.id === modId);
   if (!mod || mod.pages.length === 0) return 0;
@@ -390,7 +386,6 @@ const buttonsLayer = document.getElementById("buttons-layer");
 const clusterMap = {};
 let nodePositions = {};
 
-// پیدا کردن نزدیک‌ترین مکان خالی در شبکه سخت‌گیرانه
 function findNearestFreeSlot(startX, startY, excludeId) {
   const gx = Math.round(startX / GRID_CELL_W);
   const gy = Math.round(startY / GRID_CELL_H);
@@ -405,7 +400,6 @@ function findNearestFreeSlot(startX, startY, excludeId) {
         let occupied = false;
         for (const [id, cl] of Object.entries(clusterMap)) {
           if (parseInt(id) === excludeId) continue;
-          // فاصله امن برای جلوگیری از تداخل مطلق
           if (Math.abs(cx - cl.x) < GRID_CELL_W * 0.8 && Math.abs(cy - cl.y) < GRID_CELL_H * 0.8) {
             occupied = true; break;
           }
@@ -429,7 +423,6 @@ function buildWorld() {
     return { mod: m, ...size };
   });
   
-  // چیدمان اولیه
   let gridIdx = 0;
   const cols = 4;
   clusters.forEach((cl, i) => {
@@ -479,7 +472,6 @@ function buildWorld() {
     `;
     clusterEl.appendChild(card);
     
-    // Drag Module
     card.addEventListener("mousedown", (e) => {
       if (e.button !== 0 || e.target.closest(".progress-bar-wrap")) return;
       e.stopPropagation();
@@ -528,7 +520,6 @@ function buildWorld() {
       document.addEventListener("mouseup", onUp);
     });
     
-    // ساخت صفحات
     const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, false);
     const pageEls = [];
     
@@ -584,7 +575,6 @@ function buildWorld() {
             pageEl.style.left = (origLeft + (ev.clientX - startX) / state.zoom) + "px";
             pageEl.style.top = (origTop + (ev.clientY - startY) / state.zoom) + "px";
             
-            // پیدا کردن کارت زیر موس
             const elements = document.elementsFromPoint(ev.clientX, ev.clientY);
             document.querySelectorAll(".page-node").forEach(el => el.classList.remove("drag-over"));
             for (let el of elements) {
@@ -613,16 +603,13 @@ function buildWorld() {
             }
             
             if (targetEl) {
-              // جابه‌جایی داده‌ها
               const targetIdx = parseInt(targetEl.dataset.nodeKey.split(":")[1]);
               const sourceIdx = p.pageIdx;
               
-              // Swap texts
               const temp = cl.mod.pages[sourceIdx];
               cl.mod.pages[sourceIdx] = cl.mod.pages[targetIdx];
               cl.mod.pages[targetIdx] = temp;
               
-              // Swap statuses
               const keys = [`${cl.mod.id}:${sourceIdx}`, `${cl.mod.id}:${targetIdx}`];
               const states = ["done", "front", "back"];
               states.forEach(st => {
@@ -632,7 +619,6 @@ function buildWorld() {
               });
               
               saveState();
-              // به‌روزرسانی DOM برای دو کارت
               const spanSource = pageEl.querySelector("span");
               const spanTarget = targetEl.querySelector("span");
               const txtTemp = spanSource.textContent;
@@ -648,13 +634,11 @@ function buildWorld() {
               updateBtns(pageEl, keys[0]);
               updateBtns(targetEl, keys[1]);
               
-              // آپدیت درصد ماژول
               const newPct = calculateModuleProgress(cl.mod.id);
               card.querySelector(".module-progress-text").textContent = `${newPct}% تکمیل`;
               card.querySelector(".progress-bar-fill").style.width = newPct + "%";
             }
             
-            // برگرداندن کارت به جای اولش
             pageEl.style.left = origLeft + "px";
             pageEl.style.top = origTop + "px";
           }
@@ -674,21 +658,57 @@ function buildWorld() {
         card.querySelector(".progress-bar-fill").style.width = newPct + "%";
       };
 
+      // --- تغییرات منطقی دکمه‌ها ---
+      
+      // 1. کلیک روی Done
       pageEl.querySelector(".page-btn.done").addEventListener("click", (e) => {
-        e.stopPropagation(); const active = !state.pageStatus.done[nodeKey];
+        e.stopPropagation(); 
+        const active = !state.pageStatus.done[nodeKey];
         state.pageStatus.done[nodeKey] = active;
-        e.target.classList.toggle("active", active); pageEl.classList.toggle("is-done", active);
+        
+        if (active) {
+          // اگر Done فعال شد، F و B خاموش شوند
+          state.pageStatus.front[nodeKey] = false;
+          state.pageStatus.back[nodeKey] = false;
+          pageEl.querySelector(".page-btn.front").classList.remove("active");
+          pageEl.querySelector(".page-btn.back").classList.remove("active");
+        }
+        
+        e.target.classList.toggle("active", active); 
+        pageEl.classList.toggle("is-done", active);
         saveState(); updateModuleProgress();
       });
+
+      // 2. کلیک روی Front
       pageEl.querySelector(".page-btn.front").addEventListener("click", (e) => {
-        e.stopPropagation(); const active = !state.pageStatus.front[nodeKey];
+        e.stopPropagation(); 
+        const active = !state.pageStatus.front[nodeKey];
         state.pageStatus.front[nodeKey] = active;
+        
+        if (active) {
+          // اگر Front فعال شد، Done خاموش شود
+          state.pageStatus.done[nodeKey] = false;
+          pageEl.querySelector(".page-btn.done").classList.remove("active");
+          pageEl.classList.remove("is-done");
+        }
+        
         e.target.classList.toggle("active", active);
         saveState(); updateModuleProgress();
       });
+
+      // 3. کلیک روی Back
       pageEl.querySelector(".page-btn.back").addEventListener("click", (e) => {
-        e.stopPropagation(); const active = !state.pageStatus.back[nodeKey];
+        e.stopPropagation(); 
+        const active = !state.pageStatus.back[nodeKey];
         state.pageStatus.back[nodeKey] = active;
+        
+        if (active) {
+          // اگر Back فعال شد، Done خاموش شود
+          state.pageStatus.done[nodeKey] = false;
+          pageEl.querySelector(".page-btn.done").classList.remove("active");
+          pageEl.classList.remove("is-done");
+        }
+        
         e.target.classList.toggle("active", active);
         saveState(); updateModuleProgress();
       });
@@ -728,7 +748,7 @@ function statusDotClass(status) {
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 /* ============================================================
-   CONNECTIONS (بدون تغییر جزئی)
+   CONNECTIONS
    ============================================================ */
 function edgePoint(node, towardX, towardY) {
   const cx = node.x + node.w/2, cy = node.y + node.h/2;
