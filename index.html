@@ -99,7 +99,7 @@
     border-color: #fbbf24; background: rgba(251, 191, 36, 0.08);
     box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.3) inset;
   }
-  /* نام مراحل بزرگ‌تر شد */
+  /* نام مراحل بزرگ‌تر */
   .stage-header {
     padding: 20px 16px; font-size: 24px; font-weight: 700; text-align: center;
     border-bottom: 3px solid; flex-shrink: 0; background: rgba(15, 23, 42, 0.7);
@@ -122,6 +122,11 @@
   }
   .stage-card:hover { border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8; z-index: 10; }
   
+  /* هایلایت کارت‌های استیج */
+  .stage-card.highlight { border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; z-index: 11; }
+  .stage-card.selected { border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; z-index: 12; background: #2a2416; color: #fff; }
+  .stage-card.dimmed { opacity: 0.2; }
+
   .stage-card.module-stage-card {
     border-color: #38bdf8; background: linear-gradient(145deg, #1e2c40 0%, #172438 100%);
     font-weight: 700; font-size: 15px; color: #e0f2fe; width: 100%;
@@ -134,7 +139,6 @@
     margin-right: 10px; border-right: 3px solid rgba(56, 189, 248, 0.5);
     font-size: 12px; padding: 8px 10px;
   }
-  /* استایل نام ماژول بالای کارت صفحه در استیج */
   .stage-card-parent {
     font-size: 10px; color: #7dd3fc; margin-bottom: 6px; padding-bottom: 4px;
     border-bottom: 1px dashed rgba(56, 189, 248, 0.3); display: flex; align-items: center; gap: 4px;
@@ -379,7 +383,7 @@ const state = {
   pageStatus: { done: {}, front: {}, back: {} },
   cardStage: {}
 };
-const LS_KEY = "module-map-state-v42";
+const LS_KEY = "module-map-state-v43";
 
 function saveState() {
   try {
@@ -568,7 +572,7 @@ function handleStageCardDrag(e, cardKey, cardEl) {
       ghost = document.createElement("div");
       ghost.className = "stage-card";
       ghost.style.cssText = "position: fixed; pointer-events: none; z-index: 9999; opacity: 0.85; padding: 10px; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; color: #e6e6e6; font-size: 13px; max-width: 240px;";
-      ghost.innerHTML = cardEl.innerHTML; // حفظ نام ماژول
+      ghost.innerHTML = cardEl.innerHTML;
       document.body.appendChild(ghost);
     }
     if (ghost) {
@@ -588,7 +592,10 @@ function handleStageCardDrag(e, cardKey, cardEl) {
     if (ghost) ghost.remove();
     cardEl.style.opacity = "";
 
-    if (!moved) return;
+    if (!moved) {
+      toggleSelection(cardKey);
+      return;
+    }
 
     const zone = getHoveredZone(ev);
 
@@ -1039,7 +1046,6 @@ function updateNodePositions(modId, newCx, newCy) {
   });
 }
 
-// ✅ به‌روزرسانی موقعیت کارت‌های داخل استیج
 function updateStagePositions() {
   if (!world) return;
   const worldRect = world.getBoundingClientRect();
@@ -1049,6 +1055,7 @@ function updateStagePositions() {
     const key = el.dataset.nodeKey;
     if (!key) return;
     const rect = el.getBoundingClientRect();
+    // محاسبه دقیق نسبت به مختصات دنیای اصلی (با احتساب زوم و پن)
     const x = (rect.left - worldRect.left) / scale;
     const y = (rect.top - worldRect.top) / scale;
     const w = rect.width / scale;
@@ -1108,11 +1115,10 @@ function autoConnectionPath(fromKey, toKey) {
 }
 
 function renderConnections() {
-  updateStagePositions(); // ✅ به‌روزرسانی موقعیت کارت‌های استیج قبل از رسم
+  updateStagePositions();
   svgLayer.innerHTML = ""; buttonsLayer.innerHTML = "";
   svgLayer.appendChild(getArrowDefs());
 
-  // ✅ همیشه اتصال خودکار صفحه به ماژول رسم شود (بدون توجه به حضور در استیج)
   MODULES_DATA.forEach(mod => {
     const modKey = "mod:" + mod.id;
     if (!nodePositions[modKey]) return;
@@ -1236,16 +1242,27 @@ function clearSelection() {
   state.selectedNode = null;
   document.querySelectorAll(".page-node").forEach(el => el.classList.remove("selected", "highlight", "dimmed"));
   document.querySelectorAll(".module-cluster").forEach(el => el.classList.remove("highlight", "dimmed"));
+  document.querySelectorAll(".stage-card").forEach(el => el.classList.remove("selected", "highlight", "dimmed"));
   svgLayer.querySelectorAll("path.connection").forEach(p => p.classList.remove("highlight", "dim"));
   svgLayer.querySelectorAll("path.auto-connection").forEach(p => p.classList.remove("highlight", "dim"));
 }
 function applyHighlight(key) {
   const neighbors = new Set([key]);
   state.connections.forEach(c => { if (c.from === key) neighbors.add(c.to); if (c.to === key) neighbors.add(c.from); });
+  
   document.querySelectorAll(".page-node").forEach(el => {
     const k = el.dataset.nodeKey; el.classList.remove("selected", "highlight", "dimmed");
     if (neighbors.has(k)) { el.classList.add("highlight"); if (k === key) el.classList.add("selected"); } else el.classList.add("dimmed");
   });
+
+  // هایلایت کارت‌های داخل استیج
+  document.querySelectorAll(".stage-card").forEach(el => {
+    const k = el.dataset.nodeKey;
+    if (!k) return;
+    el.classList.remove("selected", "highlight", "dimmed");
+    if (neighbors.has(k)) { el.classList.add("highlight"); if (k === key) el.classList.add("selected"); } else el.classList.add("dimmed");
+  });
+
   const relatedMods = new Set(); neighbors.forEach(k => relatedMods.add(k.split(":")[0]));
   document.querySelectorAll(".module-cluster").forEach(el => {
     if (relatedMods.has(String(el.dataset.modId))) { el.classList.add("highlight"); el.classList.remove("dimmed"); }
