@@ -9,17 +9,10 @@
   html, body {
     height: 100%;
     font-family: Tahoma, system-ui, -apple-system, sans-serif;
-    background: #0f1419;
-    color: #e6e6e6;
-    overflow: hidden;
-    user-select: none;
-    /* بهبود کیفیت رندر فونت در مرورگر */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    background: #0f1419; color: #e6e6e6; overflow: hidden; user-select: none;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-
-  /* ===== Top Toolbar ===== */
   #toolbar {
     position: fixed; top: 0; left: 0; right: 0; height: 56px;
     background: linear-gradient(180deg, #1a2028 0%, #151a21 100%);
@@ -34,7 +27,6 @@
   }
   .toolbar-group:last-child { border-left: none; }
   .toolbar-group label { font-size: 12px; color: #94a3b8; }
-  
   select, button, input {
     font-family: inherit; font-size: 12px; background: #232c38; color: #e6e6e6;
     border: 1px solid #334155; border-radius: 6px; padding: 6px 12px;
@@ -47,11 +39,9 @@
   #btn-reset-view:hover { background: #1e40af; color: #fff; }
   #btn-reset-layout { background: #4c1d95; border-color: #6d28d9; color: #c4b5fd; }
   #btn-reset-layout:hover { background: #5b21b6; color: #fff; }
-  
   #zoom-level { font-size: 12px; color: #94a3b8; min-width: 44px; text-align: center; }
   #stats { font-size: 11px; color: #64748b; margin-right: auto; }
 
-  /* ===== Canvas ===== */
   #canvas {
     position: fixed; top: 56px; left: 0; right: 0; bottom: 0; overflow: hidden;
     cursor: grab; background-color: #0f1419;
@@ -61,13 +51,8 @@
   #canvas.panning { cursor: grabbing; }
   #canvas.connecting { cursor: crosshair; }
   #canvas.dragging-module { cursor: grabbing; }
+  #world { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
 
-  /* حذف will-change و backface-visibility برای جلوگیری از تار شدن در زوم */
-  #world { 
-    position: absolute; top: 0; left: 0; transform-origin: 0 0; 
-  }
-
-  /* ===== SVG ===== */
   #svg-layer { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; z-index: 1; }
   #svg-layer path.connection { fill: none; stroke: #38bdf8; stroke-width: 3; stroke-linecap: round; pointer-events: stroke; cursor: pointer; transition: all 0.2s; }
   #svg-layer path.connection.hovered { stroke: #fbbf24; stroke-width: 4.5; }
@@ -76,7 +61,6 @@
   #svg-layer path.temp { fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none; }
   #svg-layer path.hitbox { fill: none; stroke: transparent; stroke-width: 40; pointer-events: stroke; cursor: pointer; }
 
-  /* ===== Buttons Layer ===== */
   #buttons-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
   .conn-btn-wrap { position: absolute; display: flex; gap: 8px; transform: translate(-50%, -50%); pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
   .conn-btn-wrap.visible { pointer-events: auto; opacity: 1; }
@@ -85,11 +69,9 @@
   .conn-btn.btn-delete { background: #451a1a; border-color: #ef4444; color: #fca5a5; }
   .conn-btn.btn-delete:hover { background: #7f1d1d; border-color: #f87171; color: #fff; }
 
-  /* ===== Module Cluster ===== */
   .module-cluster { position: absolute; transition: opacity 0.3s, box-shadow 0.2s, left 0.3s ease, top 0.3s ease; z-index: 10; }
   .module-cluster.dimmed { opacity: 0.2; }
   .module-cluster.is-dragging { z-index: 100; transition: none; }
-
   .module-card {
     background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
     border: 1px solid #334155; border-radius: 14px; padding: 14px 16px;
@@ -105,9 +87,7 @@
   }
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
-
   .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-  /* افزایش سایز فونت تایتل */
   .module-title { font-size: 17px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: center; }
   .module-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; transition: opacity 0.3s; pointer-events: none; }
   .badge-reh { background: #422006; color: #fbbf24; border: 1px solid #78350f; }
@@ -116,7 +96,6 @@
   .badge-aqua { background: #0c4a6e; color: #67e8f9; border: 1px solid #0e7490; }
   .badge-spec { background: #4c1d95; color: #c4b5fd; border: 1px solid #6d28d9; }
   .badge-common { background: #7c2d12; color: #fdba74; border: 1px solid #9a3412; }
-
   .module-desc {
     font-size: 12px; color: #94a3b8; padding: 6px 8px;
     background: rgba(15,23,42,0.6); border-radius: 6px; border: 1px solid #1e293b;
@@ -124,7 +103,6 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
   .module-progress-text { font-size: 13px; color: #38bdf8; font-weight: bold; margin-top: 4px; }
-
   .module-progress-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; transition: opacity 0.3s; pointer-events: none; }
   .progress-bar-wrap { flex: 1; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; }
   .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #22d3ee); transition: width 0.3s ease; }
@@ -132,11 +110,10 @@
   /* ===== Page Node ===== */
   .page-node {
     position: absolute; background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
-    border: 1px solid #2d3a4a; border-radius: 8px; padding: 6px 9px 6px 75px; 
-    /* افزایش سایز فونت کارت‌های کوچک */
-    font-size: 12px; color: #cbd5e1; text-align: right; 
+    border: 1px solid #2d3a4a; border-radius: 8px; padding: 6px 9px 6px 75px;
+    font-size: 12px; color: #cbd5e1; text-align: right;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: grab;
-    transition: all 0.3s, box-shadow 0.2s; display: flex; align-items: center; overflow: hidden; 
+    transition: all 0.3s, box-shadow 0.2s; display: flex; align-items: center;
   }
   .page-node:active { cursor: grabbing; }
   .page-node:hover { border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3); z-index: 10; }
@@ -144,7 +121,6 @@
   .page-node.highlight { opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; z-index: 11; background: #2a2416; color: #fef3c7; }
   .page-node.selected { opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; z-index: 12; background: #2a2416; color: #fff; }
   .page-node.is-done { background: linear-gradient(145deg, #142a1e 0%, #0f1f16 100%); border-color: #22c55e; color: #86efac; }
-  
   .page-node.is-dragging-page {
     z-index: 1000 !important; opacity: 0.9; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     pointer-events: none; border-color: #38bdf8;
@@ -153,7 +129,12 @@
     border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; transform: scale(1.05);
   }
 
-  .page-node span { flex: 1; word-break: break-word; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; pointer-events: none; }
+  /* ✅ FIX: با :not(.drag-handle) — drag-handle از این قانون مستثنی می‌شود */
+  .page-node span:not(.drag-handle) {
+    flex: 1; word-break: break-word; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden; pointer-events: none;
+  }
 
   .page-btn-group {
     position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
@@ -168,20 +149,24 @@
   .page-btn.done.active { background: #22c55e; border-color: #22c55e; color: #fff; }
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
-  
-  .drag-handle {
-    position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
+
+  /* ✅ FIX اصلی: drag-handle حالا واقعاً قابل کلیک است */
+  .page-node .drag-handle {
+    position: absolute; top: 1px; right: 1px; width: 20px; height: 20px;
     background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
-    cursor: crosshair; opacity: 0; transition: opacity 0.15s, transform 0.15s;
-    z-index: 30; box-shadow: 0 0 12px rgba(56,189,248,0.8);
+    cursor: crosshair; opacity: 0.4; transition: opacity 0.15s, transform 0.15s;
+    z-index: 101; box-shadow: 0 0 10px rgba(56,189,248,0.8);
+    pointer-events: auto !important;   /* وزن بالاتر + !important برای اطمینان */
+    flex: none !important;
+    display: block !important;
   }
-  .page-node:hover .drag-handle { opacity: 1; transform: scale(1.1); }
+  .page-node:hover .drag-handle { opacity: 1; transform: scale(1.15); }
+  body.zoomed-out .drag-handle { width: 14px; height: 14px; }
 
   .page-status { position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #0f1419; pointer-events: none; }
   .st-done { background: #22c55e; } .st-test { background: #84cc16; } .st-impl { background: #eab308; }
   .st-ready { background: #f97316; } .st-needdesign { background: #ef4444; } .st-nodesign { background: #6b7280; }
 
-  /* ===== حالت زوم اوت ===== */
   body.zoomed-out .module-card { width: 250px !important; height: 300px !important; transform: translate(-50%, -50%); background: #1c2531; border-color: #475569; left: 50%; top: 50%; }
   body.zoomed-out .module-title { font-size: 42px; font-weight: 700; text-align: center; text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 20px; line-height: 1.2; }
   body.zoomed-out .module-desc, body.zoomed-out .module-progress-row, body.zoomed-out .module-badge { display: none; }
@@ -189,7 +174,6 @@
   body.zoomed-out .page-btn-group { left: 4px; }
   body.zoomed-out .page-node { margin: 0; padding-left: 65px; }
 
-  /* ===== UI ===== */
   #toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 18px; font-size: 12px; z-index: 200; opacity: 0; pointer-events: none; transition: all 0.25s; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #hint { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(30,41,59,0.95); border: 1px solid #334155; border-radius: 8px; padding: 8px 16px; font-size: 11px; color: #94a3b8; z-index: 90; backdrop-filter: blur(4px); pointer-events: none; transition: opacity 0.3s; }
@@ -233,7 +217,7 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت بزرگ = جابه‌جایی ماژول | کشیدن کارت کوچک = تغییر ترتیب صفحات
+  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت بزرگ = جابه‌جایی ماژول | کشیدن کارت کوچک = تغییر ترتیب صفحات | کشیدن نقطه آبی = ایجاد اتصال
 </div>
 
 <div id="toast"></div>
@@ -282,32 +266,24 @@ const MODULES_DATA = [
   { id:37, name:"Before Login", position:"_", status:"تست‌شده", pages:["رهگیری محصولات","سؤالات متداول","ارتباط با ما"] },
 ];
 
-/* ============================================================
-   CONSTANTS & STATE
-   ============================================================ */
 const MODULE_W = 260;
 const MODULE_H = 180;
 const PAGE_W = 180;
 const PAGE_H = 50;
 const PAGE_GAP = 12;
-const FIXED_CLUSTER_WIDTH = 1600; 
-const CLUSTER_GAP_X = 300; 
-const CLUSTER_GAP_Y = 300; 
+const FIXED_CLUSTER_WIDTH = 1600;
+const CLUSTER_GAP_X = 300;
+const CLUSTER_GAP_Y = 300;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
-const GRID_CELL_H = 600; 
+const GRID_CELL_H = 600;
 
 const state = {
-  pan: { x: 50, y: 50 },
-  zoom: 0.8,
-  connections: [],
-  selectedNode: null,
-  filterPosition: "all",
-  search: "",
-  nextConnId: 1,
-  customPositions: {}, 
+  pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
+  selectedNode: null, filterPosition: "all", search: "",
+  nextConnId: 1, customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v34"; 
+const LS_KEY = "module-map-state-v36";
 
 function saveState() {
   try {
@@ -331,12 +307,9 @@ function loadState() {
   } catch(e) {}
 }
 
-/* ============================================================
-   GEOMETRY & PROGRESS
-   ============================================================ */
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
-  const maxPerCol = 5; 
+  const maxPerCol = 5;
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
   const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 40;
@@ -349,12 +322,11 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   if (numPages === 0) return positions;
   const { maxPerCol } = info;
   const pagesPerSide = Math.ceil(numPages / 2);
-  const cardW = isZoomedOut ? 650 : MODULE_W; 
+  const cardW = isZoomedOut ? 650 : MODULE_W;
   const halfCardW = cardW / 2;
   const centerX = clusterW / 2;
   const gap = isZoomedOut ? 60 : 10;
   const offset = halfCardW + gap;
-  
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
@@ -385,9 +357,6 @@ function calculateModuleProgress(modId) {
   return Math.round(total / mod.pages.length);
 }
 
-/* ============================================================
-   BUILD WORLD
-   ============================================================ */
 const world = document.getElementById("world");
 const svgLayer = document.getElementById("svg-layer");
 const buttonsLayer = document.getElementById("buttons-layer");
@@ -397,14 +366,12 @@ let nodePositions = {};
 function findNearestFreeSlot(startX, startY, excludeId) {
   const gx = Math.round(startX / GRID_CELL_W);
   const gy = Math.round(startY / GRID_CELL_H);
-  
   for (let r = 0; r < 20; r++) {
     for (let i = -r; i <= r; i++) {
       for (let j = -r; j <= r; j++) {
         if (Math.abs(i) !== r && Math.abs(j) !== r) continue;
         const cx = (gx + i) * GRID_CELL_W;
         const cy = (gy + j) * GRID_CELL_H;
-        
         let occupied = false;
         for (const [id, cl] of Object.entries(clusterMap)) {
           if (parseInt(id) === excludeId) continue;
@@ -425,12 +392,12 @@ function buildWorld() {
   world.appendChild(buttonsLayer);
   svgLayer.innerHTML = "";
   buttonsLayer.innerHTML = "";
-  
+
   const clusters = MODULES_DATA.map(m => {
     const size = computeClusterSize(m.pages.length);
     return { mod: m, ...size };
   });
-  
+
   let gridIdx = 0;
   const cols = 4;
   clusters.forEach((cl, i) => {
@@ -451,18 +418,18 @@ function buildWorld() {
     clusterEl.style.left = cx + "px";
     clusterEl.style.top = cy + "px";
     clusterEl.style.width = cl.w + "px";
-    clusterEl.style.height = cl.h + "px"; 
+    clusterEl.style.height = cl.h + "px";
     clusterEl.dataset.modId = cl.mod.id;
-    
+
     const card = document.createElement("div");
     card.className = "module-card";
     card.dataset.modId = cl.mod.id;
     card.style.width = MODULE_W + "px";
     card.style.height = MODULE_H + "px";
-    
+
     const posClass = posBadgeClass(cl.mod.position);
     let pct = calculateModuleProgress(cl.mod.id);
-    
+
     card.innerHTML = `
       <div class="module-header">
         <div class="module-title">${escapeHtml(cl.mod.name)}</div>
@@ -479,45 +446,39 @@ function buildWorld() {
       </div>
     `;
     clusterEl.appendChild(card);
-    
+
     card.addEventListener("mousedown", (e) => {
       if (e.button !== 0 || e.target.closest(".progress-bar-wrap")) return;
       e.stopPropagation();
       const startMouseX = e.clientX, startMouseY = e.clientY;
       const startLeft = parseFloat(clusterEl.style.left), startTop = parseFloat(clusterEl.style.top);
       let hasMoved = false;
-      
       const onMove = (ev) => {
         const dx = ev.clientX - startMouseX, dy = ev.clientY - startMouseY;
         if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
         if (!hasMoved) return;
         clusterEl.classList.add("is-dragging");
         document.getElementById("canvas").classList.add("dragging-module");
-        
         const newLeft = startLeft + (dx / state.zoom);
         const newTop = startTop + (dy / state.zoom);
         clusterEl.style.left = newLeft + "px";
         clusterEl.style.top = newTop + "px";
         updateNodePositions(cl.mod.id, newLeft, newTop);
-        renderConnections(); 
+        renderConnections();
       };
-      
       const onUp = () => {
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
         clusterEl.classList.remove("is-dragging");
         document.getElementById("canvas").classList.remove("dragging-module");
-        
         if (hasMoved) {
           const targetSlot = findNearestFreeSlot(parseFloat(clusterEl.style.left), parseFloat(clusterEl.style.top), cl.mod.id);
           clusterEl.style.left = targetSlot.x + "px";
           clusterEl.style.top = targetSlot.y + "px";
-          
           state.customPositions[cl.mod.id] = { x: targetSlot.x, y: targetSlot.y };
           saveState();
           cl.x = targetSlot.x; cl.y = targetSlot.y;
           updateNodePositions(cl.mod.id, targetSlot.x, targetSlot.y);
-          
           setTimeout(() => {
             renderConnections();
             if (state.selectedNode) applyHighlight(state.selectedNode);
@@ -527,10 +488,10 @@ function buildWorld() {
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
     });
-    
+
     const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, false);
     const pageEls = [];
-    
+
     pagePositions.forEach((p) => {
       const pageEl = document.createElement("div");
       pageEl.className = "page-node";
@@ -538,16 +499,15 @@ function buildWorld() {
       pageEl.style.top = p.y + "px";
       pageEl.style.width = PAGE_W + "px";
       pageEl.style.height = PAGE_H + "px";
-      
+
       const nodeKey = cl.mod.id + ":" + p.pageIdx;
       pageEl.dataset.nodeKey = nodeKey;
-      
+
       const isDone = state.pageStatus.done[nodeKey] === true;
       const isFront = state.pageStatus.front[nodeKey] === true;
       const isBack = state.pageStatus.back[nodeKey] === true;
-      
       if (isDone) pageEl.classList.add("is-done");
-      
+
       pageEl.innerHTML = `
         <span>${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
         <div class="page-btn-group">
@@ -556,22 +516,24 @@ function buildWorld() {
           <div class="page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
         </div>
         ${statusDotClass(cl.mod.status) ? `<span class="page-status ${statusDotClass(cl.mod.status)}"></span>` : ""}
-        <span class="drag-handle"></span>
+        <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
       `;
-      
+
       clusterEl.appendChild(pageEl);
       pageEls.push({ el: pageEl, idx: p.pageIdx });
       nodePositions[nodeKey] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
-      
+
+      // ---- Drag to reorder (page inside cluster) ----
       pageEl.addEventListener("mousedown", (e) => {
-        if (e.button !== 0 || e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || draggingConn) return;
+        if (e.button !== 0) return;
+        if (e.target.closest('.page-btn-group')) return;
+        if (e.target.classList.contains("drag-handle")) return; // ← اجازه بده drag-handle کار خودش را بکند
+        if (draggingConn) return;
         e.stopPropagation();
-        
         const startX = e.clientX, startY = e.clientY;
         const origLeft = parseFloat(pageEl.style.left);
         const origTop = parseFloat(pageEl.style.top);
         let isDragging = false;
-        
         const onMove = (ev) => {
           if (!isDragging && (Math.abs(ev.clientX - startX) > 5 || Math.abs(ev.clientY - startY) > 5)) {
             isDragging = true;
@@ -581,24 +543,20 @@ function buildWorld() {
           if (isDragging) {
             pageEl.style.left = (origLeft + (ev.clientX - startX) / state.zoom) + "px";
             pageEl.style.top = (origTop + (ev.clientY - startY) / state.zoom) + "px";
-            
             const elements = document.elementsFromPoint(ev.clientX, ev.clientY);
             document.querySelectorAll(".page-node").forEach(el => el.classList.remove("drag-over"));
             for (let el of elements) {
               if (el.classList.contains("page-node") && el !== pageEl && el.dataset.nodeKey.startsWith(cl.mod.id + ":")) {
-                el.classList.add("drag-over");
-                break;
+                el.classList.add("drag-over"); break;
               }
             }
           }
         };
-        
         const onUp = (ev) => {
           document.removeEventListener("mousemove", onMove);
           document.removeEventListener("mouseup", onUp);
           document.getElementById("canvas").style.cursor = "";
           document.querySelectorAll(".page-node").forEach(el => el.classList.remove("drag-over"));
-          
           if (isDragging) {
             pageEl.classList.remove("is-dragging-page");
             const elements = document.elementsFromPoint(ev.clientX, ev.clientY);
@@ -608,30 +566,24 @@ function buildWorld() {
                 targetEl = el; break;
               }
             }
-            
             if (targetEl) {
               const targetIdx = parseInt(targetEl.dataset.nodeKey.split(":")[1]);
               const sourceIdx = p.pageIdx;
-              
               const temp = cl.mod.pages[sourceIdx];
               cl.mod.pages[sourceIdx] = cl.mod.pages[targetIdx];
               cl.mod.pages[targetIdx] = temp;
-              
               const keys = [`${cl.mod.id}:${sourceIdx}`, `${cl.mod.id}:${targetIdx}`];
-              const states = ["done", "front", "back"];
-              states.forEach(st => {
+              ["done", "front", "back"].forEach(st => {
                 const t = state.pageStatus[st][keys[0]];
                 state.pageStatus[st][keys[0]] = state.pageStatus[st][keys[1]];
                 state.pageStatus[st][keys[1]] = t;
               });
-              
               saveState();
               const spanSource = pageEl.querySelector("span");
               const spanTarget = targetEl.querySelector("span");
               const txtTemp = spanSource.textContent;
               spanSource.textContent = spanTarget.textContent;
               spanTarget.textContent = txtTemp;
-              
               const updateBtns = (el, key) => {
                 el.querySelector('.done').classList.toggle('active', !!state.pageStatus.done[key]);
                 el.querySelector('.front').classList.toggle('active', !!state.pageStatus.front[key]);
@@ -640,12 +592,10 @@ function buildWorld() {
               };
               updateBtns(pageEl, keys[0]);
               updateBtns(targetEl, keys[1]);
-              
               const newPct = calculateModuleProgress(cl.mod.id);
               card.querySelector(".module-progress-text").textContent = `${newPct}% تکمیل`;
               card.querySelector(".progress-bar-fill").style.width = newPct + "%";
             }
-            
             pageEl.style.left = origLeft + "px";
             pageEl.style.top = origTop + "px";
           }
@@ -653,12 +603,12 @@ function buildWorld() {
         document.addEventListener("mousemove", onMove);
         document.addEventListener("mouseup", onUp);
       });
-      
+
       pageEl.addEventListener("click", (e) => {
         if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || draggingConn) return;
         toggleSelection(nodeKey);
       });
-      
+
       const updateModuleProgress = () => {
         let newPct = calculateModuleProgress(cl.mod.id);
         card.querySelector(".module-progress-text").textContent = `${newPct}% تکمیل`;
@@ -670,72 +620,58 @@ function buildWorld() {
       const btnBack = pageEl.querySelector(".page-btn.back");
 
       btnDone.addEventListener("click", (e) => {
-        e.stopPropagation(); 
+        e.stopPropagation();
         const active = !state.pageStatus.done[nodeKey];
         state.pageStatus.done[nodeKey] = active;
-        
         if (active) {
           state.pageStatus.front[nodeKey] = false;
           state.pageStatus.back[nodeKey] = false;
-          btnFront.classList.remove("active");
-          btnBack.classList.remove("active");
+          btnFront.classList.remove("active"); btnBack.classList.remove("active");
         }
-        
-        btnDone.classList.toggle("active", active); 
+        btnDone.classList.toggle("active", active);
         pageEl.classList.toggle("is-done", active);
         saveState(); updateModuleProgress();
       });
-
       btnFront.addEventListener("click", (e) => {
-        e.stopPropagation(); 
+        e.stopPropagation();
         const active = !state.pageStatus.front[nodeKey];
         state.pageStatus.front[nodeKey] = active;
-        
-        if (active) {
-          state.pageStatus.done[nodeKey] = false;
-          btnDone.classList.remove("active");
-          pageEl.classList.remove("is-done");
-        }
-        
+        if (active) { state.pageStatus.done[nodeKey] = false; btnDone.classList.remove("active"); pageEl.classList.remove("is-done"); }
         btnFront.classList.toggle("active", active);
         saveState(); updateModuleProgress();
       });
-
       btnBack.addEventListener("click", (e) => {
-        e.stopPropagation(); 
+        e.stopPropagation();
         const active = !state.pageStatus.back[nodeKey];
         state.pageStatus.back[nodeKey] = active;
-        
-        if (active) {
-          state.pageStatus.done[nodeKey] = false;
-          btnDone.classList.remove("active");
-          pageEl.classList.remove("is-done");
-        }
-        
+        if (active) { state.pageStatus.done[nodeKey] = false; btnDone.classList.remove("active"); pageEl.classList.remove("is-done"); }
         btnBack.classList.toggle("active", active);
         saveState(); updateModuleProgress();
       });
-      
+
+      // ✅ شروع اتصال از نقطه آبی
       pageEl.querySelector(".drag-handle").addEventListener("mousedown", (e) => {
-        e.stopPropagation(); e.preventDefault();
+        if (e.button !== 0) return;
+        e.stopPropagation();
+        e.preventDefault();
         startConnection(nodeKey);
       });
     });
-    
+
     world.appendChild(clusterEl);
     clusterMap[cl.mod.id] = { el: clusterEl, card, w: cl.w, h: cl.h, x: cx, y: cy, pageEls };
   });
-  
+
   renderConnections();
   applyFilters();
-  clearSelection(); 
+  clearSelection();
 }
 
 function updateNodePositions(modId, newCx, newCy) {
   const cl = clusterMap[modId];
   if (!cl) return;
   cl.x = newCx; cl.y = newCy;
-  cl.pageEls.forEach((pEl, i) => {
+  cl.pageEls.forEach((pEl) => {
     const left = parseFloat(pEl.el.style.left);
     const top = parseFloat(pEl.el.style.top);
     nodePositions[modId + ":" + pEl.idx] = { x: newCx + left, y: newCy + top, w: PAGE_W, h: PAGE_H };
@@ -769,7 +705,6 @@ function connectionPath(fromKey, toKey, idx) {
   const p2 = edgePoint(b, acx, acy);
   const dx = p2.x - p1.x, dy = p2.y - p1.y;
   const offset = (idx % 5 - 2) * 12;
-  
   if (Math.abs(dx) > Math.abs(dy)) {
     const midX = p1.x + dx / 2 + offset;
     const r = Math.min(25, Math.abs(dy) / 2, Math.abs(midX - p1.x), Math.abs(p2.x - midX));
@@ -793,7 +728,7 @@ function renderConnections() {
     const pathD = connectionPath(conn.from, conn.to, idx);
     const midX = (a.x + a.w/2 + b.x + b.w/2) / 2;
     const midY = (a.y + a.h/2 + b.y + b.h/2) / 2;
-    
+
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("class", "connection"); path.setAttribute("d", pathD);
     path.dataset.connId = conn.id; path.dataset.from = conn.from; path.dataset.to = conn.to;
@@ -806,15 +741,15 @@ function renderConnections() {
     const btnWrap = document.createElement("div");
     btnWrap.className = "conn-btn-wrap";
     btnWrap.style.left = midX + "px"; btnWrap.style.top = (midY + (idx % 2 === 0 ? -20 : 20)) + "px";
-    
+
     const btnToggle = document.createElement("div");
     btnToggle.className = "conn-btn"; btnToggle.textContent = conn.type === 'two-way' ? '⇄' : '➔';
     btnToggle.addEventListener("click", (e) => { e.stopPropagation(); conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way'; saveState(); renderConnections(); });
-    
+
     const btnDelete = document.createElement("div");
     btnDelete.className = "conn-btn btn-delete"; btnDelete.textContent = '✕';
     btnDelete.addEventListener("click", (e) => { e.stopPropagation(); state.connections = state.connections.filter(c => c.id !== conn.id); saveState(); renderConnections(); if (state.selectedNode) applyHighlight(state.selectedNode); else clearSelection(); });
-    
+
     btnWrap.appendChild(btnToggle); btnWrap.appendChild(btnDelete); buttonsLayer.appendChild(btnWrap);
 
     let hideTimeout;
@@ -845,11 +780,12 @@ function updateSvgSize() {
 let draggingConn = null;
 function startConnection(fromKey) {
   const fromNode = nodePositions[fromKey]; if (!fromNode) return;
+  if (draggingConn) return;
   draggingConn = { fromKey };
   document.getElementById("canvas").classList.add("connecting");
   const tempPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
   tempPath.setAttribute("class", "temp"); svgLayer.appendChild(tempPath);
-  
+
   const onMove = (e) => {
     if (!draggingConn) return;
     const rect = canvas.getBoundingClientRect();
@@ -861,7 +797,7 @@ function startConnection(fromKey) {
     tempPath.setAttribute("d", `M ${p1.x} ${p1.y} C ${mx-dy/dist*curv} ${my+dx/dist*curv}, ${mx+dy/dist*curv} ${my-dx/dist*curv}, ${worldX} ${worldY}`);
   };
   const onUp = (e) => {
-    document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp);
+    window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp);
     document.getElementById("canvas").classList.remove("connecting");
     if (draggingConn) {
       tempPath.remove();
@@ -876,7 +812,7 @@ function startConnection(fromKey) {
       draggingConn = null;
     }
   };
-  document.addEventListener("mousemove", onMove); document.addEventListener("mouseup", onUp);
+  window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
 }
 
 /* ============================================================
@@ -911,12 +847,10 @@ const canvas = document.getElementById("canvas");
 let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 
 function applyTransform(needRender = false) {
-  // استفاده از translate به جای translate3d برای شارپ ماندن متن‌ها در زوم
   world.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
   const isZoomedOut = state.zoom < 0.50;
   if (isZoomedOut) document.body.classList.add("zoomed-out"); else document.body.classList.remove("zoomed-out");
-  
   if (needRender) {
     Object.values(clusterMap).forEach(cl => {
       const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, isZoomedOut);
@@ -940,11 +874,10 @@ window.addEventListener("mousemove", (e) => {
   if (!isPanning) return;
   state.pan.x = panStart.panX + (e.clientX - panStart.x);
   state.pan.y = panStart.panY + (e.clientY - panStart.y);
-  applyTransform(false); 
+  applyTransform(false);
 });
 window.addEventListener("mouseup", () => {
   if (isPanning) { isPanning = false; canvas.classList.remove("panning"); saveState(); }
-  if (draggingConn) { if (draggingConn.tempPath) draggingConn.tempPath.remove(); draggingConn = null; document.getElementById("canvas").classList.remove("connecting"); }
 });
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
@@ -962,11 +895,7 @@ document.getElementById("btn-zoom-out").addEventListener("click", () => { state.
 document.getElementById("btn-reset-view").addEventListener("click", fitView);
 document.getElementById("btn-reset-layout").addEventListener("click", () => {
   if (confirm("آیا از بازگردانی چیدمان به حالت اولیه مطمئن هستید؟")) {
-    state.customPositions = {};
-    saveState();
-    buildWorld();
-    applyTransform(true);
-    fitView();
+    state.customPositions = {}; saveState(); buildWorld(); applyTransform(true); fitView();
   }
 });
 
