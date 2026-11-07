@@ -62,12 +62,10 @@
   #svg-layer path.temp { fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none; }
   #svg-layer path.hitbox { fill: none; stroke: transparent; stroke-width: 40; pointer-events: stroke; cursor: pointer; }
   
-  /* خطوط ارتباطی خودکار واضح‌تر شدند */
   #svg-layer path.auto-connection {
     fill: none; stroke: rgba(56, 189, 248, 0.45); stroke-width: 2;
     stroke-dasharray: 6 4; pointer-events: none; transition: all 0.2s;
   }
-  /* حالت انتخاب شده: طلایی، ممتد و درخشان */
   #svg-layer path.auto-connection.highlight {
     stroke: #fbbf24; stroke-width: 3.5; stroke-dasharray: none;
     opacity: 1; filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.6));
@@ -143,7 +141,7 @@
   .stage-module-card.selected { box-shadow: 0 0 0 2px #fbbf24; background: #2a2416; }
   .stage-module-card.dimmed { opacity: 0.2; }
 
-  /* ===== Dropdown & Toggle Button ===== */
+  /* ===== Toggle Button ===== */
   .module-card-header-actions {
     position: absolute; top: 10px; left: 10px; z-index: 10;
   }
@@ -153,26 +151,10 @@
     cursor: pointer; font-size: 12px; transition: all 0.2s;
   }
   .toggle-pages-btn:hover { background: #334155; border-color: #38bdf8; }
-  .toggle-pages-btn.active { background: #38bdf8; color: #0f1419; border-color: #38bdf8; }
+  .toggle-pages-btn.collapsed { background: #1e293b; color: #64748b; }
 
-  .module-pages-dropdown {
-    position: absolute; top: 40px; left: 10px; right: 10px;
-    background: #0f172a; border: 1px solid #38bdf8; border-radius: 8px;
-    padding: 4px; z-index: 200; box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-    max-height: 180px; overflow-y: auto;
-    display: none;
-  }
-  .module-pages-dropdown.show { display: block; }
-  .module-pages-dropdown::-webkit-scrollbar { width: 6px; }
-  .module-pages-dropdown::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-  
-  .module-pages-dropdown-item {
-    padding: 6px 8px; font-size: 11px; color: #cbd5e1; border-radius: 4px;
-    cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    transition: all 0.15s;
-  }
-  .module-pages-dropdown-item:hover { background: #1e293b; color: #fff; }
-  .module-pages-dropdown-item.selected { background: #fbbf24; color: #0f1419; font-weight: bold; }
+  /* مخفی کردن صفحات با کلاس */
+  .hidden-by-toggle { display: none !important; }
 
   .stage-page-btn-group {
     position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
@@ -346,7 +328,7 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت به مراحل = انتقال | نقطه آبی = اتصال
+  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت به مراحل = انتقال | نقطه آبی = اتصال | فلش کارت ماژول = نمایش/مخفی کردن صفحات
 </div>
 
 <div id="toast"></div>
@@ -426,16 +408,18 @@ const state = {
   selectedNode: null, filterPosition: "all", search: "",
   nextConnId: 1, customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} },
-  cardStage: {}
+  cardStage: {},
+  collapsedModules: {} // وضعیت باز/بسته بودن ماژول‌ها
 };
-const LS_KEY = "module-map-state-v45";
+const LS_KEY = "module-map-state-v46";
 
 function saveState() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       pan: state.pan, zoom: state.zoom, connections: state.connections,
       nextConnId: state.nextConnId, customPositions: state.customPositions,
-      pageStatus: state.pageStatus, cardStage: state.cardStage
+      pageStatus: state.pageStatus, cardStage: state.cardStage,
+      collapsedModules: state.collapsedModules
     }));
   } catch(e) {}
 }
@@ -451,6 +435,7 @@ function loadState() {
     if (s.customPositions) state.customPositions = s.customPositions;
     if (s.pageStatus) state.pageStatus = { done: s.pageStatus.done || {}, front: s.pageStatus.front || {}, back: s.pageStatus.back || {} };
     if (s.cardStage) state.cardStage = s.cardStage;
+    if (s.collapsedModules) state.collapsedModules = s.collapsedModules;
   } catch(e) {}
 }
 
@@ -575,13 +560,11 @@ function renderStageContents() {
     
     const posClass = posBadgeClass(mod.position);
     let pct = calculateModuleProgress(mod.id);
-    const pageOptions = mod.pages.map((p, idx) => 
-      `<div class="module-pages-dropdown-item" data-idx="${idx}">${escapeHtml(p)}</div>`
-    ).join('');
+    const isCollapsed = state.collapsedModules[mod.id];
 
     cardEl.innerHTML = `
       <div class="module-card-header-actions">
-        <div class="toggle-pages-btn" title="نمایش صفحات">▼</div>
+        <div class="toggle-pages-btn ${isCollapsed ? 'collapsed' : ''}" title="نمایش/مخفی کردن صفحات">${isCollapsed ? '▶' : '▼'}</div>
       </div>
       <div class="module-header">
         <div class="module-title">${escapeHtml(mod.name)}</div>
@@ -596,15 +579,20 @@ function renderStageContents() {
           <div class="progress-bar-fill" style="width:${pct}%"></div>
         </div>
       </div>
-      <div class="module-pages-dropdown">
-        ${pageOptions}
-      </div>
     `;
 
-    setupDropdown(cardEl, mod);
+    const toggleBtn = cardEl.querySelector('.toggle-pages-btn');
+    toggleBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.collapsedModules[mod.id] = !state.collapsedModules[mod.id];
+      saveState();
+      buildWorld();
+      applyTransform(true);
+    });
     
     cardEl.addEventListener("mousedown", (e) => {
-      if (e.target.closest('.module-card-header-actions') || e.target.closest('.module-pages-dropdown')) return;
+      if (e.target.closest('.module-card-header-actions')) return;
       handleStageCardDrag(e, modKey, cardEl);
     });
 
@@ -621,9 +609,10 @@ function renderStageContents() {
       const isDone = state.pageStatus.done[pageKey] === true;
       const isFront = state.pageStatus.front[pageKey] === true;
       const isBack = state.pageStatus.back[pageKey] === true;
+      const isCollapsed = state.collapsedModules[mod.id];
 
       const cardEl = document.createElement("div");
-      cardEl.className = "stage-card page-stage-card is-module-page" + (isDone ? " is-done" : "");
+      cardEl.className = "stage-card page-stage-card is-module-page" + (isDone ? " is-done" : "") + (isCollapsed ? " hidden-by-toggle" : "");
       cardEl.dataset.nodeKey = pageKey;
       cardEl.style.paddingLeft = "75px";
       
@@ -690,34 +679,6 @@ function renderStageContents() {
   });
 }
 
-// تابع کمکی برای ست کردن دراپ‌داون در کارت‌های ماژول
-function setupDropdown(cardEl, mod) {
-  const toggleBtn = cardEl.querySelector('.toggle-pages-btn');
-  const dropdown = cardEl.querySelector('.module-pages-dropdown');
-  const items = dropdown.querySelectorAll('.module-pages-dropdown-item');
-
-  toggleBtn.addEventListener('mousedown', (e) => e.stopPropagation());
-  toggleBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdown.classList.toggle('show');
-    toggleBtn.classList.toggle('active');
-  });
-
-  items.forEach(item => {
-    item.addEventListener('mousedown', (e) => e.stopPropagation());
-    item.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const idx = parseInt(item.dataset.idx);
-      const key = mod.id + ":" + idx;
-      clearSelection();
-      state.selectedNode = key;
-      applyHighlight(key);
-      dropdown.classList.remove('show');
-      toggleBtn.classList.remove('active');
-    });
-  });
-}
-
 function handleStageCardDrag(e, cardKey, cardEl) {
   if (e.button !== 0) return;
   e.stopPropagation();
@@ -735,7 +696,7 @@ function handleStageCardDrag(e, cardKey, cardEl) {
       ghost.className = "stage-card";
       ghost.style.cssText = "position: fixed; pointer-events: none; z-index: 9999; opacity: 0.85; padding: 10px; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; color: #e6e6e6; font-size: 13px; max-width: 240px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);";
       ghost.innerHTML = cardEl.innerHTML;
-      ghost.querySelectorAll('button, .stage-page-btn-group, .module-card-header-actions, .module-pages-dropdown').forEach(el => el.remove());
+      ghost.querySelectorAll('button, .stage-page-btn-group, .module-card-header-actions').forEach(el => el.remove());
       document.body.appendChild(ghost);
     }
     if (ghost) {
@@ -848,6 +809,7 @@ function buildWorld() {
     }
 
     const modInStage = !!state.cardStage["mod:" + cl.mod.id];
+    const isCollapsed = state.collapsedModules[cl.mod.id];
 
     const clusterEl = document.createElement("div");
     clusterEl.className = "module-cluster" + (modInStage ? " hidden-by-stage" : "");
@@ -865,14 +827,10 @@ function buildWorld() {
 
     const posClass = posBadgeClass(cl.mod.position);
     let pct = calculateModuleProgress(cl.mod.id);
-    
-    const pageOptions = cl.mod.pages.map((p, idx) => 
-      `<div class="module-pages-dropdown-item" data-idx="${idx}">${escapeHtml(p)}</div>`
-    ).join('');
 
     card.innerHTML = `
       <div class="module-card-header-actions">
-        <div class="toggle-pages-btn" title="نمایش صفحات">▼</div>
+        <div class="toggle-pages-btn ${isCollapsed ? 'collapsed' : ''}" title="نمایش/مخفی کردن صفحات">${isCollapsed ? '▶' : '▼'}</div>
       </div>
       <div class="module-header">
         <div class="module-title">${escapeHtml(cl.mod.name)}</div>
@@ -887,20 +845,25 @@ function buildWorld() {
           <div class="progress-bar-fill" style="width:${pct}%"></div>
         </div>
       </div>
-      <div class="module-pages-dropdown">
-        ${pageOptions}
-      </div>
     `;
     clusterEl.appendChild(card);
 
-    setupDropdown(card, cl.mod);
+    const toggleBtn = card.querySelector('.toggle-pages-btn');
+    toggleBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.collapsedModules[cl.mod.id] = !state.collapsedModules[cl.mod.id];
+      saveState();
+      buildWorld();
+      applyTransform(true);
+    });
 
     const modNodeX = cx + cl.w / 2 - MODULE_W / 2;
     const modNodeY = cy + cl.h / 2 - MODULE_H / 2;
     if (!modInStage) nodePositions["mod:" + cl.mod.id] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
 
     card.addEventListener("mousedown", (e) => {
-      if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".module-card-header-actions") || e.target.closest(".module-pages-dropdown")) return;
+      if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".module-card-header-actions")) return;
       e.stopPropagation();
       const startMouseX = e.clientX, startMouseY = e.clientY;
       const startLeft = parseFloat(clusterEl.style.left), startTop = parseFloat(clusterEl.style.top);
@@ -983,7 +946,7 @@ function buildWorld() {
       const pageInStage = !!state.cardStage[nodeKey];
 
       const pageEl = document.createElement("div");
-      pageEl.className = "page-node" + (pageInStage ? " hidden-by-stage" : "");
+      pageEl.className = "page-node" + (pageInStage ? " hidden-by-stage" : "") + (isCollapsed ? " hidden-by-toggle" : "");
       pageEl.style.left = p.x + "px";
       pageEl.style.top = p.y + "px";
       pageEl.style.width = PAGE_W + "px";
@@ -1009,7 +972,7 @@ function buildWorld() {
       clusterEl.appendChild(pageEl);
       pageEls.push({ el: pageEl, idx: p.pageIdx });
 
-      if (!pageInStage) {
+      if (!pageInStage && !isCollapsed) {
         nodePositions[nodeKey] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
       }
 
@@ -1214,7 +1177,7 @@ function updateNodePositions(modId, newCx, newCy) {
 
   cl.pageEls.forEach((pEl) => {
     const key = modId + ":" + pEl.idx;
-    if (state.cardStage[key]) return; 
+    if (state.cardStage[key] || state.collapsedModules[modId]) return; 
     const left = parseFloat(pEl.el.style.left);
     const top = parseFloat(pEl.el.style.top);
     nodePositions[key] = { x: newCx + left, y: newCy + top, w: PAGE_W, h: PAGE_H };
@@ -1228,7 +1191,7 @@ function updateStagePositions() {
   
   document.querySelectorAll('.stage-card, .stage-module-card').forEach(el => {
     const key = el.dataset.nodeKey;
-    if (!key) return;
+    if (!key || el.classList.contains('hidden-by-toggle')) return;
     const rect = el.getBoundingClientRect();
     const x = (rect.left - worldRect.left) / scale;
     const y = (rect.top - worldRect.top) / scale;
@@ -1294,6 +1257,8 @@ function renderConnections() {
   svgLayer.appendChild(getArrowDefs());
 
   MODULES_DATA.forEach(mod => {
+    if (state.collapsedModules[mod.id]) return; // اگر ماژول بسته باشد، خطوطش رسم نشود
+
     const modKey = "mod:" + mod.id;
     if (!nodePositions[modKey]) return;
 
@@ -1308,7 +1273,6 @@ function renderConnections() {
       const isHighlighted = (state.selectedNode === pageKey || state.selectedNode === modKey);
       path.setAttribute("class", "auto-connection" + (isHighlighted ? " highlight" : ""));
       path.setAttribute("d", pathD);
-      // فلش‌ها در حالت عادی آبی و در حالت انتخاب شده طلایی می‌شوند
       path.setAttribute("marker-end", isHighlighted ? "url(#arrow-gold)" : "url(#arrow-one)");
       path.dataset.pageKey = pageKey;
       svgLayer.appendChild(path);
@@ -1361,7 +1325,6 @@ function renderConnections() {
 
 function getArrowDefs() {
   const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-  // فلش طلایی برای حالت انتخاب شده اضافه شد
   defs.innerHTML = `
     <marker id="arrow-one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8" />
@@ -1455,7 +1418,7 @@ function applyHighlight(key) {
     else { el.classList.remove("highlight"); el.classList.add("dimmed"); }
   });
   
-  renderConnections(); // برای اعمال فلش طلایی
+  renderConnections();
 }
 
 const canvas = document.getElementById("canvas");
@@ -1486,7 +1449,7 @@ function applyTransform(needRender = false) {
 
 canvas.addEventListener("mousedown", (e) => {
   if (e.target.closest(".module-card") || e.target.closest(".stage-module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar") ||
-      e.target.closest(".conn-btn") || e.target.closest(".stage-card") || e.target.closest(".module-card-header-actions") || e.target.closest(".module-pages-dropdown")) return;
+      e.target.closest(".conn-btn") || e.target.closest(".stage-card") || e.target.closest(".module-card-header-actions")) return;
   if (e.button !== 0) return;
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
