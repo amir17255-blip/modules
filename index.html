@@ -412,8 +412,8 @@ const GRID_CELL_H = 600;
 
 const STAGE_W = 900;
 const STAGE_GAP = 16;
-let STAGE_BOARD_HEIGHT = 650; 
-let STAGE_BOARD_Y = -750; 
+let STAGE_BOARD_HEIGHT = 600; 
+let STAGE_BOARD_Y = -700; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
@@ -423,7 +423,7 @@ const state = {
   cardStage: {},
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v50";
+const LS_KEY = "module-map-state-v51";
 
 function saveState() {
   try {
@@ -566,15 +566,15 @@ function fixStageBoardHeight() {
     s.content.style.overflow = 'visible';
     const contentH = s.content.scrollHeight;
     const headerH = s.zone.querySelector('.stage-header').offsetHeight;
-    const reqH = contentH + headerH + 60; 
+    const reqH = contentH + headerH + 40; 
     maxZoneHeight = Math.max(maxZoneHeight, reqH);
   });
 
   const maxAllowed = window.innerHeight - 120;
-  const finalHeight = Math.min(Math.max(400, maxZoneHeight), maxAllowed);
+  const finalHeight = Math.min(Math.max(450, maxZoneHeight), maxAllowed);
 
   board.style.height = finalHeight + 'px';
-  const boardY = -finalHeight - 100; // کاهش فاصله از ماژول‌ها
+  const boardY = -finalHeight - 80;
   board.style.top = boardY + 'px';
 
   STAGE_BOARD_Y = boardY;
@@ -1324,7 +1324,6 @@ function updateNodePositions(modId, newCx, newCy) {
   });
 }
 
-// ✅ محاسبه دقیق مختصات با توجه به پن و زوم
 function updateStagePositions() {
   if (!world) return;
   const canvasRect = canvas.getBoundingClientRect();
@@ -1689,6 +1688,7 @@ function showToast(msg) {
 function init() {
   loadState();
   
+  // اگر برای اولین بار است که باز می‌شود
   if (!localStorage.getItem(LS_KEY)) {
     const firstStageId = STAGES[0].id;
     MODULES_DATA.forEach(mod => {
@@ -1696,6 +1696,8 @@ function init() {
       mod.pages.forEach((_, idx) => {
         state.cardStage[mod.id + ":" + idx] = firstStageId;
       });
+      // ✅ به صورت پیش‌فرض تمام ماژول‌ها بسته (بدون نمایش صفحات) باشند
+      state.collapsedModules[mod.id] = true; 
     });
     saveState();
   }
