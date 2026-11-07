@@ -390,6 +390,7 @@ const MODULES_DATA = [
 ];
 
 const STAGES = [
+  { id: 'back',          name: 'بک',                color: '#ec4899' },
   { id: 'roles',          name: 'نقش‌ها',                color: '#f59e0b' },
   { id: 'groups',         name: 'گروه‌ها',               color: '#10b981' },
   { id: 'permissions',    name: 'مجوزها',                color: '#3b82f6' },
@@ -562,7 +563,7 @@ function fixStageBoardHeight() {
   if (!board) return;
 
   // 🌟 تنظیم ارتفاع پنل روی ۷۵٪ ارتفاع صفحه
-  const finalHeight = Math.max(500, window.innerHeight * 1);
+  const finalHeight = Math.max(2000, window.innerHeight * 4);
   board.style.height = finalHeight + 'px';
   
   const boardY = -finalHeight - 100;
@@ -1679,17 +1680,22 @@ function fitView() {
 
   if (!hasContent) return;
 
-  const pad = 80;
+  const pad = 40;
   const rect = canvas.getBoundingClientRect();
   const mapW = maxX - minX;
   const mapH = maxY - minY;
 
-  const zoomX = (rect.width - pad * 2) / mapW;
   const zoomY = (rect.height - pad * 2) / mapH;
 
-  state.zoom = Math.max(0.15, Math.min(zoomX, zoomY, 1.0));
-  state.pan.x = (rect.width - mapW * state.zoom) / 2 - minX * state.zoom;
+  // 🌟 زوم را بر اساس ارتفاع تنظیم می‌کنیم تا کل صفحه پر شود (حداقل 15% و حداکثر 100%)
+  state.zoom = Math.max(0.15, Math.min(zoomY, 1.0));
+  
+  // 🌟 تنظیم موقعیت عمودی برای وسط چین شدن
   state.pan.y = (rect.height - mapH * state.zoom) / 2 - minY * state.zoom;
+  
+  // 🌟 تنظیم موقعیت افقی: نمایش اولین مرحله (سمت راست)
+  const firstStageCenterX = boardW - (STAGE_W / 2);
+  state.pan.x = (rect.width / 2) - (firstStageCenterX * state.zoom);
 
   applyTransform(true); saveState();
 }
