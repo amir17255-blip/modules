@@ -110,19 +110,31 @@
     letter-spacing: 1px;
   }
   .stage-content {
-    flex: 1; padding: 16px; display: flex; flex-wrap: wrap; gap: 12px; 
-    align-content: flex-start; overflow-y: auto; min-height: 0;
+    flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; 
+    overflow-y: auto; min-height: 0;
   }
   .stage-content::-webkit-scrollbar { width: 8px; }
   .stage-content::-webkit-scrollbar-track { background: transparent; }
   .stage-content::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+  /* گروه‌بندی ماژول و صفحاتش */
+  .stage-module-group {
+    width: 100%; display: flex; flex-direction: column; gap: 12px;
+    background: rgba(255, 255, 255, 0.02); padding: 16px;
+    border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .stage-pages-container {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    justify-content: center; /* صفحات وسط‌چین زیر ماژول */
+  }
 
   .stage-card {
     background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
     border: 1px solid #334155; border-radius: 8px; padding: 10px 12px;
     font-size: 13px; color: #cbd5e1; cursor: grab; user-select: none;
     transition: all 0.15s; line-height: 1.4; word-break: break-word;
-    min-width: 220px; max-width: 100%; display: flex; flex-direction: column;
+    width: calc(33.33% - 12px); min-width: 220px; display: flex; flex-direction: column;
     position: relative;
   }
   .stage-card:hover { border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8; z-index: 10; }
@@ -136,7 +148,7 @@
     border: 1px solid #38bdf8; border-radius: 14px; padding: 14px 16px;
     box-shadow: 0 8px 28px rgba(0,0,0,0.45); position: relative;
     display: flex; flex-direction: column; gap: 8px;
-    width: 100%; max-width: 100%; cursor: grab; margin-bottom: 8px;
+    width: 100%; cursor: grab;
   }
   .stage-module-card.highlight { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
   .stage-module-card.selected { box-shadow: 0 0 0 2px #fbbf24; background: #2a2416; }
@@ -171,8 +183,8 @@
   .stage-page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
 
   .stage-empty-hint {
-    font-size: 13px; color: #475569; text-align: center;
-    width: 100%; padding: 40px 0; font-style: italic;
+    font-size: 14px; color: #475569; text-align: center;
+    width: 100%; padding: 60px 0; font-style: italic;
   }
 
   /* ===== Module Cluster ===== */
@@ -413,7 +425,7 @@ const state = {
   cardStage: {},
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v48";
+const LS_KEY = "module-map-state-v49";
 
 function saveState() {
   try {
@@ -544,174 +556,273 @@ function buildStageBoard() {
   world.appendChild(boardEl);
 }
 
-// ✅ تنظیم داینامیک ارتفاع پنل مراحل بر اساس محتوای داخل آن
 function fixStageBoardHeight() {
   const board = document.getElementById('stage-board');
   if (!board) return;
 
-  // ریست کردن ارتفاع برای اندازه‌گیری
   board.style.height = 'auto';
-  
   let maxZoneHeight = 0;
+
   Object.values(stageEls).forEach(s => {
     s.zone.style.height = 'auto';
     s.content.style.overflow = 'visible';
-    s.zone.style.minHeight = '0'; 
-    maxZoneHeight = Math.max(maxZoneHeight, s.zone.offsetHeight);
+    const contentH = s.content.scrollHeight;
+    const headerH = s.zone.querySelector('.stage-header').offsetHeight;
+    const reqH = contentH + headerH + 60; 
+    maxZoneHeight = Math.max(maxZoneHeight, reqH);
   });
 
-  const boardPadding = 40; 
-  const finalHeight = Math.max(500, maxZoneHeight) + boardPadding; // حداقل 500 پیکسل
-  
+  const maxAllowed = window.innerHeight - 120;
+  const finalHeight = Math.min(Math.max(400, maxZoneHeight), maxAllowed);
+
   board.style.height = finalHeight + 'px';
-  
-  // موقعیت‌دهی پنل بالای ماژول‌ها
-  const boardY = -finalHeight - 150; 
+  const boardY = -finalHeight - 150;
   board.style.top = boardY + 'px';
-  
-  // بروزرسانی متغیرهای سراسری
+
   STAGE_BOARD_Y = boardY;
   STAGE_BOARD_HEIGHT = finalHeight;
-  
+
   Object.values(stageEls).forEach(s => {
-    s.zone.style.height = '100%'; 
-    s.zone.style.minHeight = ''; 
-    s.content.style.overflow = 'auto';
+    s.zone.style.height = '100%';
+    s.content.style.overflowY = 'auto';
   });
 }
 
+// ✅ رندر کردن مراحل به صورتی که صفحات زیر ماژول خودشان قرار بگیرند
 function renderStageContents() {
   STAGES.forEach(s => {
     if (stageEls[s.id]) stageEls[s.id].content.innerHTML = "";
   });
 
-  // 1. ماژول‌های داخل مراحل
-  MODULES_DATA.forEach(mod => {
-    const modKey = "mod:" + mod.id;
-    const stageId = state.cardStage[modKey];
-    if (!stageId || !stageEls[stageId]) return;
-    
-    const cardEl = document.createElement("div");
-    cardEl.className = "stage-module-card";
-    cardEl.dataset.nodeKey = modKey;
-    
-    const posClass = posBadgeClass(mod.position);
-    let pct = calculateModuleProgress(mod.id);
-    const isCollapsed = state.collapsedModules[mod.id];
+  STAGES.forEach(stage => {
+    const stageId = stage.id;
+    const stageContent = stageEls[stageId].content;
 
-    cardEl.innerHTML = `
-      <div class="module-card-header-actions">
-        <div class="toggle-pages-btn ${isCollapsed ? 'collapsed' : ''}" title="نمایش/مخفی کردن صفحات">${isCollapsed ? '▶' : '▼'}</div>
-      </div>
-      <div class="module-header">
-        <div class="module-title">${escapeHtml(mod.name)}</div>
-        <span class="module-badge ${posClass}">${escapeHtml(mod.position === "_" ? "بدون موقعیت" : mod.position)}</span>
-      </div>
-      <div class="module-desc">
-        <span>${mod.pages.length} صفحه</span>
-        <span class="module-progress-text">${pct}% تکمیل</span>
-      </div>
-      <div class="module-progress-row">
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" style="width:${pct}%"></div>
-        </div>
-      </div>
-    `;
+    // 1. پیدا کردن ماژول‌هایی که در این مرحله هستند
+    const modulesInStage = MODULES_DATA.filter(mod => state.cardStage["mod:" + mod.id] === stageId);
 
-    const toggleBtn = cardEl.querySelector('.toggle-pages-btn');
-    toggleBtn.addEventListener('mousedown', (e) => e.stopPropagation());
-    toggleBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      state.collapsedModules[mod.id] = !state.collapsedModules[mod.id];
-      saveState();
-      buildWorld();
-      applyTransform(true);
-    });
-    
-    cardEl.addEventListener("mousedown", (e) => {
-      if (e.target.closest('.module-card-header-actions')) return;
-      handleStageCardDrag(e, modKey, cardEl);
-    });
-
-    stageEls[stageId].content.appendChild(cardEl);
-  });
-
-  // 2. صفحات داخل مراحل
-  MODULES_DATA.forEach(mod => {
-    mod.pages.forEach((pageName, idx) => {
-      const pageKey = mod.id + ":" + idx;
-      const stageId = state.cardStage[pageKey];
-      if (!stageId || !stageEls[stageId]) return;
-      
-      const isDone = state.pageStatus.done[pageKey] === true;
-      const isFront = state.pageStatus.front[pageKey] === true;
-      const isBack = state.pageStatus.back[pageKey] === true;
-      const isCollapsed = state.collapsedModules[mod.id];
-
-      const cardEl = document.createElement("div");
-      cardEl.className = "stage-card page-stage-card is-module-page" + (isDone ? " is-done" : "") + (isCollapsed ? " hidden-by-toggle" : "");
-      cardEl.dataset.nodeKey = pageKey;
-      cardEl.style.paddingLeft = "75px";
-      
-      cardEl.innerHTML = `
-        <div class="stage-card-parent">↳ ${escapeHtml(mod.name)}</div>
-        ${escapeHtml(pageName)}
-        <div class="stage-page-btn-group">
-          <div class="stage-page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
-          <div class="stage-page-btn front ${isFront ? 'active' : ''}" title="Front">F</div>
-          <div class="stage-page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
-        </div>
-      `;
-
-      const btnDone = cardEl.querySelector('.stage-page-btn.done');
-      const btnFront = cardEl.querySelector('.stage-page-btn.front');
-      const btnBack = cardEl.querySelector('.stage-page-btn.back');
-
-      btnDone.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const active = !state.pageStatus.done[pageKey];
-        state.pageStatus.done[pageKey] = active;
-        if (active) {
-          state.pageStatus.front[pageKey] = false;
-          state.pageStatus.back[pageKey] = false;
-          btnFront.classList.remove("active"); btnBack.classList.remove("active");
+    // 2. پیدا کردن صفحاتی که در این مرحله هستند ولی ماژولشان در این مرحله نیست (یتیم)
+    const orphanPages = [];
+    MODULES_DATA.forEach(mod => {
+      if (state.cardStage["mod:" + mod.id] === stageId) return; 
+      mod.pages.forEach((pageName, idx) => {
+        const pageKey = mod.id + ":" + idx;
+        if (state.cardStage[pageKey] === stageId) {
+          orphanPages.push({ mod, pageName, idx, pageKey });
         }
-        btnDone.classList.toggle("active", active);
-        cardEl.classList.toggle("is-done", active);
-        saveState(); buildWorld(); applyTransform(true);
       });
-      btnFront.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const active = !state.pageStatus.front[pageKey];
-        state.pageStatus.front[pageKey] = active;
-        if (active) { state.pageStatus.done[pageKey] = false; btnDone.classList.remove("active"); cardEl.classList.remove("is-done"); }
-        btnFront.classList.toggle("active", active);
-        saveState(); buildWorld(); applyTransform(true);
-      });
-      btnBack.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const active = !state.pageStatus.back[pageKey];
-        state.pageStatus.back[pageKey] = active;
-        if (active) { state.pageStatus.done[pageKey] = false; btnDone.classList.remove("active"); cardEl.classList.remove("is-done"); }
-        btnBack.classList.toggle("active", active);
-        saveState(); buildWorld(); applyTransform(true);
-      });
-
-      cardEl.addEventListener("mousedown", (e) => {
-        if (e.target.closest('.stage-page-btn')) return;
-        handleStageCardDrag(e, pageKey, cardEl);
-      });
-      
-      stageEls[stageId].content.appendChild(cardEl);
     });
-  });
 
-  STAGES.forEach(s => {
-    if (stageEls[s.id] && stageEls[s.id].content.children.length === 0) {
+    if (modulesInStage.length === 0 && orphanPages.length === 0) {
       const hint = document.createElement("div");
       hint.className = "stage-empty-hint";
       hint.textContent = "خالی — کارت را به اینجا بکشید";
-      stageEls[s.id].content.appendChild(hint);
+      stageContent.appendChild(hint);
+      return;
+    }
+
+    // 3. رندر ماژول‌ها به همراه صفحات زیرمجموعه‌شان
+    modulesInStage.forEach(mod => {
+      const modKey = "mod:" + mod.id;
+      const isCollapsed = state.collapsedModules[mod.id];
+      
+      const groupWrapper = document.createElement("div");
+      groupWrapper.className = "stage-module-group";
+
+      // کارت ماژول
+      const cardEl = document.createElement("div");
+      cardEl.className = "stage-module-card";
+      cardEl.dataset.nodeKey = modKey;
+      
+      const posClass = posBadgeClass(mod.position);
+      let pct = calculateModuleProgress(mod.id);
+
+      cardEl.innerHTML = `
+        <div class="module-card-header-actions">
+          <div class="toggle-pages-btn ${isCollapsed ? 'collapsed' : ''}" title="نمایش/مخفی کردن صفحات">${isCollapsed ? '▶' : '▼'}</div>
+        </div>
+        <div class="module-header">
+          <div class="module-title">${escapeHtml(mod.name)}</div>
+          <span class="module-badge ${posClass}">${escapeHtml(mod.position === "_" ? "بدون موقعیت" : mod.position)}</span>
+        </div>
+        <div class="module-desc">
+          <span>${mod.pages.length} صفحه</span>
+          <span class="module-progress-text">${pct}% تکمیل</span>
+        </div>
+        <div class="module-progress-row">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+      `;
+
+      const toggleBtn = cardEl.querySelector('.toggle-pages-btn');
+      toggleBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.collapsedModules[mod.id] = !state.collapsedModules[mod.id];
+        saveState();
+        buildWorld();
+        applyTransform(true);
+      });
+      
+      cardEl.addEventListener("mousedown", (e) => {
+        if (e.target.closest('.module-card-header-actions')) return;
+        handleStageCardDrag(e, modKey, cardEl);
+      });
+
+      groupWrapper.appendChild(cardEl);
+
+      // کانتینر صفحات
+      const pagesContainer = document.createElement("div");
+      pagesContainer.className = "stage-pages-container";
+
+      mod.pages.forEach((pageName, idx) => {
+        const pageKey = mod.id + ":" + idx;
+        if (state.cardStage[pageKey] !== stageId) return;
+
+        const isDone = state.pageStatus.done[pageKey] === true;
+        const isFront = state.pageStatus.front[pageKey] === true;
+        const isBack = state.pageStatus.back[pageKey] === true;
+
+        const pageCard = document.createElement("div");
+        pageCard.className = "stage-card page-stage-card is-module-page" + (isDone ? " is-done" : "") + (isCollapsed ? " hidden-by-toggle" : "");
+        pageCard.dataset.nodeKey = pageKey;
+        pageCard.style.paddingLeft = "75px";
+        
+        pageCard.innerHTML = `
+          <div class="stage-card-parent">↳ ${escapeHtml(mod.name)}</div>
+          ${escapeHtml(pageName)}
+          <div class="stage-page-btn-group">
+            <div class="stage-page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
+            <div class="stage-page-btn front ${isFront ? 'active' : ''}" title="Front">F</div>
+            <div class="stage-page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
+          </div>
+        `;
+
+        const btnDone = pageCard.querySelector('.stage-page-btn.done');
+        const btnFront = pageCard.querySelector('.stage-page-btn.front');
+        const btnBack = pageCard.querySelector('.stage-page-btn.back');
+
+        btnDone.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const active = !state.pageStatus.done[pageKey];
+          state.pageStatus.done[pageKey] = active;
+          if (active) {
+            state.pageStatus.front[pageKey] = false;
+            state.pageStatus.back[pageKey] = false;
+            btnFront.classList.remove("active"); btnBack.classList.remove("active");
+          }
+          btnDone.classList.toggle("active", active);
+          pageCard.classList.toggle("is-done", active);
+          saveState(); buildWorld(); applyTransform(true);
+        });
+        btnFront.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const active = !state.pageStatus.front[pageKey];
+          state.pageStatus.front[pageKey] = active;
+          if (active) { state.pageStatus.done[pageKey] = false; btnDone.classList.remove("active"); pageCard.classList.remove("is-done"); }
+          btnFront.classList.toggle("active", active);
+          saveState(); buildWorld(); applyTransform(true);
+        });
+        btnBack.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const active = !state.pageStatus.back[pageKey];
+          state.pageStatus.back[pageKey] = active;
+          if (active) { state.pageStatus.done[pageKey] = false; btnDone.classList.remove("active"); pageCard.classList.remove("is-done"); }
+          btnBack.classList.toggle("active", active);
+          saveState(); buildWorld(); applyTransform(true);
+        });
+
+        pageCard.addEventListener("mousedown", (e) => {
+          if (e.target.closest('.stage-page-btn')) return;
+          handleStageCardDrag(e, pageKey, pageCard);
+        });
+
+        pagesContainer.appendChild(pageCard);
+      });
+
+      groupWrapper.appendChild(pagesContainer);
+      stageContent.appendChild(groupWrapper);
+    });
+
+    // 4. رندر صفحات یتیم (بدون ماژول در این مرحله)
+    if (orphanPages.length > 0) {
+      const orphanGroup = document.createElement("div");
+      orphanGroup.className = "stage-module-group";
+      
+      const orphanTitle = document.createElement("div");
+      orphanTitle.style.cssText = "font-size: 12px; color: #94a3b8; margin-bottom: 8px; text-align: center;";
+      orphanTitle.textContent = "صفحات مستقل";
+      orphanGroup.appendChild(orphanTitle);
+
+      const pagesContainer = document.createElement("div");
+      pagesContainer.className = "stage-pages-container";
+
+      orphanPages.forEach(op => {
+        const isDone = state.pageStatus.done[op.pageKey] === true;
+        const isFront = state.pageStatus.front[op.pageKey] === true;
+        const isBack = state.pageStatus.back[op.pageKey] === true;
+
+        const pageCard = document.createElement("div");
+        pageCard.className = "stage-card page-stage-card is-module-page" + (isDone ? " is-done" : "");
+        pageCard.dataset.nodeKey = op.pageKey;
+        pageCard.style.paddingLeft = "75px";
+        
+        pageCard.innerHTML = `
+          <div class="stage-card-parent">↳ ${escapeHtml(op.mod.name)}</div>
+          ${escapeHtml(op.pageName)}
+          <div class="stage-page-btn-group">
+            <div class="stage-page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
+            <div class="stage-page-btn front ${isFront ? 'active' : ''}" title="Front">F</div>
+            <div class="stage-page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
+          </div>
+        `;
+
+        const btnDone = pageCard.querySelector('.stage-page-btn.done');
+        const btnFront = pageCard.querySelector('.stage-page-btn.front');
+        const btnBack = pageCard.querySelector('.stage-page-btn.back');
+
+        btnDone.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const active = !state.pageStatus.done[op.pageKey];
+          state.pageStatus.done[op.pageKey] = active;
+          if (active) {
+            state.pageStatus.front[op.pageKey] = false;
+            state.pageStatus.back[op.pageKey] = false;
+            btnFront.classList.remove("active"); btnBack.classList.remove("active");
+          }
+          btnDone.classList.toggle("active", active);
+          pageCard.classList.toggle("is-done", active);
+          saveState(); buildWorld(); applyTransform(true);
+        });
+        btnFront.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const active = !state.pageStatus.front[op.pageKey];
+          state.pageStatus.front[op.pageKey] = active;
+          if (active) { state.pageStatus.done[op.pageKey] = false; btnDone.classList.remove("active"); pageCard.classList.remove("is-done"); }
+          btnFront.classList.toggle("active", active);
+          saveState(); buildWorld(); applyTransform(true);
+        });
+        btnBack.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const active = !state.pageStatus.back[op.pageKey];
+          state.pageStatus.back[op.pageKey] = active;
+          if (active) { state.pageStatus.done[op.pageKey] = false; btnDone.classList.remove("active"); pageCard.classList.remove("is-done"); }
+          btnBack.classList.toggle("active", active);
+          saveState(); buildWorld(); applyTransform(true);
+        });
+
+        pageCard.addEventListener("mousedown", (e) => {
+          if (e.target.closest('.stage-page-btn')) return;
+          handleStageCardDrag(e, op.pageKey, pageCard);
+        });
+
+        pagesContainer.appendChild(pageCard);
+      });
+
+      orphanGroup.appendChild(pagesContainer);
+      stageContent.appendChild(orphanGroup);
     }
   });
 }
@@ -823,7 +934,7 @@ function buildWorld() {
 
   buildStageBoard();
   renderStageContents();
-  fixStageBoardHeight(); // ✅ تنظیم ارتفاع پنل بعد از پر شدن محتوا
+  fixStageBoardHeight();
 
   const clusters = MODULES_DATA.map(m => {
     const size = computeClusterSize(m.pages.length);
@@ -1222,6 +1333,7 @@ function updateNodePositions(modId, newCx, newCy) {
   });
 }
 
+// ✅ بروزرسانی موقعیت‌ها و حذف موقعیت کارت‌های مخفی شده برای جلوگیری از باگ خطوط
 function updateStagePositions() {
   if (!world) return;
   const worldRect = world.getBoundingClientRect();
@@ -1229,7 +1341,13 @@ function updateStagePositions() {
   
   document.querySelectorAll('.stage-card, .stage-module-card').forEach(el => {
     const key = el.dataset.nodeKey;
-    if (!key || el.classList.contains('hidden-by-toggle')) return;
+    if (!key) return;
+
+    if (el.classList.contains('hidden-by-toggle') || el.offsetParent === null) {
+      delete nodePositions[key]; // خطوط مربوط به این کارت مخفی شوند
+      return;
+    }
+
     const rect = el.getBoundingClientRect();
     const x = (rect.left - worldRect.left) / scale;
     const y = (rect.top - worldRect.top) / scale;
