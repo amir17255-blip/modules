@@ -1654,7 +1654,7 @@ let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 function applyTransform(needRender = false) {
   world.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
-  const isZoomedOut = state.zoom < 0.50;
+  const isZoomedOut = state.zoom < 0.25;
   if (isZoomedOut) document.body.classList.add("zoomed-out"); else document.body.classList.remove("zoomed-out");
   if (needRender) {
     Object.values(clusterMap).forEach(cl => {
