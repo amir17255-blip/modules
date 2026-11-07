@@ -107,7 +107,6 @@
   .progress-bar-wrap { flex: 1; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; }
   .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #22d3ee); transition: width 0.3s ease; }
 
-  /* ===== Page Node ===== */
   .page-node {
     position: absolute; background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
     border: 1px solid #2d3a4a; border-radius: 8px; padding: 6px 9px 6px 75px;
@@ -129,7 +128,6 @@
     border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; transform: scale(1.05);
   }
 
-  /* ✅ FIX: با :not(.drag-handle) — drag-handle از این قانون مستثنی می‌شود */
   .page-node span:not(.drag-handle) {
     flex: 1; word-break: break-word; line-height: 1.4;
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
@@ -150,13 +148,12 @@
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
 
-  /* ✅ FIX اصلی: drag-handle حالا واقعاً قابل کلیک است */
   .page-node .drag-handle {
     position: absolute; top: 1px; right: 1px; width: 20px; height: 20px;
     background: #38bdf8; border-radius: 50%; border: 2px solid #0f1419;
     cursor: crosshair; opacity: 0.4; transition: opacity 0.15s, transform 0.15s;
     z-index: 101; box-shadow: 0 0 10px rgba(56,189,248,0.8);
-    pointer-events: auto !important;   /* وزن بالاتر + !important برای اطمینان */
+    pointer-events: auto !important;
     flex: none !important;
     display: block !important;
   }
@@ -223,9 +220,6 @@
 <div id="toast"></div>
 
 <script>
-/* ============================================================
-   DATA
-   ============================================================ */
 const MODULES_DATA = [
   { id:1, name:"رهگیری و ردیابی", position:"رهگیری", status:"آماده پیاده‌سازی", pages:["شناسنامه","ردیابی محصول","رهگیری کمی","رهگیری کیفی","بهای تمام‌شده"] },
   { id:2, name:"معرفی سامانه", position:"سامانه", status:"نهایی‌شده", pages:["خانه","معرفی سامانه","تغییر رمز","کیف پول","پیوندها","سؤالات متداول","ارتباط با ما","تنظیمات","نمادها","خروج","ویرایش حساب کاربری"] },
@@ -283,7 +277,7 @@ const state = {
   nextConnId: 1, customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} }
 };
-const LS_KEY = "module-map-state-v36";
+const LS_KEY = "module-map-state-v37";
 
 function saveState() {
   try {
@@ -523,11 +517,10 @@ function buildWorld() {
       pageEls.push({ el: pageEl, idx: p.pageIdx });
       nodePositions[nodeKey] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
 
-      // ---- Drag to reorder (page inside cluster) ----
       pageEl.addEventListener("mousedown", (e) => {
         if (e.button !== 0) return;
         if (e.target.closest('.page-btn-group')) return;
-        if (e.target.classList.contains("drag-handle")) return; // ← اجازه بده drag-handle کار خودش را بکند
+        if (e.target.classList.contains("drag-handle")) return;
         if (draggingConn) return;
         e.stopPropagation();
         const startX = e.clientX, startY = e.clientY;
@@ -569,32 +562,54 @@ function buildWorld() {
             if (targetEl) {
               const targetIdx = parseInt(targetEl.dataset.nodeKey.split(":")[1]);
               const sourceIdx = p.pageIdx;
-              const temp = cl.mod.pages[sourceIdx];
-              cl.mod.pages[sourceIdx] = cl.mod.pages[targetIdx];
-              cl.mod.pages[targetIdx] = temp;
-              const keys = [`${cl.mod.id}:${sourceIdx}`, `${cl.mod.id}:${targetIdx}`];
-              ["done", "front", "back"].forEach(st => {
-                const t = state.pageStatus[st][keys[0]];
-                state.pageStatus[st][keys[0]] = state.pageStatus[st][keys[1]];
-                state.pageStatus[st][keys[1]] = t;
-              });
-              saveState();
-              const spanSource = pageEl.querySelector("span");
-              const spanTarget = targetEl.querySelector("span");
-              const txtTemp = spanSource.textContent;
-              spanSource.textContent = spanTarget.textContent;
-              spanTarget.textContent = txtTemp;
-              const updateBtns = (el, key) => {
-                el.querySelector('.done').classList.toggle('active', !!state.pageStatus.done[key]);
-                el.querySelector('.front').classList.toggle('active', !!state.pageStatus.front[key]);
-                el.querySelector('.back').classList.toggle('active', !!state.pageStatus.back[key]);
-                el.classList.toggle('is-done', !!state.pageStatus.done[key]);
-              };
-              updateBtns(pageEl, keys[0]);
-              updateBtns(targetEl, keys[1]);
-              const newPct = calculateModuleProgress(cl.mod.id);
-              card.querySelector(".module-progress-text").textContent = `${newPct}% تکمیل`;
-              card.querySelector(".progress-bar-fill").style.width = newPct + "%";
+              if (sourceIdx !== targetIdx) {
+                // Swap page content
+                const temp = cl.mod.pages[sourceIdx];
+                cl.mod.pages[sourceIdx] = cl.mod.pages[targetIdx];
+                cl.mod.pages[targetIdx] = temp;
+
+                const keys = [`${cl.mod.id}:${sourceIdx}`, `${cl.mod.id}:${targetIdx}`];
+                const states = ["done", "front", "back"];
+                states.forEach(st => {
+                  const t = state.pageStatus[st][keys[0]];
+                  state.pageStatus[st][keys[0]] = state.pageStatus[st][keys[1]];
+                  state.pageStatus[st][keys[1]] = t;
+                });
+
+                // ✅ Swap connection endpoints so arrows follow the page content
+                state.connections.forEach(c => {
+                  if (c.from === keys[0]) c.from = keys[1];
+                  else if (c.from === keys[1]) c.from = keys[0];
+                  if (c.to === keys[0]) c.to = keys[1];
+                  else if (c.to === keys[1]) c.to = keys[0];
+                });
+
+                saveState();
+
+                // Swap DOM text
+                const spanSource = pageEl.querySelector("span");
+                const spanTarget = targetEl.querySelector("span");
+                const txtTemp = spanSource.textContent;
+                spanSource.textContent = spanTarget.textContent;
+                spanTarget.textContent = txtTemp;
+
+                const updateBtns = (el, key) => {
+                  el.querySelector('.done').classList.toggle('active', !!state.pageStatus.done[key]);
+                  el.querySelector('.front').classList.toggle('active', !!state.pageStatus.front[key]);
+                  el.querySelector('.back').classList.toggle('active', !!state.pageStatus.back[key]);
+                  el.classList.toggle('is-done', !!state.pageStatus.done[key]);
+                };
+                updateBtns(pageEl, keys[0]);
+                updateBtns(targetEl, keys[1]);
+
+                const newPct = calculateModuleProgress(cl.mod.id);
+                card.querySelector(".module-progress-text").textContent = `${newPct}% تکمیل`;
+                card.querySelector(".progress-bar-fill").style.width = newPct + "%";
+
+                // ✅ Re-draw arrows at the new positions
+                renderConnections();
+                if (state.selectedNode) applyHighlight(state.selectedNode);
+              }
             }
             pageEl.style.left = origLeft + "px";
             pageEl.style.top = origTop + "px";
@@ -649,7 +664,6 @@ function buildWorld() {
         saveState(); updateModuleProgress();
       });
 
-      // ✅ شروع اتصال از نقطه آبی
       pageEl.querySelector(".drag-handle").addEventListener("mousedown", (e) => {
         if (e.button !== 0) return;
         e.stopPropagation();
@@ -686,9 +700,6 @@ function statusDotClass(status) {
 }
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* ============================================================
-   CONNECTIONS
-   ============================================================ */
 function edgePoint(node, towardX, towardY) {
   const cx = node.x + node.w/2, cy = node.y + node.h/2;
   const dx = towardX - cx, dy = towardY - cy;
@@ -815,9 +826,6 @@ function startConnection(fromKey) {
   window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
 }
 
-/* ============================================================
-   SELECTION / HIGHLIGHT / PAN / ZOOM
-   ============================================================ */
 function toggleSelection(key) { if (state.selectedNode === key) clearSelection(); else { state.selectedNode = key; applyHighlight(key); } }
 function clearSelection() {
   state.selectedNode = null;
