@@ -95,7 +95,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   }
   .stage-zone {
-    width: 900px; height: 100%;
+    width: 1000px; height: 100%;
     background: rgba(30, 41, 59, 0.25); border: 2px dashed rgba(51, 65, 85, 0.6);
     border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.2s;
   }
@@ -413,10 +413,10 @@ const CLUSTER_GAP_Y = 300;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
 const GRID_CELL_H = 600;
 
-const STAGE_W = 900;
+const STAGE_W = 1000; // افزایش عرض برای پر کردن صفحه در زوم 18%
 const STAGE_GAP = 16;
-let STAGE_BOARD_HEIGHT = 650; 
-let STAGE_BOARD_Y = -750; 
+let STAGE_BOARD_HEIGHT = 750; 
+let STAGE_BOARD_Y = -850; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
@@ -426,7 +426,7 @@ const state = {
   cardStage: {},
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v54";
+const LS_KEY = "module-map-state-v55";
 
 function saveState() {
   try {
@@ -561,8 +561,8 @@ function fixStageBoardHeight() {
   const board = document.getElementById('stage-board');
   if (!board) return;
 
-  // 🌟 تنظیم ارتفاع پنل روی ۶۰٪ ارتفاع صفحه
-  const finalHeight = Math.max(500, window.innerHeight * 0.6);
+  // 🌟 تنظیم ارتفاع پنل روی ۷۵٪ ارتفاع صفحه
+  const finalHeight = Math.max(500, window.innerHeight * 0.75);
   board.style.height = finalHeight + 'px';
   
   const boardY = -finalHeight - 100;
@@ -917,8 +917,7 @@ function findNearestFreeSlot(startX, startY, excludeId) {
 }
 
 function buildWorld() {
-  // ✅ ریست کردن مختصات برای جلوگیری از پرواز فلش‌ها
-  nodePositions = {};
+  nodePositions = {}; // Reset to prevent flying lines
 
   world.innerHTML = "";
   world.appendChild(svgLayer);
@@ -1309,7 +1308,6 @@ function buildWorld() {
   applyFilters();
   clearSelection();
 
-  // ✅ رندر مجدد پس از اطمینان از لایوت DOM برای کارت‌های استیج
   setTimeout(() => {
     renderConnections();
   }, 50);
@@ -1348,7 +1346,7 @@ function updateStagePositions() {
     }
 
     const rect = el.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return; // Prevent NaN
+    if (rect.width === 0 || rect.height === 0) return; 
 
     const x = (rect.left - canvasRect.left - state.pan.x) / scale;
     const y = (rect.top - canvasRect.top - state.pan.y) / scale;
@@ -1417,7 +1415,7 @@ function renderConnections() {
   svgLayer.appendChild(getArrowDefs());
 
   MODULES_DATA.forEach(mod => {
-    if (state.collapsedModules[mod.id]) return;
+    if (state.collapsedModules[mod.id]) return; // اگر ماژول بسته باشد خطی رسم نمی‌شود
 
     const modKey = "mod:" + mod.id;
     if (!nodePositions[modKey]) return;
@@ -1729,6 +1727,7 @@ function showToast(msg) {
 function init() {
   loadState();
   
+  // اگر برای اولین بار است که باز می‌شود
   if (!localStorage.getItem(LS_KEY)) {
     const firstStageId = STAGES[0].id;
     MODULES_DATA.forEach(mod => {
@@ -1736,8 +1735,9 @@ function init() {
       mod.pages.forEach((_, idx) => {
         state.cardStage[mod.id + ":" + idx] = firstStageId;
       });
+      // ✅ به صورت پیش‌فرض تمام ماژول‌ها بسته (بدون نمایش صفحات) باشند
+      state.collapsedModules[mod.id] = true; 
     });
-    state.collapsedModules = {}; 
     saveState();
   }
 
