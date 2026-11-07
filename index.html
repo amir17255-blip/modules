@@ -95,7 +95,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   }
   .stage-zone {
-    width: 900px;
+    width: 900px; height: 100%;
     background: rgba(30, 41, 59, 0.25); border: 2px dashed rgba(51, 65, 85, 0.6);
     border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.2s;
   }
@@ -271,7 +271,9 @@
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
 
-  .page-node .drag-handle {
+  /* ✅ نقطه آبی - برای هر دو کارت در بوم و استیج */
+  .page-node .drag-handle,
+  .stage-card .drag-handle {
     position: absolute; top: -10px; right: -10px; width: 20px; height: 20px;
     background: rgba(56, 189, 248, 0.35); border: 2px solid rgba(15, 20, 25, 0.5);
     border-radius: 50%; cursor: crosshair; opacity: 0.55;
@@ -279,7 +281,8 @@
     z-index: 102; box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
     pointer-events: auto !important; flex: none !important; display: block !important;
   }
-  .page-node:hover .drag-handle {
+  .page-node:hover .drag-handle,
+  .stage-card:hover .drag-handle {
     opacity: 1; background: rgba(56, 189, 248, 0.9);
     box-shadow: 0 0 14px rgba(56, 189, 248, 0.9); transform: scale(1.15);
   }
@@ -412,8 +415,8 @@ const GRID_CELL_H = 600;
 
 const STAGE_W = 900;
 const STAGE_GAP = 16;
-let STAGE_BOARD_HEIGHT = 600; 
-let STAGE_BOARD_Y = -700; 
+let STAGE_BOARD_HEIGHT = 650; 
+let STAGE_BOARD_Y = -750; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
@@ -423,7 +426,7 @@ const state = {
   cardStage: {},
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v51";
+const LS_KEY = "module-map-state-v53";
 
 function saveState() {
   try {
@@ -558,32 +561,15 @@ function fixStageBoardHeight() {
   const board = document.getElementById('stage-board');
   if (!board) return;
 
-  board.style.height = 'auto';
-  let maxZoneHeight = 0;
-
-  Object.values(stageEls).forEach(s => {
-    s.zone.style.height = 'auto';
-    s.content.style.overflow = 'visible';
-    const contentH = s.content.scrollHeight;
-    const headerH = s.zone.querySelector('.stage-header').offsetHeight;
-    const reqH = contentH + headerH + 40; 
-    maxZoneHeight = Math.max(maxZoneHeight, reqH);
-  });
-
   const maxAllowed = window.innerHeight - 120;
-  const finalHeight = Math.min(Math.max(450, maxZoneHeight), maxAllowed);
+  const finalHeight = Math.min(Math.max(400, maxAllowed * 0.6), 800); // Set to 60% of screen or max 800px
 
   board.style.height = finalHeight + 'px';
-  const boardY = -finalHeight - 80;
+  const boardY = -finalHeight - 100;
   board.style.top = boardY + 'px';
 
   STAGE_BOARD_Y = boardY;
   STAGE_BOARD_HEIGHT = finalHeight;
-
-  Object.values(stageEls).forEach(s => {
-    s.zone.style.height = '100%';
-    s.content.style.overflowY = 'auto';
-  });
 }
 
 function renderStageContents() {
@@ -690,6 +676,7 @@ function renderStageContents() {
             <div class="stage-page-btn front ${isFront ? 'active' : ''}" title="Front">F</div>
             <div class="stage-page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
           </div>
+          <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
         `;
 
         const btnDone = pageCard.querySelector('.stage-page-btn.done');
@@ -728,7 +715,14 @@ function renderStageContents() {
 
         pageCard.addEventListener("mousedown", (e) => {
           if (e.target.closest('.stage-page-btn')) return;
+          if (e.target.classList.contains("drag-handle")) return; // Ignore if dragging handle
           handleStageCardDrag(e, pageKey, pageCard);
+        });
+
+        // ✅ اتصال دهی از طریق نقطه آبی
+        pageCard.querySelector('.drag-handle').addEventListener('mousedown', (e) => {
+          e.stopPropagation(); e.preventDefault();
+          startConnection(pageKey);
         });
 
         pagesContainer.appendChild(pageCard);
@@ -768,6 +762,7 @@ function renderStageContents() {
             <div class="stage-page-btn front ${isFront ? 'active' : ''}" title="Front">F</div>
             <div class="stage-page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
           </div>
+          <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
         `;
 
         const btnDone = pageCard.querySelector('.stage-page-btn.done');
@@ -806,7 +801,13 @@ function renderStageContents() {
 
         pageCard.addEventListener("mousedown", (e) => {
           if (e.target.closest('.stage-page-btn')) return;
+          if (e.target.classList.contains("drag-handle")) return;
           handleStageCardDrag(e, op.pageKey, pageCard);
+        });
+
+        pageCard.querySelector('.drag-handle').addEventListener('mousedown', (e) => {
+          e.stopPropagation(); e.preventDefault();
+          startConnection(op.pageKey);
         });
 
         pagesContainer.appendChild(pageCard);
@@ -835,7 +836,7 @@ function handleStageCardDrag(e, cardKey, cardEl) {
       ghost.className = "stage-card";
       ghost.style.cssText = "position: fixed; pointer-events: none; z-index: 9999; opacity: 0.85; padding: 10px; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; color: #e6e6e6; font-size: 13px; max-width: 240px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);";
       ghost.innerHTML = cardEl.innerHTML;
-      ghost.querySelectorAll('button, .stage-page-btn-group, .module-card-header-actions').forEach(el => el.remove());
+      ghost.querySelectorAll('button, .stage-page-btn-group, .module-card-header-actions, .drag-handle').forEach(el => el.remove());
       document.body.appendChild(ghost);
     }
     if (ghost) {
@@ -1339,11 +1340,16 @@ function updateStagePositions() {
     }
 
     const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return; // Prevent NaN
+
     const x = (rect.left - canvasRect.left - state.pan.x) / scale;
     const y = (rect.top - canvasRect.top - state.pan.y) / scale;
     const w = rect.width / scale;
     const h = rect.height / scale;
-    nodePositions[key] = { x, y, w, h };
+    
+    if (!isNaN(x) && !isNaN(y)) {
+      nodePositions[key] = { x, y, w, h };
+    }
   });
 }
 
@@ -1429,6 +1435,8 @@ function renderConnections() {
     const a = nodePositions[conn.from], b = nodePositions[conn.to];
     if (!a || !b) return;
     const pathD = connectionPath(conn.from, conn.to, idx);
+    if (!pathD) return; // Prevent empty/NaN paths
+
     const midX = (a.x + a.w/2 + b.x + b.w/2) / 2;
     const midY = (a.y + a.h/2 + b.y + b.h/2) / 2;
 
@@ -1520,13 +1528,19 @@ function startConnection(fromKey) {
     document.getElementById("canvas").classList.remove("connecting");
     if (draggingConn) {
       tempPath.remove();
-      const targetNode = document.elementFromPoint(e.clientX, e.clientY)?.closest(".page-node, .stage-card");
-      if (targetNode && targetNode.dataset.nodeKey !== fromKey) {
-        const toKey = targetNode.dataset.nodeKey;
-        if (!state.connections.some(c => (c.from===fromKey && c.to===toKey) || (c.from===toKey && c.to===fromKey))) {
-          state.connections.push({ id: state.nextConnId++, from: fromKey, to: toKey, type: 'one-way' });
-          saveState(); renderConnections(); if (state.selectedNode) applyHighlight(state.selectedNode); showToast("اتصال ساخته شد ✅");
-        } else showToast("این اتصال قبلاً وجود دارد");
+      const targetNode = document.elementFromPoint(e.clientX, e.clientY)?.closest(".page-node, .stage-card, .stage-module-card, .module-card");
+      if (targetNode) {
+        let toKey = targetNode.dataset.nodeKey;
+        if (!toKey && targetNode.classList.contains("module-card")) {
+          toKey = "mod:" + targetNode.dataset.modId;
+        }
+        
+        if (toKey && toKey !== fromKey) {
+          if (!state.connections.some(c => (c.from===fromKey && c.to===toKey) || (c.from===toKey && c.to===fromKey))) {
+            state.connections.push({ id: state.nextConnId++, from: fromKey, to: toKey, type: 'one-way' });
+            saveState(); renderConnections(); if (state.selectedNode) applyHighlight(state.selectedNode); showToast("اتصال ساخته شد ✅");
+          } else showToast("این اتصال قبلاً وجود دارد");
+        }
       }
       draggingConn = null;
     }
@@ -1637,21 +1651,42 @@ document.getElementById("btn-reset-stages").addEventListener("click", () => {
 });
 
 function fitView() {
-  const rect = canvas.getBoundingClientRect();
-  const pad = 60;
-  
-  // فیت کردن ارتفاع پنل مراحل
-  let targetZoom = (rect.height - pad*2) / STAGE_BOARD_HEIGHT;
-  targetZoom = Math.max(0.2, Math.min(targetZoom, 1.0)); // محدود کردن زوم
-  state.zoom = targetZoom;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let hasContent = false;
 
-  // قرار دادن اولین مرحله (سمت راست) در مرکز دید
-  const boardWidth = STAGES.length * STAGE_W + (STAGES.length - 1) * STAGE_GAP + 40;
-  const firstStageCenterX = boardWidth - (STAGE_W / 2);
-  
-  state.pan.x = (rect.width / 2) - (firstStageCenterX * state.zoom);
-  state.pan.y = (rect.height - STAGE_BOARD_HEIGHT * state.zoom) / 2 - STAGE_BOARD_Y * state.zoom;
-  
+  // Compute bounds for Stages
+  const boardW = STAGES.length * STAGE_W + (STAGES.length - 1) * STAGE_GAP + 40;
+  minX = Math.min(minX, 0);
+  maxX = Math.max(maxX, boardW);
+  minY = Math.min(minY, STAGE_BOARD_Y);
+  maxY = Math.max(maxY, STAGE_BOARD_Y + STAGE_BOARD_HEIGHT);
+  hasContent = true;
+
+  // Compute bounds for Modules
+  Object.values(clusterMap).forEach(c => {
+    if (c.el.style.display !== "none" && !c.el.classList.contains("hidden-by-stage")) {
+      hasContent = true;
+      minX = Math.min(minX, c.x);
+      maxX = Math.max(maxX, c.x + c.w);
+      minY = Math.min(minY, c.y);
+      maxY = Math.max(maxY, c.y + c.h);
+    }
+  });
+
+  if (!hasContent) return;
+
+  const pad = 80;
+  const rect = canvas.getBoundingClientRect();
+  const mapW = maxX - minX;
+  const mapH = maxY - minY;
+
+  const zoomX = (rect.width - pad * 2) / mapW;
+  const zoomY = (rect.height - pad * 2) / mapH;
+
+  state.zoom = Math.max(0.15, Math.min(zoomX, zoomY, 1.0));
+  state.pan.x = (rect.width - mapW * state.zoom) / 2 - minX * state.zoom;
+  state.pan.y = (rect.height - mapH * state.zoom) / 2 - minY * state.zoom;
+
   applyTransform(true); saveState();
 }
 
@@ -1696,9 +1731,9 @@ function init() {
       mod.pages.forEach((_, idx) => {
         state.cardStage[mod.id + ":" + idx] = firstStageId;
       });
-      // ✅ به صورت پیش‌فرض تمام ماژول‌ها بسته (بدون نمایش صفحات) باشند
-      state.collapsedModules[mod.id] = true; 
     });
+    // ❗️ هیچ ماژولی به صورت پیش‌فرض بسته نیست
+    state.collapsedModules = {}; 
     saveState();
   }
 
