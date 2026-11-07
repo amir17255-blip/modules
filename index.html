@@ -95,7 +95,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   }
   .stage-zone {
-    width: 900px; height: 100%;
+    width: 900px;
     background: rgba(30, 41, 59, 0.25); border: 2px dashed rgba(51, 65, 85, 0.6);
     border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.2s;
   }
@@ -423,7 +423,7 @@ const state = {
   cardStage: {},
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v52";
+const LS_KEY = "module-map-state-v51";
 
 function saveState() {
   try {
@@ -558,16 +558,32 @@ function fixStageBoardHeight() {
   const board = document.getElementById('stage-board');
   if (!board) return;
 
-  // Set a fixed height that fits the viewport
-  const maxAllowed = window.innerHeight - 120; // 120px for toolbar and padding
-  const finalHeight = Math.max(400, maxAllowed); // Ensure minimum height
+  board.style.height = 'auto';
+  let maxZoneHeight = 0;
+
+  Object.values(stageEls).forEach(s => {
+    s.zone.style.height = 'auto';
+    s.content.style.overflow = 'visible';
+    const contentH = s.content.scrollHeight;
+    const headerH = s.zone.querySelector('.stage-header').offsetHeight;
+    const reqH = contentH + headerH + 40; 
+    maxZoneHeight = Math.max(maxZoneHeight, reqH);
+  });
+
+  const maxAllowed = window.innerHeight - 120;
+  const finalHeight = Math.min(Math.max(450, maxZoneHeight), maxAllowed);
 
   board.style.height = finalHeight + 'px';
-  const boardY = -finalHeight - 80; // Slightly lower to give space for zooming out
+  const boardY = -finalHeight - 80;
   board.style.top = boardY + 'px';
 
   STAGE_BOARD_Y = boardY;
   STAGE_BOARD_HEIGHT = finalHeight;
+
+  Object.values(stageEls).forEach(s => {
+    s.zone.style.height = '100%';
+    s.content.style.overflowY = 'auto';
+  });
 }
 
 function renderStageContents() {
@@ -1623,19 +1639,19 @@ document.getElementById("btn-reset-stages").addEventListener("click", () => {
 function fitView() {
   const rect = canvas.getBoundingClientRect();
   const pad = 60;
-
-  // Fit the height of the board to the screen
+  
+  // فیت کردن ارتفاع پنل مراحل
   let targetZoom = (rect.height - pad*2) / STAGE_BOARD_HEIGHT;
-  targetZoom = Math.max(0.15, Math.min(targetZoom, 1.0));
+  targetZoom = Math.max(0.2, Math.min(targetZoom, 1.0)); // محدود کردن زوم
   state.zoom = targetZoom;
 
-  // Position the first stage (right side) in view
+  // قرار دادن اولین مرحله (سمت راست) در مرکز دید
   const boardWidth = STAGES.length * STAGE_W + (STAGES.length - 1) * STAGE_GAP + 40;
   const firstStageCenterX = boardWidth - (STAGE_W / 2);
-
+  
   state.pan.x = (rect.width / 2) - (firstStageCenterX * state.zoom);
   state.pan.y = (rect.height - STAGE_BOARD_HEIGHT * state.zoom) / 2 - STAGE_BOARD_Y * state.zoom;
-
+  
   applyTransform(true); saveState();
 }
 
@@ -1680,8 +1696,9 @@ function init() {
       mod.pages.forEach((_, idx) => {
         state.cardStage[mod.id + ":" + idx] = firstStageId;
       });
+      // ✅ به صورت پیش‌فرض تمام ماژول‌ها بسته (بدون نمایش صفحات) باشند
+      state.collapsedModules[mod.id] = true; 
     });
-    // حالت collapsedModules خالی می‌ماند تا همه صفحات نمایش داده شوند
     saveState();
   }
 
