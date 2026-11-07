@@ -54,11 +54,13 @@
   #canvas.dragging-module { cursor: grabbing; }
   #world { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
 
+  /* ===== لایه‌های SVG ===== */
   #svg-layer { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; z-index: 1; }
+  #svg-front-layer { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; z-index: 90; } /* بالاتر از کارت‌ها */
+  
   #svg-layer path.connection { fill: none; stroke: #38bdf8; stroke-width: 3; stroke-linecap: round; pointer-events: stroke; cursor: pointer; transition: all 0.2s; }
   #svg-layer path.connection.hovered { stroke: #fbbf24; stroke-width: 4.5; }
   #svg-layer path.connection.dim { opacity: 0.1; }
-  #svg-layer path.connection.highlight { stroke: #fbbf24; stroke-width: 4; opacity: 1; }
   #svg-layer path.temp { fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none; }
   #svg-layer path.hitbox { fill: none; stroke: transparent; stroke-width: 40; pointer-events: stroke; cursor: pointer; }
   
@@ -66,11 +68,19 @@
     fill: none; stroke: rgba(56, 189, 248, 0.45); stroke-width: 2;
     stroke-dasharray: 6 4; pointer-events: none; transition: all 0.2s;
   }
-  #svg-layer path.auto-connection.highlight {
-    stroke: #fbbf24; stroke-width: 3.5; stroke-dasharray: none;
-    opacity: 1; filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.6));
-  }
   #svg-layer path.auto-connection.dim { opacity: 0.1; }
+
+  /* استایل‌های اختصاصی برای لایه رویی (خطوط انتخاب شده) */
+  #svg-front-layer path.connection, 
+  #svg-front-layer path.auto-connection {
+    fill: none; stroke: #fbbf24; stroke-width: 3.5; stroke-linecap: round;
+    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.8));
+    pointer-events: none;
+  }
+  #svg-front-layer path.auto-connection.highlight { stroke-dasharray: none; }
+  #svg-front-layer path.hitbox {
+    fill: none; stroke: transparent; stroke-width: 40; pointer-events: stroke; cursor: pointer;
+  }
 
   #buttons-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
   .conn-btn-wrap { position: absolute; display: flex; gap: 8px; transform: translate(-50%, -50%); pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
@@ -116,7 +126,6 @@
   .stage-content::-webkit-scrollbar-track { background: transparent; }
   .stage-content::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
 
-  /* گروه‌بندی ماژول و صفحاتش */
   .stage-module-group {
     width: 100%; display: flex; flex-direction: column; gap: 12px;
     background: rgba(255, 255, 255, 0.02); padding: 16px;
@@ -271,9 +280,11 @@
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
 
-  /* ✅ نقطه آبی - برای هر دو کارت در بوم و استیج */
+  /* ✅ نقطه آبی - برای کارت‌های ماژول و صفحه (در بوم و استیج) */
   .page-node .drag-handle,
-  .stage-card .drag-handle {
+  .stage-card .drag-handle,
+  .module-card .drag-handle,
+  .stage-module-card .drag-handle {
     position: absolute; top: -10px; right: -10px; width: 20px; height: 20px;
     background: rgba(56, 189, 248, 0.35); border: 2px solid rgba(15, 20, 25, 0.5);
     border-radius: 50%; cursor: crosshair; opacity: 0.55;
@@ -282,7 +293,9 @@
     pointer-events: auto !important; flex: none !important; display: block !important;
   }
   .page-node:hover .drag-handle,
-  .stage-card:hover .drag-handle {
+  .stage-card:hover .drag-handle,
+  .module-card:hover .drag-handle,
+  .stage-module-card:hover .drag-handle {
     opacity: 1; background: rgba(56, 189, 248, 0.9);
     box-shadow: 0 0 14px rgba(56, 189, 248, 0.9); transform: scale(1.15);
   }
@@ -338,6 +351,7 @@
 <div id="canvas">
   <div id="world">
     <svg id="svg-layer"></svg>
+    <svg id="svg-front-layer"></svg>
     <div id="buttons-layer"></div>
   </div>
 </div>
@@ -390,7 +404,6 @@ const MODULES_DATA = [
 ];
 
 const STAGES = [
-  { id: 'back',          name: 'بک',                color: '#ec4899' },
   { id: 'roles',          name: 'نقش‌ها',                color: '#f59e0b' },
   { id: 'groups',         name: 'گروه‌ها',               color: '#10b981' },
   { id: 'permissions',    name: 'مجوزها',                color: '#3b82f6' },
@@ -414,7 +427,7 @@ const CLUSTER_GAP_Y = 300;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
 const GRID_CELL_H = 600;
 
-const STAGE_W = 1000; // افزایش عرض برای پر کردن صفحه در زوم 18%
+const STAGE_W = 1000;
 const STAGE_GAP = 16;
 let STAGE_BOARD_HEIGHT = 750; 
 let STAGE_BOARD_Y = -850; 
@@ -427,7 +440,7 @@ const state = {
   cardStage: {},
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v55";
+const LS_KEY = "module-map-state-v56";
 
 function saveState() {
   try {
@@ -507,6 +520,7 @@ function calculateModuleProgress(modId) {
 
 const world = document.getElementById("world");
 const svgLayer = document.getElementById("svg-layer");
+const svgFrontLayer = document.getElementById("svg-front-layer"); // 🌟 لایه رویی
 const buttonsLayer = document.getElementById("buttons-layer");
 const clusterMap = {};
 let nodePositions = {};
@@ -563,7 +577,7 @@ function fixStageBoardHeight() {
   if (!board) return;
 
   // 🌟 تنظیم ارتفاع پنل روی ۷۵٪ ارتفاع صفحه
-  const finalHeight = Math.max(2000, window.innerHeight * 4);
+  const finalHeight = Math.max(500, window.innerHeight * 0.75);
   board.style.height = finalHeight + 'px';
   
   const boardY = -finalHeight - 100;
@@ -634,6 +648,7 @@ function renderStageContents() {
             <div class="progress-bar-fill" style="width:${pct}%"></div>
           </div>
         </div>
+        <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
       `;
 
       const toggleBtn = cardEl.querySelector('.toggle-pages-btn');
@@ -648,7 +663,14 @@ function renderStageContents() {
       
       cardEl.addEventListener("mousedown", (e) => {
         if (e.target.closest('.module-card-header-actions')) return;
+        if (e.target.classList.contains("drag-handle")) return; // Ignore if dragging handle
         handleStageCardDrag(e, modKey, cardEl);
+      });
+
+      // ✅ اتصال ماژول در استیج
+      cardEl.querySelector('.drag-handle').addEventListener('mousedown', (e) => {
+        e.stopPropagation(); e.preventDefault();
+        startConnection(modKey);
       });
 
       groupWrapper.appendChild(cardEl);
@@ -720,7 +742,7 @@ function renderStageContents() {
           handleStageCardDrag(e, pageKey, pageCard);
         });
 
-        // ✅ اتصال دهی از طریق نقطه آبی
+        // ✅ اتصال صفحه در استیج
         pageCard.querySelector('.drag-handle').addEventListener('mousedown', (e) => {
           e.stopPropagation(); e.preventDefault();
           startConnection(pageKey);
@@ -918,13 +940,17 @@ function findNearestFreeSlot(startX, startY, excludeId) {
 }
 
 function buildWorld() {
-  nodePositions = {}; // Reset to prevent flying lines
+  nodePositions = {}; // Reset
 
   world.innerHTML = "";
   world.appendChild(svgLayer);
+  world.appendChild(svgFrontLayer); // 🌟 اضافه شده
   world.appendChild(buttonsLayer);
+  
   svgLayer.innerHTML = "";
+  svgFrontLayer.innerHTML = ""; // 🌟 اضافه شده
   buttonsLayer.innerHTML = "";
+  
   Object.keys(stageEls).forEach(k => delete stageEls[k]);
 
   buildStageBoard();
@@ -989,6 +1015,7 @@ function buildWorld() {
           <div class="progress-bar-fill" style="width:${pct}%"></div>
         </div>
       </div>
+      <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
     `;
     clusterEl.appendChild(card);
 
@@ -1008,6 +1035,7 @@ function buildWorld() {
 
     card.addEventListener("mousedown", (e) => {
       if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".module-card-header-actions")) return;
+      if (e.target.classList.contains("drag-handle")) return; // Ignore if dragging handle
       e.stopPropagation();
       const startMouseX = e.clientX, startMouseY = e.clientY;
       const startLeft = parseFloat(clusterEl.style.left), startTop = parseFloat(clusterEl.style.top);
@@ -1080,6 +1108,12 @@ function buildWorld() {
       };
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
+    });
+
+    // ✅ اتصال ماژول در بوم
+    card.querySelector('.drag-handle').addEventListener("mousedown", (e) => {
+      e.stopPropagation(); e.preventDefault();
+      startConnection("mod:" + cl.mod.id);
     });
 
     const pagePositions = layoutPagesInCluster(cl.mod.pages.length, cl.w, cl.h, cl, false);
@@ -1412,11 +1446,15 @@ function autoConnectionPath(fromKey, toKey) {
 
 function renderConnections() {
   updateStagePositions(); 
-  svgLayer.innerHTML = ""; buttonsLayer.innerHTML = "";
+  svgLayer.innerHTML = ""; 
+  svgFrontLayer.innerHTML = ""; // 🌟 پاک‌سازی لایه رویی
+  buttonsLayer.innerHTML = "";
+  
   svgLayer.appendChild(getArrowDefs());
+  svgFrontLayer.appendChild(getArrowDefs()); // 🌟 فلش‌های لایه رویی
 
   MODULES_DATA.forEach(mod => {
-    if (state.collapsedModules[mod.id]) return; // اگر ماژول بسته باشد خطی رسم نمی‌شود
+    if (state.collapsedModules[mod.id]) return;
 
     const modKey = "mod:" + mod.id;
     if (!nodePositions[modKey]) return;
@@ -1434,7 +1472,12 @@ function renderConnections() {
       path.setAttribute("d", pathD);
       path.setAttribute("marker-end", isHighlighted ? "url(#arrow-gold)" : "url(#arrow-one)");
       path.dataset.pageKey = pageKey;
-      svgLayer.appendChild(path);
+
+      if (isHighlighted) {
+        svgFrontLayer.appendChild(path); // 🌟 انتقال به لایه رویی
+      } else {
+        svgLayer.appendChild(path);
+      }
     });
   });
 
@@ -1455,6 +1498,16 @@ function renderConnections() {
 
     const hitbox = document.createElementNS("http://www.w3.org/2000/svg", "path");
     hitbox.setAttribute("d", pathD); hitbox.setAttribute("class", "hitbox");
+
+    const isHighlighted = (state.selectedNode === conn.from || state.selectedNode === conn.to);
+    
+    if (isHighlighted) {
+      svgFrontLayer.appendChild(path); // 🌟 انتقال به لایه رویی
+      svgFrontLayer.appendChild(hitbox);
+    } else {
+      svgLayer.appendChild(path);
+      svgLayer.appendChild(hitbox);
+    }
 
     const btnWrap = document.createElement("div");
     btnWrap.className = "conn-btn-wrap";
@@ -1478,9 +1531,8 @@ function renderConnections() {
     path.addEventListener("click", (e) => { e.stopPropagation(); conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way'; saveState(); renderConnections(); });
     hitbox.addEventListener("click", (e) => { e.stopPropagation(); conn.type = conn.type === 'two-way' ? 'one-way' : 'two-way'; saveState(); renderConnections(); });
     btnWrap.addEventListener("mouseenter", () => clearTimeout(hideTimeout)); btnWrap.addEventListener("mouseleave", hide);
-
-    svgLayer.appendChild(path); svgLayer.appendChild(hitbox);
   });
+  
   updateSvgSize();
 }
 
@@ -1505,8 +1557,14 @@ function updateSvgSize() {
   const boardW = STAGES.length * STAGE_W + (STAGES.length - 1) * STAGE_GAP + 40;
   maxY = Math.max(maxY, Math.abs(STAGE_BOARD_Y) + STAGE_BOARD_HEIGHT);
   maxX = Math.max(maxX, boardW);
+  
   svgLayer.setAttribute("width", maxX + 4000);
   svgLayer.setAttribute("height", maxY + 4000);
+  
+  // 🌟 تنظیم ابعاد لایه رویی
+  svgFrontLayer.setAttribute("width", maxX + 4000);
+  svgFrontLayer.setAttribute("height", maxY + 4000);
+  
   buttonsLayer.style.width = (maxX + 4000) + "px";
   buttonsLayer.style.height = (maxY + 4000) + "px";
 }
@@ -1518,7 +1576,8 @@ function startConnection(fromKey) {
   draggingConn = { fromKey };
   document.getElementById("canvas").classList.add("connecting");
   const tempPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  tempPath.setAttribute("class", "temp"); svgLayer.appendChild(tempPath);
+  tempPath.setAttribute("class", "temp"); 
+  svgFrontLayer.appendChild(tempPath); // 🌟 رسم موقت روی لایه رویی
 
   const onMove = (e) => {
     if (!draggingConn) return;
@@ -1594,7 +1653,7 @@ let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 function applyTransform(needRender = false) {
   world.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
-  const isZoomedOut = state.zoom < 0.25;
+  const isZoomedOut = state.zoom < 0.50;
   if (isZoomedOut) document.body.classList.add("zoomed-out"); else document.body.classList.remove("zoomed-out");
   if (needRender) {
     Object.values(clusterMap).forEach(cl => {
@@ -1680,22 +1739,17 @@ function fitView() {
 
   if (!hasContent) return;
 
-  const pad = 40;
+  const pad = 80;
   const rect = canvas.getBoundingClientRect();
   const mapW = maxX - minX;
   const mapH = maxY - minY;
 
+  const zoomX = (rect.width - pad * 2) / mapW;
   const zoomY = (rect.height - pad * 2) / mapH;
 
-  // 🌟 زوم را بر اساس ارتفاع تنظیم می‌کنیم تا کل صفحه پر شود (حداقل 15% و حداکثر 100%)
-  state.zoom = Math.max(0.15, Math.min(zoomY, 1.0));
-  
-  // 🌟 تنظیم موقعیت عمودی برای وسط چین شدن
+  state.zoom = Math.max(0.15, Math.min(zoomX, zoomY, 1.0));
+  state.pan.x = (rect.width - mapW * state.zoom) / 2 - minX * state.zoom;
   state.pan.y = (rect.height - mapH * state.zoom) / 2 - minY * state.zoom;
-  
-  // 🌟 تنظیم موقعیت افقی: نمایش اولین مرحله (سمت راست)
-  const firstStageCenterX = boardW - (STAGE_W / 2);
-  state.pan.x = (rect.width / 2) - (firstStageCenterX * state.zoom);
 
   applyTransform(true); saveState();
 }
@@ -1733,7 +1787,6 @@ function showToast(msg) {
 function init() {
   loadState();
   
-  // اگر برای اولین بار است که باز می‌شود
   if (!localStorage.getItem(LS_KEY)) {
     const firstStageId = STAGES[0].id;
     MODULES_DATA.forEach(mod => {
@@ -1741,9 +1794,8 @@ function init() {
       mod.pages.forEach((_, idx) => {
         state.cardStage[mod.id + ":" + idx] = firstStageId;
       });
-      // ✅ به صورت پیش‌فرض تمام ماژول‌ها بسته (بدون نمایش صفحات) باشند
-      state.collapsedModules[mod.id] = true; 
     });
+    state.collapsedModules = {}; 
     saveState();
   }
 
