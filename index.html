@@ -86,7 +86,6 @@
     background: rgba(15, 23, 42, 0.6); border: 2px solid rgba(51, 65, 85, 0.6);
     border-radius: 16px; backdrop-filter: blur(8px); z-index: 3;
     box-shadow: 0 10px 40px rgba(0,0,0,0.5); cursor: grab;
-    /* ارتفاع توسط جاوااسکریپت تنظیم می‌شود */
   }
   .stage-board:active { cursor: grabbing; }
   .stage-title {
@@ -110,7 +109,7 @@
     letter-spacing: 1px;
   }
   .stage-content {
-    flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; 
+    flex: 1; padding: 16px 16px 60px 16px; display: flex; flex-direction: column; gap: 16px; 
     overflow-y: auto; min-height: 0;
   }
   .stage-content::-webkit-scrollbar { width: 8px; }
@@ -126,7 +125,7 @@
 
   .stage-pages-container {
     display: flex; flex-wrap: wrap; gap: 12px;
-    justify-content: center; /* صفحات وسط‌چین زیر ماژول */
+    justify-content: center;
   }
 
   .stage-card {
@@ -134,7 +133,7 @@
     border: 1px solid #334155; border-radius: 8px; padding: 10px 12px;
     font-size: 13px; color: #cbd5e1; cursor: grab; user-select: none;
     transition: all 0.15s; line-height: 1.4; word-break: break-word;
-    width: calc(33.33% - 12px); min-width: 220px; display: flex; flex-direction: column;
+    width: calc(33.33% - 12px); min-width: 240px; display: flex; flex-direction: column;
     position: relative;
   }
   .stage-card:hover { border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8; z-index: 10; }
@@ -209,7 +208,6 @@
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
   
-  /* پدینگ چپ برای جلوگیری از تداخل دکمه با محتوا */
   .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-left: 36px; }
   .module-title { font-size: 17px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: center; }
   .module-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; transition: opacity 0.3s; pointer-events: none; }
@@ -425,7 +423,7 @@ const state = {
   cardStage: {},
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v49";
+const LS_KEY = "module-map-state-v50";
 
 function saveState() {
   try {
@@ -576,7 +574,7 @@ function fixStageBoardHeight() {
   const finalHeight = Math.min(Math.max(400, maxZoneHeight), maxAllowed);
 
   board.style.height = finalHeight + 'px';
-  const boardY = -finalHeight - 150;
+  const boardY = -finalHeight - 100; // کاهش فاصله از ماژول‌ها
   board.style.top = boardY + 'px';
 
   STAGE_BOARD_Y = boardY;
@@ -588,7 +586,6 @@ function fixStageBoardHeight() {
   });
 }
 
-// ✅ رندر کردن مراحل به صورتی که صفحات زیر ماژول خودشان قرار بگیرند
 function renderStageContents() {
   STAGES.forEach(s => {
     if (stageEls[s.id]) stageEls[s.id].content.innerHTML = "";
@@ -598,11 +595,9 @@ function renderStageContents() {
     const stageId = stage.id;
     const stageContent = stageEls[stageId].content;
 
-    // 1. پیدا کردن ماژول‌هایی که در این مرحله هستند
     const modulesInStage = MODULES_DATA.filter(mod => state.cardStage["mod:" + mod.id] === stageId);
-
-    // 2. پیدا کردن صفحاتی که در این مرحله هستند ولی ماژولشان در این مرحله نیست (یتیم)
     const orphanPages = [];
+    
     MODULES_DATA.forEach(mod => {
       if (state.cardStage["mod:" + mod.id] === stageId) return; 
       mod.pages.forEach((pageName, idx) => {
@@ -621,7 +616,6 @@ function renderStageContents() {
       return;
     }
 
-    // 3. رندر ماژول‌ها به همراه صفحات زیرمجموعه‌شان
     modulesInStage.forEach(mod => {
       const modKey = "mod:" + mod.id;
       const isCollapsed = state.collapsedModules[mod.id];
@@ -629,7 +623,6 @@ function renderStageContents() {
       const groupWrapper = document.createElement("div");
       groupWrapper.className = "stage-module-group";
 
-      // کارت ماژول
       const cardEl = document.createElement("div");
       cardEl.className = "stage-module-card";
       cardEl.dataset.nodeKey = modKey;
@@ -673,7 +666,6 @@ function renderStageContents() {
 
       groupWrapper.appendChild(cardEl);
 
-      // کانتینر صفحات
       const pagesContainer = document.createElement("div");
       pagesContainer.className = "stage-pages-container";
 
@@ -746,7 +738,6 @@ function renderStageContents() {
       stageContent.appendChild(groupWrapper);
     });
 
-    // 4. رندر صفحات یتیم (بدون ماژول در این مرحله)
     if (orphanPages.length > 0) {
       const orphanGroup = document.createElement("div");
       orphanGroup.className = "stage-module-group";
@@ -1333,10 +1324,10 @@ function updateNodePositions(modId, newCx, newCy) {
   });
 }
 
-// ✅ بروزرسانی موقعیت‌ها و حذف موقعیت کارت‌های مخفی شده برای جلوگیری از باگ خطوط
+// ✅ محاسبه دقیق مختصات با توجه به پن و زوم
 function updateStagePositions() {
   if (!world) return;
-  const worldRect = world.getBoundingClientRect();
+  const canvasRect = canvas.getBoundingClientRect();
   const scale = state.zoom;
   
   document.querySelectorAll('.stage-card, .stage-module-card').forEach(el => {
@@ -1344,13 +1335,13 @@ function updateStagePositions() {
     if (!key) return;
 
     if (el.classList.contains('hidden-by-toggle') || el.offsetParent === null) {
-      delete nodePositions[key]; // خطوط مربوط به این کارت مخفی شوند
+      delete nodePositions[key];
       return;
     }
 
     const rect = el.getBoundingClientRect();
-    const x = (rect.left - worldRect.left) / scale;
-    const y = (rect.top - worldRect.top) / scale;
+    const x = (rect.left - canvasRect.left - state.pan.x) / scale;
+    const y = (rect.top - canvasRect.top - state.pan.y) / scale;
     const w = rect.width / scale;
     const h = rect.height / scale;
     nodePositions[key] = { x, y, w, h };
@@ -1408,7 +1399,7 @@ function autoConnectionPath(fromKey, toKey) {
 }
 
 function renderConnections() {
-  updateStagePositions();
+  updateStagePositions(); 
   svgLayer.innerHTML = ""; buttonsLayer.innerHTML = "";
   svgLayer.appendChild(getArrowDefs());
 
@@ -1647,35 +1638,21 @@ document.getElementById("btn-reset-stages").addEventListener("click", () => {
 });
 
 function fitView() {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  let hasClusters = false;
+  const rect = canvas.getBoundingClientRect();
+  const pad = 60;
+  
+  // فیت کردن ارتفاع پنل مراحل
+  let targetZoom = (rect.height - pad*2) / STAGE_BOARD_HEIGHT;
+  targetZoom = Math.max(0.2, Math.min(targetZoom, 1.0)); // محدود کردن زوم
+  state.zoom = targetZoom;
 
-  Object.values(clusterMap).forEach(c => {
-    if (c.el.style.display !== "none") {
-      hasClusters = true;
-      minX = Math.min(minX, c.x); minY = Math.min(minY, c.y);
-      maxX = Math.max(maxX, c.x + c.w); maxY = Math.max(maxY, c.y + c.h);
-    }
-  });
-
-  const boardW = STAGES.length * STAGE_W + (STAGES.length - 1) * STAGE_GAP + 40;
-
-  if (hasClusters) {
-    minX = Math.min(minX, 0);
-    maxX = Math.max(maxX, boardW);
-    minY = Math.min(minY, STAGE_BOARD_Y);
-    maxY = Math.max(maxY, STAGE_BOARD_Y + STAGE_BOARD_HEIGHT);
-  } else {
-    minX = 0; maxX = boardW;
-    minY = STAGE_BOARD_Y; maxY = STAGE_BOARD_Y + STAGE_BOARD_HEIGHT;
-  }
-
-  const pad = 80; const rect = canvas.getBoundingClientRect();
-  const mapW = maxX - minX, mapH = maxY - minY;
-  const zoomX = (rect.width - pad*2) / mapW, zoomY = (rect.height - pad*2) / mapH;
-  state.zoom = Math.max(0.15, Math.min(zoomX, zoomY, 1.0));
-  state.pan.x = (rect.width - mapW * state.zoom) / 2 - minX * state.zoom;
-  state.pan.y = (rect.height - mapH * state.zoom) / 2 - minY * state.zoom;
+  // قرار دادن اولین مرحله (سمت راست) در مرکز دید
+  const boardWidth = STAGES.length * STAGE_W + (STAGES.length - 1) * STAGE_GAP + 40;
+  const firstStageCenterX = boardWidth - (STAGE_W / 2);
+  
+  state.pan.x = (rect.width / 2) - (firstStageCenterX * state.zoom);
+  state.pan.y = (rect.height - STAGE_BOARD_HEIGHT * state.zoom) / 2 - STAGE_BOARD_Y * state.zoom;
+  
   applyTransform(true); saveState();
 }
 
@@ -1712,7 +1689,6 @@ function showToast(msg) {
 function init() {
   loadState();
   
-  // اگر برای اولین بار است که باز می‌شود، همه ماژول‌ها را در مرحله اول قرار بده
   if (!localStorage.getItem(LS_KEY)) {
     const firstStageId = STAGES[0].id;
     MODULES_DATA.forEach(mod => {
@@ -1726,8 +1702,12 @@ function init() {
 
   buildWorld();
   applyTransform(true);
-  fitView();
-  setTimeout(() => document.getElementById("hint").classList.add("hidden"), 8000);
+  
+  // تاخیر کوتاه برای اطمینان از رندر کامل DOM قبل از فیت کردن
+  setTimeout(() => {
+    fitView();
+    setTimeout(() => document.getElementById("hint").classList.add("hidden"), 8000);
+  }, 100);
 }
 window.addEventListener("load", init);
 window.addEventListener("keydown", (e) => { if (e.key === "Escape") clearSelection(); });
