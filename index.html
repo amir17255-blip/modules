@@ -86,6 +86,7 @@
     background: rgba(15, 23, 42, 0.6); border: 2px solid rgba(51, 65, 85, 0.6);
     border-radius: 16px; backdrop-filter: blur(8px); z-index: 3;
     box-shadow: 0 10px 40px rgba(0,0,0,0.5); cursor: grab;
+    /* ارتفاع توسط جاوااسکریپت تنظیم می‌شود */
   }
   .stage-board:active { cursor: grabbing; }
   .stage-title {
@@ -95,7 +96,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   }
   .stage-zone {
-    width: 900px; height: 100%;
+    width: 900px;
     background: rgba(30, 41, 59, 0.25); border: 2px dashed rgba(51, 65, 85, 0.6);
     border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.2s;
   }
@@ -103,7 +104,6 @@
     border-color: #fbbf24; background: rgba(251, 191, 36, 0.08);
     box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.3) inset;
   }
-  /* سایز نام مراحل 4 سایز بزرگتر شد */
   .stage-header {
     padding: 24px 16px; font-size: 36px; font-weight: 700; text-align: center;
     border-bottom: 3px solid; flex-shrink: 0; background: rgba(15, 23, 42, 0.7);
@@ -154,7 +154,6 @@
   .toggle-pages-btn:hover { background: #334155; border-color: #38bdf8; }
   .toggle-pages-btn.collapsed { background: #1e293b; color: #64748b; }
 
-  /* مخفی کردن صفحات با کلاس */
   .hidden-by-toggle { display: none !important; }
 
   .stage-page-btn-group {
@@ -197,7 +196,8 @@
   }
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
-  /* اضافه کردن پدینگ چپ برای جلوگیری از تداخل با دکمه */
+  
+  /* پدینگ چپ برای جلوگیری از تداخل دکمه با محتوا */
   .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-left: 36px; }
   .module-title { font-size: 17px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: center; }
   .module-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; transition: opacity 0.3s; pointer-events: none; }
@@ -402,9 +402,8 @@ const GRID_CELL_H = 600;
 
 const STAGE_W = 900;
 const STAGE_GAP = 16;
-// کاهش ارتفاع پنل مراحل برای فیت شدن در صفحه
-const STAGE_BOARD_HEIGHT = 650; 
-const STAGE_BOARD_Y = -750; 
+let STAGE_BOARD_HEIGHT = 650; 
+let STAGE_BOARD_Y = -750; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
@@ -414,7 +413,7 @@ const state = {
   cardStage: {},
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v47"; // نسخه تغییر کرد تا دیفالت جدید اعمال شود
+const LS_KEY = "module-map-state-v48";
 
 function saveState() {
   try {
@@ -515,8 +514,7 @@ function buildStageBoard() {
   boardEl.style.left = "0px";
   boardEl.style.top = STAGE_BOARD_Y + "px";
   boardEl.style.width = boardWidth + "px";
-  boardEl.style.height = STAGE_BOARD_HEIGHT + "px";
-
+  
   const titleEl = document.createElement("div");
   titleEl.className = "stage-title";
   titleEl.textContent = "📋 مراحل پروژه";
@@ -544,6 +542,42 @@ function buildStageBoard() {
   });
 
   world.appendChild(boardEl);
+}
+
+// ✅ تنظیم داینامیک ارتفاع پنل مراحل بر اساس محتوای داخل آن
+function fixStageBoardHeight() {
+  const board = document.getElementById('stage-board');
+  if (!board) return;
+
+  // ریست کردن ارتفاع برای اندازه‌گیری
+  board.style.height = 'auto';
+  
+  let maxZoneHeight = 0;
+  Object.values(stageEls).forEach(s => {
+    s.zone.style.height = 'auto';
+    s.content.style.overflow = 'visible';
+    s.zone.style.minHeight = '0'; 
+    maxZoneHeight = Math.max(maxZoneHeight, s.zone.offsetHeight);
+  });
+
+  const boardPadding = 40; 
+  const finalHeight = Math.max(500, maxZoneHeight) + boardPadding; // حداقل 500 پیکسل
+  
+  board.style.height = finalHeight + 'px';
+  
+  // موقعیت‌دهی پنل بالای ماژول‌ها
+  const boardY = -finalHeight - 150; 
+  board.style.top = boardY + 'px';
+  
+  // بروزرسانی متغیرهای سراسری
+  STAGE_BOARD_Y = boardY;
+  STAGE_BOARD_HEIGHT = finalHeight;
+  
+  Object.values(stageEls).forEach(s => {
+    s.zone.style.height = '100%'; 
+    s.zone.style.minHeight = ''; 
+    s.content.style.overflow = 'auto';
+  });
 }
 
 function renderStageContents() {
@@ -789,6 +823,7 @@ function buildWorld() {
 
   buildStageBoard();
   renderStageContents();
+  fixStageBoardHeight(); // ✅ تنظیم ارتفاع پنل بعد از پر شدن محتوا
 
   const clusters = MODULES_DATA.map(m => {
     const size = computeClusterSize(m.pages.length);
