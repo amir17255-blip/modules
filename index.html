@@ -562,7 +562,7 @@ function fixStageBoardHeight() {
   if (!board) return;
 
   const maxAllowed = window.innerHeight - 120;
-  const finalHeight = Math.min(Math.max(400, maxAllowed * 0.6), 800); // Set to 60% of screen or max 800px
+  const finalHeight = Math.min(Math.max(400, maxAllowed * 1), 1000); // Set to 60% of screen or max 800px
 
   board.style.height = finalHeight + 'px';
   const boardY = -finalHeight - 100;
