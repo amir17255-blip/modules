@@ -268,6 +268,12 @@
   .action-btn.btn-edit { color: #fbbf24; }
   .action-btn.btn-add { color: #22c55e; }
 
+  /* 🌟 حالت ماکرو (زوم اوت) با فونت بسیار بزرگ */
+  body.zoomed-out .module-card { width: 250px !important; height: 300px !important; transform: translate(-50%, -50%); background: #1c2531; border-color: #475569; left: 50%; top: 50%; display: flex; align-items: center; justify-content: center;}
+  body.zoomed-out .module-title { font-size: 80px !important; font-weight: 900; text-align: center; text-shadow: 0 4px 12px rgba(0,0,0,0.9); line-height: 1.2; margin: 0;}
+  body.zoomed-out .module-desc, body.zoomed-out .module-progress-row, body.zoomed-out .module-badge, body.zoomed-out .card-actions, body.zoomed-out .stage-btn-group { display: none; }
+  body.zoomed-out .page-node { display: none; }
+
   #toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 18px; font-size: 12px; z-index: 200; opacity: 0; pointer-events: none; transition: all 0.25s; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #hint { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(30,41,59,0.95); border: 1px solid #334155; border-radius: 8px; padding: 8px 16px; font-size: 11px; color: #94a3b8; z-index: 90; backdrop-filter: blur(4px); pointer-events: none; transition: opacity 0.3s; }
@@ -286,9 +292,7 @@
   <div class="toolbar-group">
     <div class="custom-dropdown" id="filter-dropdown-container">
       <button id="btn-filter-modules">🔽 فیلتر ماژول‌ها</button>
-      <div class="custom-dropdown-menu" id="filter-menu">
-        <!-- Checkboxes added via JS -->
-      </div>
+      <div class="custom-dropdown-menu" id="filter-menu"></div>
     </div>
   </div>
 
@@ -322,9 +326,7 @@
 <div id="modal-overlay">
   <div class="modal-content">
     <h2 id="modal-title">افزودن/ویرایش</h2>
-    <div id="modal-fields">
-      <!-- Dynamic fields injected here -->
-    </div>
+    <div id="modal-fields"></div>
     <div class="modal-actions">
       <button id="btn-modal-save" class="success">ذخیره</button>
       <button id="btn-modal-cancel" class="danger">انصراف</button>
@@ -393,17 +395,18 @@ const STAGES = [
   { id: 'done',           name: 'تکمیل',                 color: '#22c55e', percent: 100 },
 ];
 
-// ابعاد جدید کارت‌ها برای جا دادن دکمه‌ها
 const MODULE_W = 340;
 const MODULE_H = 340;
 const PAGE_W = 220;
 const PAGE_H = 240; 
 const PAGE_GAP = 16;
-const FIXED_CLUSTER_WIDTH = 1800;
-const CLUSTER_GAP_X = 300;
-const CLUSTER_GAP_Y = 300;
+
+// 🌟 فشرده‌سازی چیدمان برای دیده شدن بهتر در نمای کلی
+const FIXED_CLUSTER_WIDTH = 1200;
+const CLUSTER_GAP_X = 100;
+const CLUSTER_GAP_Y = 100;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
-const GRID_CELL_H = 800; 
+const GRID_CELL_H = 600; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
@@ -411,11 +414,11 @@ const state = {
   nextConnId: 1, customPositions: {},
   cardStage: {}, 
   collapsedModules: {},
-  selectedModulesFilter: [] // برای فیلتر کردن ماژول ها
+  selectedModulesFilter: [] 
 };
 
-const LS_KEY = "module-map-state-v60";
-const LS_MODULES_KEY = "module-map-data-v60";
+const LS_KEY = "module-map-state-v61";
+const LS_MODULES_KEY = "module-map-data-v61";
 
 function saveState() {
   try {
@@ -449,7 +452,7 @@ function loadState() {
 
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
-  const maxPerCol = 4; 
+  const maxPerCol = 3; // کاهش برای فشرده‌سازی
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
   const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 60;
@@ -541,7 +544,7 @@ document.addEventListener('click', (e) => {
 });
 
 // ===== منطق مودال =====
-let modalMode = 'add'; // 'add', 'edit-module', 'edit-page'
+let modalMode = 'add';
 let editingModId = null;
 let editingPageIdx = null;
 
@@ -625,7 +628,6 @@ document.getElementById('btn-modal-save').addEventListener('click', () => {
         mod.position = pos;
         const oldPagesCount = mod.pages.length;
         mod.pages = pages;
-        // تنظیم مراحل برای صفحات جدید
         pages.forEach((_, idx) => {
           if (idx >= oldPagesCount) state.cardStage[editingModId + ":" + idx] = 'back';
         });
@@ -644,7 +646,7 @@ document.getElementById('btn-modal-save').addEventListener('click', () => {
   closeModal();
   buildWorld();
   applyTransform(true);
-  initFilterDropdown(); // برای آپدیت لیست فیلتر
+  initFilterDropdown();
   showToast("با موفقیت ذخیره شد");
 });
 
@@ -669,7 +671,7 @@ function buildWorld() {
   });
 
   let gridIdx = 0;
-  const cols = 3;
+  const cols = 3; // 3 ستون برای فشرده تر شدن
 
   clusters.forEach((cl) => {
     let cx, cy;
@@ -742,7 +744,6 @@ function buildWorld() {
     card.querySelector('.btn-add').addEventListener('mousedown', (e) => e.stopPropagation());
     card.querySelector('.btn-add').addEventListener('click', (e) => {
       e.stopPropagation();
-      // باز کردن مدال ویرایش ماژول که امکان اضافه کردن صفحه را هم دارد
       openModal('edit-module', cl.mod.id);
     });
 
@@ -1232,7 +1233,6 @@ function startConnection(fromKey) {
     if (draggingConn) {
       tempPath.remove();
       
-      // 🌟 فیکس پیدا کردن کارت مقصد
       let targetNode = null;
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
       for (let el of elements) {
@@ -1373,7 +1373,10 @@ function fitView() {
   const zoomX = (rect.width - pad * 2) / mapW;
   const zoomY = (rect.height - pad * 2) / mapH;
 
-  state.zoom = Math.max(0.15, Math.min(zoomX, zoomY, 1.0));
+  // 🌟 محدود کردن زوم به حداقل 25% برای خوانایی
+  let targetZoom = Math.min(zoomX, zoomY, 1.0);
+  state.zoom = Math.max(0.25, targetZoom); 
+
   state.pan.x = (rect.width - mapW * state.zoom) / 2 - minX * state.zoom;
   state.pan.y = (rect.height - mapH * state.zoom) / 2 - minY * state.zoom;
 
@@ -1388,7 +1391,6 @@ function applyFilters() {
     const mod = MODULES_DATA.find(m => m.id === parseInt(id));
     if (!mod) return;
     
-    // فیلتر ماژول های انتخاب شده
     let visible = true;
     if (state.selectedModulesFilter.length > 0) {
       visible = state.selectedModulesFilter.includes(mod.id);
@@ -1430,7 +1432,7 @@ function init() {
       mod.pages.forEach((_, idx) => {
         state.cardStage[mod.id + ":" + idx] = 'back';
       });
-      state.collapsedModules[mod.id] = false; // پیش‌فرض باز
+      state.collapsedModules[mod.id] = false; 
     });
     saveState();
   }
