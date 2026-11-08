@@ -1302,7 +1302,7 @@ function buildWorld() {
     });
 
     world.appendChild(clusterEl);
-    clusterMap[cl.mod.id] = { el: clusterEl, card, w: cl.w, h: cl.h, x: cx, y: cy, pageEls };
+    clusterMap[cl.mod.id] = { ...cl, el: clusterEl, card, x: cx, y: cy, pageEls };
   });
 
   renderConnections();
