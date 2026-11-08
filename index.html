@@ -380,7 +380,7 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> برای تغییر همزمان مراحل، از گزینه «انتخاب چندگانه» در بالای صفحه استفاده کنید.
+  <b>راهنما:</b> هر کارت می‌تواند همزمان در چند مرحله باشد (کلیک کنید). برای تغییر گروهی از دکمه «انتخاب چندگانه» استفاده کنید.
 </div>
 
 <div id="toast"></div>
@@ -462,7 +462,7 @@ const state = {
   multiSelected: new Set()
 };
 
-let multiSelectMode = false; // 🌟 متغیر حالت انتخاب چندگانه
+let multiSelectMode = false;
 
 const LS_KEY = "module-map-state-v65";
 const LS_MODULES_KEY = "module-map-data-v65";
@@ -492,7 +492,22 @@ function loadState() {
     if (Array.isArray(s.connections)) state.connections = s.connections.map(c => ({ ...c, type: c.type || 'one-way' }));
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
-    if (s.cardStage) state.cardStage = s.cardStage;
+    
+    // 🌟 Migration: Convert string stages to arrays
+    if (s.cardStage) {
+      state.cardStage = {};
+      Object.keys(s.cardStage).forEach(key => {
+        let val = s.cardStage[key];
+        if (Array.isArray(val)) {
+          state.cardStage[key] = val;
+        } else if (typeof val === 'string') {
+          state.cardStage[key] = [val];
+        } else {
+          state.cardStage[key] = ['back'];
+        }
+      });
+    }
+    
     if (s.collapsedModules) state.collapsedModules = s.collapsedModules;
   } catch(e) {}
 }
@@ -541,9 +556,15 @@ function calculateModuleProgress(modId) {
   let total = 0;
   mod.pages.forEach((_, idx) => {
     const key = modId + ":" + idx;
-    const stageId = state.cardStage[key] || 'back';
-    const stage = STAGES.find(s => s.id === stageId);
-    total += stage ? stage.percent : 0;
+    let stages = state.cardStage[key] || ['back'];
+    if (!Array.isArray(stages)) stages = [stages]; // Safety
+    
+    let maxPct = 0;
+    stages.forEach(stgId => {
+      const stage = STAGES.find(s => s.id === stgId);
+      if (stage && stage.percent > maxPct) maxPct = stage.percent;
+    });
+    total += maxPct;
   });
   return Math.round(total / mod.pages.length);
 }
@@ -674,9 +695,9 @@ document.getElementById('btn-modal-save').addEventListener('click', () => {
       const newId = MODULES_DATA.length > 0 ? Math.max(...MODULES_DATA.map(m => m.id)) + 1 : 1;
       MODULES_DATA.push({ id: newId, name, position: pos, status: "طراحی نشده", pages });
       pages.forEach((_, idx) => {
-        state.cardStage[newId + ":" + idx] = 'back';
+        state.cardStage[newId + ":" + idx] = ['back'];
       });
-      state.cardStage["mod:" + newId] = 'back';
+      state.cardStage["mod:" + newId] = ['back'];
     } else {
       const mod = MODULES_DATA.find(m => m.id === editingModId);
       if (mod) {
@@ -685,7 +706,7 @@ document.getElementById('btn-modal-save').addEventListener('click', () => {
         const oldPagesCount = mod.pages.length;
         mod.pages = pages;
         pages.forEach((_, idx) => {
-          if (idx >= oldPagesCount) state.cardStage[editingModId + ":" + idx] = 'back';
+          if (idx >= oldPagesCount) state.cardStage[editingModId + ":" + idx] = ['back'];
         });
       }
     }
@@ -707,6 +728,21 @@ document.getElementById('btn-modal-save').addEventListener('click', () => {
 });
 
 document.getElementById('btn-add-module').addEventListener('click', () => openModal('add'));
+
+// ===== Helper: Toggle Stage for a Card =====
+function toggleCardStage(cardKey, stageId) {
+  let stages = state.cardStage[cardKey] || ['back'];
+  if (!Array.isArray(stages)) stages = [stages]; // Safety
+
+  if (stages.includes(stageId)) {
+    if (stages.length > 1) {
+      stages = stages.filter(s => s !== stageId);
+    }
+  } else {
+    stages.push(stageId);
+  }
+  state.cardStage[cardKey] = stages;
+}
 
 // ===== ساخت بوم =====
 function buildWorld() {
@@ -760,10 +796,13 @@ function buildWorld() {
 
     const posClass = posBadgeClass(cl.mod.position);
     let pct = calculateModuleProgress(cl.mod.id);
-    const modStage = state.cardStage["mod:" + cl.mod.id] || 'back';
+    
+    // 🌟 Get current stages array for module
+    let modStages = state.cardStage["mod:" + cl.mod.id] || ['back'];
+    if (!Array.isArray(modStages)) modStages = [modStages];
 
     const stageBtns = STAGES.map(s => 
-      `<button class="stage-btn ${modStage === s.id ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
+      `<button class="stage-btn ${modStages.includes(s.id) ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
     ).join('');
 
     card.innerHTML = `
@@ -812,7 +851,7 @@ function buildWorld() {
       }
     });
 
-    // 🌟 دکمه‌های مرحله ماژول
+    // 🌟 دکمه‌های مرحله ماژول (چندگانه)
     card.querySelectorAll('.stage-btn').forEach(btn => {
       btn.addEventListener('mousedown', (e) => e.stopPropagation());
       btn.addEventListener('click', (e) => {
@@ -820,16 +859,17 @@ function buildWorld() {
         const newStage = btn.dataset.stage;
         
         const targets = new Set(state.multiSelected);
-        targets.add("mod:" + cl.mod.id); // همیشه کارتِ کلیک‌شده را هم شامل شود
+        targets.add("mod:" + cl.mod.id);
         
         targets.forEach(targetKey => {
-          state.cardStage[targetKey] = newStage;
+          toggleCardStage(targetKey, newStage);
+          
           if (targetKey.startsWith("mod:")) {
             const modId = parseInt(targetKey.split(":")[1]);
             const mod = MODULES_DATA.find(m => m.id === modId);
             if (mod) {
               mod.pages.forEach((_, idx) => {
-                state.cardStage[modId + ":" + idx] = newStage;
+                toggleCardStage(modId + ":" + idx, newStage);
               });
             }
           }
@@ -850,7 +890,7 @@ function buildWorld() {
     nodePositions["mod:" + cl.mod.id] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
 
     card.addEventListener("mousedown", (e) => {
-      if (e.button !== 0 || e.ctrlKey || e.metaKey || multiSelectMode) return; // جلوگیری از درگ در حالت انتخاب
+      if (e.button !== 0 || e.ctrlKey || e.metaKey || multiSelectMode) return;
       if (e.target.closest(".progress-bar-wrap") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group")) return;
       if (e.target.classList.contains("drag-handle")) return;
       e.stopPropagation();
@@ -926,9 +966,11 @@ function buildWorld() {
       pageEl.style.height = PAGE_H + "px";
       pageEl.dataset.nodeKey = nodeKey;
 
-      const pageStage = state.cardStage[nodeKey] || 'back';
+      let pageStages = state.cardStage[nodeKey] || ['back'];
+      if (!Array.isArray(pageStages)) pageStages = [pageStages];
+
       const pageStageBtns = STAGES.map(s => 
-        `<button class="stage-btn ${pageStage === s.id ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
+        `<button class="stage-btn ${pageStages.includes(s.id) ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
       ).join('');
 
       pageEl.innerHTML = `
@@ -966,7 +1008,7 @@ function buildWorld() {
         toggleSelection(nodeKey);
       });
 
-      // 🌟 دکمه‌های مرحله صفحه با قابلیت انتخاب چندگانه
+      // 🌟 دکمه‌های مرحله صفحه (چندگانه)
       pageEl.querySelectorAll('.stage-btn').forEach(btn => {
         btn.addEventListener('mousedown', (e) => e.stopPropagation());
         btn.addEventListener('click', (e) => {
@@ -974,16 +1016,17 @@ function buildWorld() {
           const newStage = btn.dataset.stage;
           
           const targets = new Set(state.multiSelected);
-          targets.add(nodeKey); // همیشه کارت کلیک‌شده را هم شامل شود
+          targets.add(nodeKey);
           
           targets.forEach(targetKey => {
-            state.cardStage[targetKey] = newStage;
+            toggleCardStage(targetKey, newStage);
+            
             if (targetKey.startsWith("mod:")) {
               const modId = parseInt(targetKey.split(":")[1]);
               const mod = MODULES_DATA.find(m => m.id === modId);
               if (mod) {
                 mod.pages.forEach((_, idx) => {
-                  state.cardStage[modId + ":" + idx] = newStage;
+                  toggleCardStage(modId + ":" + idx, newStage);
                 });
               }
             }
@@ -1000,7 +1043,7 @@ function buildWorld() {
       });
 
       pageEl.addEventListener("mousedown", (e) => {
-        if (e.button !== 0 || e.ctrlKey || e.metaKey || multiSelectMode) return; // جلوگیری از درگ در حالت انتخاب
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || multiSelectMode) return;
         if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group")) return;
         if (draggingConn) return;
         e.stopPropagation();
@@ -1550,9 +1593,9 @@ function init() {
   
   if (!localStorage.getItem(LS_KEY)) {
     MODULES_DATA.forEach(mod => {
-      state.cardStage["mod:" + mod.id] = 'back';
+      state.cardStage["mod:" + mod.id] = ['back'];
       mod.pages.forEach((_, idx) => {
-        state.cardStage[mod.id + ":" + idx] = 'back';
+        state.cardStage[mod.id + ":" + idx] = ['back'];
       });
       state.collapsedModules[mod.id] = false; 
     });
