@@ -268,7 +268,16 @@
   .action-btn.btn-edit { color: #fbbf24; }
   .action-btn.btn-add { color: #22c55e; }
 
-  /* 🌟 حالت ماکرو (زوم اوت) - دقیقاً طبق تصویر */
+  /* 🌟 استایل کارت‌های انتخاب شده برای تغییر گروهی */
+  .module-card.multi-selected,
+  .page-node.multi-selected {
+    box-shadow: 0 0 0 3px #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    z-index: 20 !important;
+    background: #1e3a5f !important;
+  }
+
+  /* 🌟 حالت ماکرو (زوم اوت) */
   body.zoomed-out #svg-layer, 
   body.zoomed-out #svg-front-layer, 
   body.zoomed-out #buttons-layer { 
@@ -357,7 +366,7 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | نقطه آبی = اتصال | دکمه‌های روی کارت = تغییر مرحله
+  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | Ctrl + کلیک روی کارت = انتخاب چندگانه | نقطه آبی = اتصال
 </div>
 
 <div id="toast"></div>
@@ -421,11 +430,11 @@ const MODULE_W = 260;
 const MODULE_H = 220; 
 const PAGE_W = 160;
 const PAGE_H = 140; 
-const PAGE_GAP = 40; // 🌟 افزایش فاصله بین صفحات برای خطوط ارتباطی
+const PAGE_GAP = 40;
 
-const FIXED_CLUSTER_WIDTH = 2400; // 🌟 افزایش عرض کلاستر
-const CLUSTER_GAP_X = 600; // 🌟 فاصله افقی بسیار زیاد بین ماژول ها
-const CLUSTER_GAP_Y = 600; // 🌟 فاصله عمودی بسیار زیاد بین ماژول ها
+const FIXED_CLUSTER_WIDTH = 2400;
+const CLUSTER_GAP_X = 600;
+const CLUSTER_GAP_Y = 600;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
 const GRID_CELL_H = 800; 
 
@@ -435,7 +444,8 @@ const state = {
   nextConnId: 1, customPositions: {},
   cardStage: {}, 
   collapsedModules: {},
-  selectedModulesFilter: [] 
+  selectedModulesFilter: [],
+  multiSelected: new Set()
 };
 
 const LS_KEY = "module-map-state-v65";
@@ -489,11 +499,8 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const cardW = isZoomedOut ? 650 : MODULE_W;
   const halfCardW = cardW / 2;
   const centerX = clusterW / 2;
-  
-  // 🌟 افزایش فاصله بین ماژول و صفحات
   const gap = isZoomedOut ? 100 : 80; 
   const offset = halfCardW + gap;
-  
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
@@ -695,7 +702,7 @@ function buildWorld() {
   });
 
   let gridIdx = 0;
-  const cols = 3; // با فاصله گذاری جدید، 3 ستون کافیست
+  const cols = 3;
 
   clusters.forEach((cl) => {
     let cx, cy;
@@ -771,19 +778,42 @@ function buildWorld() {
       openModal('edit-module', cl.mod.id);
     });
 
+    // 🌟 انتخاب چندگانه برای کارت ماژول
+    card.addEventListener("click", (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.stopPropagation();
+        toggleMultiSelect("mod:" + cl.mod.id, card);
+      }
+    });
+
+    // 🌟 دکمه‌های مرحله ماژول با قابلیت انتخاب چندگانه
     card.querySelectorAll('.stage-btn').forEach(btn => {
       btn.addEventListener('mousedown', (e) => e.stopPropagation());
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const newStage = btn.dataset.stage;
-        state.cardStage["mod:" + cl.mod.id] = newStage;
-        cl.mod.pages.forEach((_, idx) => {
-          state.cardStage[cl.mod.id + ":" + idx] = newStage;
+        
+        const targets = new Set(state.multiSelected);
+        targets.add("mod:" + cl.mod.id);
+        
+        targets.forEach(targetKey => {
+          state.cardStage[targetKey] = newStage;
+          if (targetKey.startsWith("mod:")) {
+            const modId = parseInt(targetKey.split(":")[1]);
+            const mod = MODULES_DATA.find(m => m.id === modId);
+            if (mod) {
+              mod.pages.forEach((_, idx) => {
+                state.cardStage[modId + ":" + idx] = newStage;
+              });
+            }
+          }
         });
+        
+        state.multiSelected.clear();
         saveState();
         buildWorld();
         applyTransform(true);
-        showToast("ماژول و صفحاتش منتقل شدند به: " + STAGES.find(s => s.id === newStage).name);
+        showToast("مراحل به‌روزرسانی شد");
       });
     });
 
@@ -896,15 +926,45 @@ function buildWorld() {
         openModal('edit-page', cl.mod.id, p.pageIdx);
       });
 
+      // 🌟 انتخاب چندگانه برای کارت صفحه
+      pageEl.addEventListener("click", (e) => {
+        if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group") || draggingConn) return;
+        if (e.ctrlKey || e.metaKey) {
+          e.stopPropagation();
+          toggleMultiSelect(nodeKey, pageEl);
+          return;
+        }
+        toggleSelection(nodeKey);
+      });
+
+      // 🌟 دکمه‌های مرحله صفحه با قابلیت انتخاب چندگانه
       pageEl.querySelectorAll('.stage-btn').forEach(btn => {
         btn.addEventListener('mousedown', (e) => e.stopPropagation());
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          state.cardStage[nodeKey] = btn.dataset.stage;
+          const newStage = btn.dataset.stage;
+          
+          const targets = new Set(state.multiSelected);
+          targets.add(nodeKey);
+          
+          targets.forEach(targetKey => {
+            state.cardStage[targetKey] = newStage;
+            if (targetKey.startsWith("mod:")) {
+              const modId = parseInt(targetKey.split(":")[1]);
+              const mod = MODULES_DATA.find(m => m.id === modId);
+              if (mod) {
+                mod.pages.forEach((_, idx) => {
+                  state.cardStage[modId + ":" + idx] = newStage;
+                });
+              }
+            }
+          });
+          
+          state.multiSelected.clear();
           saveState();
           buildWorld();
           applyTransform(true);
-          showToast("صفحه منتقل شد به: " + STAGES.find(s => s.id === btn.dataset.stage).name);
+          showToast("مراحل به‌روزرسانی شد");
         });
       });
 
@@ -999,11 +1059,6 @@ function buildWorld() {
         document.addEventListener("mouseup", onUp);
       });
 
-      pageEl.addEventListener("click", (e) => {
-        if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group") || draggingConn) return;
-        toggleSelection(nodeKey);
-      });
-
       pageEl.querySelector(".drag-handle").addEventListener("mousedown", (e) => {
         if (e.button !== 0) return;
         e.stopPropagation();
@@ -1023,6 +1078,16 @@ function buildWorld() {
   setTimeout(() => {
     renderConnections();
   }, 50);
+}
+
+function toggleMultiSelect(key, el) {
+  if (state.multiSelected.has(key)) {
+    state.multiSelected.delete(key);
+    el.classList.remove("multi-selected");
+  } else {
+    state.multiSelected.add(key);
+    el.classList.add("multi-selected");
+  }
 }
 
 function updateNodePositions(modId, newCx, newCy) {
@@ -1344,6 +1409,8 @@ canvas.addEventListener("mousedown", (e) => {
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
   canvas.classList.add("panning"); clearSelection();
+  state.multiSelected.clear();
+  document.querySelectorAll(".multi-selected").forEach(el => el.classList.remove("multi-selected"));
 });
 window.addEventListener("mousemove", (e) => {
   if (!isPanning) return;
