@@ -41,7 +41,13 @@
   button.primary:hover { background: #1e40af; color: #fff; }
   button.success { background: #14532d; border-color: #22c55e; color: #86efac; }
   button.success:hover { background: #166534; color: #fff; }
-  
+  #btn-save-gh { background: #0369a1; border-color: #0ea5e9; color: #e0f2fe; }
+  #btn-save-gh:hover { background: #0284c7; color: #fff; }
+  #btn-fetch-gh { background: #4338ca; border-color: #6366f1; color: #e0e7ff; }
+  #btn-fetch-gh:hover { background: #3730a3; color: #fff; }
+  #btn-gh-settings { background: #334155; border-color: #475569; color: #cbd5e1; }
+  #btn-gh-settings:hover { background: #475569; color: #fff; }
+
   #zoom-level { font-size: 12px; color: #94a3b8; min-width: 44px; text-align: center; }
   #stats { font-size: 11px; color: #64748b; margin-right: auto; }
 
@@ -69,12 +75,12 @@
   .multi-select-toggle input { width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; }
   
   /* ===== Modal ===== */
-  #modal-overlay {
+  #modal-overlay, #gh-modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
     z-index: 1000; display: none; align-items: center; justify-content: center;
   }
-  #modal-overlay.show { display: flex; }
+  #modal-overlay.show, #gh-modal-overlay.show { display: flex; }
   .modal-content {
     background: #1e293b; border: 1px solid #334155; border-radius: 12px;
     padding: 24px; width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
@@ -325,6 +331,9 @@
   
   <div class="toolbar-group">
     <button id="btn-add-module" class="success">➕ ماژول جدید</button>
+    <button id="btn-save-gh" title="ذخیره تغییرات در گیت‌هاب">☁️ ذخیره در گیت‌هاب</button>
+    <button id="btn-fetch-gh" title="دریافت آخرین تغییرات از گیت‌هاب">☁️ دریافت از گیت‌هاب</button>
+    <button id="btn-gh-settings" title="تنظیمات اتصال به گیت‌هاب">⚙️</button>
   </div>
 
   <div class="toolbar-group">
@@ -379,8 +388,27 @@
   </div>
 </div>
 
+<!-- Modal for GitHub Settings -->
+<div id="gh-modal-overlay">
+  <div class="modal-content">
+    <h2>تنظیمات گیت‌هاب</h2>
+    <label>نام کاربری (Owner):</label>
+    <input type="text" id="gh-owner" placeholder="مثلا: username">
+    <label>نام مخزن (Repository):</label>
+    <input type="text" id="gh-repo" placeholder="مثلا: my-map-repo">
+    <label>مسیر فایل (Path):</label>
+    <input type="text" id="gh-path" value="data.json" placeholder="data.json">
+    <label>توکن دسترسی (Personal Access Token):</label>
+    <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+    <div class="modal-actions">
+      <button id="btn-gh-save" class="success">ذخیره تنظیمات</button>
+      <button id="btn-gh-cancel" class="danger">انصراف</button>
+    </div>
+  </div>
+</div>
+
 <div id="hint">
-  <b>راهنما:</b> هر کارت می‌تواند همزمان در چند مرحله باشد (کلیک کنید). برای تغییر گروهی از دکمه «انتخاب چندگانه» استفاده کنید.
+  <b>راهنما:</b> برای همگام‌سازی ابتدا ⚙️ را بزنید و مشخصات گیت‌هاب را وارد کنید. سپس با ☁️ تغییرات را ذخیره یا دریافت کنید.
 </div>
 
 <div id="toast"></div>
@@ -446,7 +474,7 @@ const PAGE_W = 160;
 const PAGE_H = 140; 
 const PAGE_GAP = 40;
 
-const FIXED_CLUSTER_WIDTH = 1500;
+const FIXED_CLUSTER_WIDTH = 2400;
 const CLUSTER_GAP_X = 600;
 const CLUSTER_GAP_Y = 600;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
@@ -466,6 +494,7 @@ let multiSelectMode = false;
 
 const LS_KEY = "module-map-state-v65";
 const LS_MODULES_KEY = "module-map-data-v65";
+const LS_GH_KEY = "module-map-github-config";
 
 function saveState() {
   try {
@@ -512,6 +541,133 @@ function loadState() {
   } catch(e) {}
 }
 
+/* ============================================================
+   GitHub Integration
+   ============================================================ */
+function getGHConfig() {
+  const raw = localStorage.getItem(LS_GH_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e) { return null; }
+}
+
+document.getElementById("btn-gh-settings").addEventListener("click", () => {
+  const conf = getGHConfig();
+  if (conf) {
+    document.getElementById("gh-owner").value = conf.owner || "";
+    document.getElementById("gh-repo").value = conf.repo || "";
+    document.getElementById("gh-path").value = conf.path || "data.json";
+    document.getElementById("gh-token").value = conf.token || "";
+  }
+  document.getElementById("gh-modal-overlay").classList.add("show");
+});
+
+document.getElementById("btn-gh-cancel").addEventListener("click", () => {
+  document.getElementById("gh-modal-overlay").classList.remove("show");
+});
+
+document.getElementById("btn-gh-save").addEventListener("click", () => {
+  const conf = {
+    owner: document.getElementById("gh-owner").value.trim(),
+    repo: document.getElementById("gh-repo").value.trim(),
+    path: document.getElementById("gh-path").value.trim() || "data.json",
+    token: document.getElementById("gh-token").value.trim()
+  };
+  if (!conf.owner || !conf.repo || !conf.token) {
+    showToast("لطفا تمامی فیلدها را پر کنید"); return;
+  }
+  localStorage.setItem(LS_GH_KEY, JSON.stringify(conf));
+  document.getElementById("gh-modal-overlay").classList.remove("show");
+  showToast("تنظیمات گیت‌هاب ذخیره شد");
+});
+
+document.getElementById("btn-save-gh").addEventListener("click", async () => {
+  const conf = getGHConfig();
+  if (!conf) { showToast("ابتدا از دکمه ⚙️ تنظیمات گیت‌هاب را وارد کنید"); return; }
+  
+  showToast("در حال ذخیره در گیت‌هاب...");
+  const url = `https://api.github.com/repos/${conf.owner}/${conf.repo}/contents/${conf.path}`;
+  
+  const data = {
+    modules: MODULES_DATA,
+    state: {
+      pan: state.pan, zoom: state.zoom, connections: state.connections,
+      nextConnId: state.nextConnId, customPositions: state.customPositions,
+      cardStage: state.cardStage, collapsedModules: state.collapsedModules
+    }
+  };
+  
+  // Base64 encode with UTF-8 support
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  
+  try {
+    // Check for existing file to get SHA
+    let sha = null;
+    const getRes = await fetch(url, { headers: { Authorization: `token ${conf.token}` } });
+    if (getRes.ok) {
+      const fileData = await getRes.json();
+      sha = fileData.sha;
+    }
+    
+    const body = { message: "Update module map data", content: content };
+    if (sha) body.sha = sha;
+    
+    const putRes = await fetch(url, {
+      method: "PUT",
+      headers: { Authorization: `token ${conf.token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    
+    if (putRes.ok) {
+      showToast("✅ با موفقیت در گیت‌هاب ذخیره شد");
+    } else {
+      const err = await putRes.json();
+      showToast("❌ خطا در ذخیره: " + (err.message || "نامشخص"));
+    }
+  } catch(e) {
+    showToast("❌ خطا در ارتباط با گیت‌هاب");
+  }
+});
+
+document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
+  const conf = getGHConfig();
+  if (!conf) { showToast("ابتدا از دکمه ⚙️ تنظیمات گیت‌هاب را وارد کنید"); return; }
+  
+  showToast("در حال دریافت از گیت‌هاب...");
+  const url = `https://api.github.com/repos/${conf.owner}/${conf.repo}/contents/${conf.path}`;
+  
+  try {
+    const res = await fetch(url, { headers: { Authorization: `token ${conf.token}` } });
+    if (!res.ok) {
+      showToast("❌ فایل در گیت‌هاب یافت نشد");
+      return;
+    }
+    
+    const fileData = await res.json();
+    const decoded = decodeURIComponent(escape(atob(fileData.content)));
+    const parsed = JSON.parse(decoded);
+    
+    if (parsed.modules) MODULES_DATA = parsed.modules;
+    if (parsed.state) {
+      state.pan = parsed.state.pan || state.pan;
+      state.zoom = parsed.state.zoom || state.zoom;
+      state.connections = parsed.state.connections || state.connections;
+      state.nextConnId = parsed.state.nextConnId || state.nextConnId;
+      state.customPositions = parsed.state.customPositions || state.customPositions;
+      state.cardStage = parsed.state.cardStage || state.cardStage;
+      state.collapsedModules = parsed.state.collapsedModules || state.collapsedModules;
+    }
+    
+    saveState();
+    buildWorld();
+    applyTransform(true);
+    initFilterDropdown();
+    showToast("✅ اطلاعات با موفقیت از گیت‌هاب بارگذاری شد");
+  } catch(e) {
+    showToast("❌ خطا در دریافت اطلاعات");
+  }
+});
+/* ============================================================ */
+
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
   const maxPerCol = 4; 
@@ -557,7 +713,7 @@ function calculateModuleProgress(modId) {
   mod.pages.forEach((_, idx) => {
     const key = modId + ":" + idx;
     let stages = state.cardStage[key] || ['back'];
-    if (!Array.isArray(stages)) stages = [stages]; // Safety
+    if (!Array.isArray(stages)) stages = [stages];
     
     let maxPct = 0;
     stages.forEach(stgId => {
@@ -729,7 +885,6 @@ document.getElementById('btn-modal-save').addEventListener('click', () => {
 
 document.getElementById('btn-add-module').addEventListener('click', () => openModal('add'));
 
-// ===== Helper: Toggle Stage for a Card =====
 function toggleCardStage(cardKey, stageId) {
   let stages = state.cardStage[cardKey] || ['back'];
   if (!Array.isArray(stages)) stages = [stages]; // Safety
@@ -797,7 +952,6 @@ function buildWorld() {
     const posClass = posBadgeClass(cl.mod.position);
     let pct = calculateModuleProgress(cl.mod.id);
     
-    // 🌟 Get current stages array for module
     let modStages = state.cardStage["mod:" + cl.mod.id] || ['back'];
     if (!Array.isArray(modStages)) modStages = [modStages];
 
@@ -842,7 +996,6 @@ function buildWorld() {
       openModal('edit-module', cl.mod.id);
     });
 
-    // 🌟 انتخاب چندگانه
     card.addEventListener("click", (e) => {
       if (e.target.closest('.progress-bar-wrap') || e.target.closest('.card-actions') || e.target.closest('.stage-btn-group')) return;
       if (e.ctrlKey || e.metaKey || multiSelectMode) {
@@ -851,7 +1004,6 @@ function buildWorld() {
       }
     });
 
-    // 🌟 دکمه‌های مرحله ماژول (چندگانه)
     card.querySelectorAll('.stage-btn').forEach(btn => {
       btn.addEventListener('mousedown', (e) => e.stopPropagation());
       btn.addEventListener('click', (e) => {
@@ -997,7 +1149,6 @@ function buildWorld() {
         openModal('edit-page', cl.mod.id, p.pageIdx);
       });
 
-      // 🌟 انتخاب چندگانه برای کارت صفحه
       pageEl.addEventListener("click", (e) => {
         if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group") || draggingConn) return;
         if (e.ctrlKey || e.metaKey || multiSelectMode) {
@@ -1008,7 +1159,6 @@ function buildWorld() {
         toggleSelection(nodeKey);
       });
 
-      // 🌟 دکمه‌های مرحله صفحه (چندگانه)
       pageEl.querySelectorAll('.stage-btn').forEach(btn => {
         btn.addEventListener('mousedown', (e) => e.stopPropagation());
         btn.addEventListener('click', (e) => {
@@ -1478,7 +1628,7 @@ function applyTransform(needRender = false) {
 
 canvas.addEventListener("mousedown", (e) => {
   if (e.target.closest(".module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar") ||
-      e.target.closest(".conn-btn") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group") || e.target.closest("#modal-overlay")) return;
+      e.target.closest(".conn-btn") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group") || e.target.closest("#modal-overlay") || e.target.closest("#gh-modal-overlay")) return;
   if (e.button !== 0) return;
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
