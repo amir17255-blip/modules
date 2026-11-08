@@ -38,8 +38,6 @@
   #btn-reset-view:hover { background: #1e40af; color: #fff; }
   #btn-reset-layout { background: #4c1d95; border-color: #6d28d9; color: #c4b5fd; }
   #btn-reset-layout:hover { background: #5b21b6; color: #fff; }
-  #btn-reset-stages { background: #713f12; border-color: #a16207; color: #fde68a; }
-  #btn-reset-stages:hover { background: #a16207; color: #fff; }
   #zoom-level { font-size: 12px; color: #94a3b8; min-width: 44px; text-align: center; }
   #stats { font-size: 11px; color: #64748b; margin-right: auto; }
 
@@ -90,116 +88,10 @@
   .conn-btn.btn-delete { background: #451a1a; border-color: #ef4444; color: #fca5a5; }
   .conn-btn.btn-delete:hover { background: #7f1d1d; border-color: #f87171; color: #fff; }
 
-  /* ===== Stage Board ===== */
-  .stage-board {
-    position: absolute; display: flex; gap: 16px; padding: 20px;
-    background: rgba(15, 23, 42, 0.6); border: 2px solid rgba(51, 65, 85, 0.6);
-    border-radius: 16px; backdrop-filter: blur(8px); z-index: 3;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5); cursor: grab;
-  }
-  .stage-board:active { cursor: grabbing; }
-  .stage-title {
-    position: absolute; top: -38px; right: 16px; font-size: 18px; font-weight: 700;
-    color: #7dd3fc; background: rgba(15, 23, 42, 0.9); padding: 6px 20px;
-    border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.3); white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  }
-  .stage-zone {
-    width: 1000px; height: 100%;
-    background: rgba(30, 41, 59, 0.25); border: 2px dashed rgba(51, 65, 85, 0.6);
-    border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; transition: all 0.2s;
-  }
-  .stage-zone.drag-over-stage {
-    border-color: #fbbf24; background: rgba(251, 191, 36, 0.08);
-    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.3) inset;
-  }
-  .stage-header {
-    padding: 24px 16px; font-size: 36px; font-weight: 700; text-align: center;
-    border-bottom: 3px solid; flex-shrink: 0; background: rgba(15, 23, 42, 0.7);
-    letter-spacing: 1px;
-  }
-  .stage-content {
-    flex: 1; padding: 16px 16px 60px 16px; display: flex; flex-direction: column; gap: 16px; 
-    overflow-y: auto; min-height: 0;
-  }
-  .stage-content::-webkit-scrollbar { width: 8px; }
-  .stage-content::-webkit-scrollbar-track { background: transparent; }
-  .stage-content::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-
-  .stage-module-group {
-    width: 100%; display: flex; flex-direction: column; gap: 12px;
-    background: rgba(255, 255, 255, 0.02); padding: 16px;
-    border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .stage-pages-container {
-    display: flex; flex-wrap: wrap; gap: 12px;
-    justify-content: center;
-  }
-
-  .stage-card {
-    background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
-    border: 1px solid #334155; border-radius: 8px; padding: 10px 12px;
-    font-size: 13px; color: #cbd5e1; cursor: grab; user-select: none;
-    transition: all 0.15s; line-height: 1.4; word-break: break-word;
-    width: calc(33.33% - 12px); min-width: 240px; display: flex; flex-direction: column;
-    position: relative;
-  }
-  .stage-card:hover { border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8; z-index: 10; }
-  
-  .stage-card.highlight { border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; z-index: 11; }
-  .stage-card.selected { border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; z-index: 12; background: #2a2416; color: #fff; }
-  .stage-card.dimmed { opacity: 0.2; }
-
-  .stage-module-card {
-    background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
-    border: 1px solid #38bdf8; border-radius: 14px; padding: 14px 16px;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.45); position: relative;
-    display: flex; flex-direction: column; gap: 8px;
-    width: 100%; cursor: grab;
-  }
-  .stage-module-card.highlight { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
-  .stage-module-card.selected { box-shadow: 0 0 0 2px #fbbf24; background: #2a2416; }
-  .stage-module-card.dimmed { opacity: 0.2; }
-
-  /* ===== Toggle Button ===== */
-  .module-card-header-actions {
-    position: absolute; top: 10px; left: 10px; z-index: 10;
-  }
-  .toggle-pages-btn {
-    background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; color: #7dd3fc;
-    border-radius: 6px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 12px; transition: all 0.2s;
-  }
-  .toggle-pages-btn:hover { background: #334155; border-color: #38bdf8; }
-  .toggle-pages-btn.collapsed { background: #1e293b; color: #64748b; }
-
-  .hidden-by-toggle { display: none !important; }
-
-  .stage-page-btn-group {
-    position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
-    display: flex; gap: 4px; z-index: 99;
-  }
-  .stage-page-btn {
-    width: 20px; height: 20px; border-radius: 4px; background: #1e293b; border: 1px solid #475569;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    font-size: 10px; color: transparent; transition: all 0.15s; pointer-events: auto;
-  }
-  .stage-page-btn:hover { background: #334155; border-color: #94a3b8; }
-  .stage-page-btn.done.active { background: #22c55e; border-color: #22c55e; color: #fff; }
-  .stage-page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
-  .stage-page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
-
-  .stage-empty-hint {
-    font-size: 14px; color: #475569; text-align: center;
-    width: 100%; padding: 60px 0; font-style: italic;
-  }
-
   /* ===== Module Cluster ===== */
   .module-cluster { position: absolute; transition: opacity 0.3s, box-shadow 0.2s, left 0.3s ease, top 0.3s ease; z-index: 10; }
   .module-cluster.dimmed { opacity: 0.2; }
   .module-cluster.is-dragging { z-index: 100; transition: none; }
-  .module-cluster.hidden-by-stage { display: none !important; }
 
   .module-card {
     background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
@@ -218,7 +110,7 @@
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
   
   .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-left: 36px; }
-  .module-title { font-size: 35px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: center; }
+  .module-title { font-size: 17px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: center; }
   .module-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; transition: opacity 0.3s; pointer-events: none; }
   .badge-reh { background: #422006; color: #fbbf24; border: 1px solid #78350f; }
   .badge-sys { background: #1e3a5f; color: #7dd3fc; border: 1px solid #1e40af; }
@@ -243,7 +135,8 @@
     border: 1px solid #2d3a4a; border-radius: 8px; padding: 6px 9px 6px 75px;
     font-size: 12px; color: #cbd5e1; text-align: right;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: grab;
-    transition: all 0.3s, box-shadow 0.2s; display: flex; align-items: center;
+    transition: all 0.3s, box-shadow 0.2s; display: flex; flex-direction: column; justify-content: center;
+    height: 75px; /* افزایش ارتفاع برای جا دادن دراپ‌داون */
   }
   .page-node:active { cursor: grabbing; }
   .page-node:hover { border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3); z-index: 10; }
@@ -258,17 +151,17 @@
   .page-node.drag-over {
     border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; transform: scale(1.05);
   }
-  .page-node.hidden-by-stage { display: none !important; }
 
   .page-node span:not(.drag-handle) {
-    flex: 1; word-break: break-word; line-height: 1.4;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    flex: 1; word-break: break-word; line-height: 1.4; margin-bottom: 4px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     overflow: hidden; pointer-events: none;
   }
 
   .page-btn-group {
     position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
     display: flex; gap: 4px; z-index: 99; background: #1a2330; padding: 3px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    flex-direction: column;
   }
   .page-btn {
     width: 20px; height: 20px; border-radius: 4px; background: #1e293b; border: 1px solid #475569;
@@ -280,11 +173,9 @@
   .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
   .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
 
-  /* ✅ نقطه آبی - برای کارت‌های ماژول و صفحه (در بوم و استیج) */
+  /* ✅ نقطه آبی */
   .page-node .drag-handle,
-  .stage-card .drag-handle,
-  .module-card .drag-handle,
-  .stage-module-card .drag-handle {
+  .module-card .drag-handle {
     position: absolute; top: -10px; right: -10px; width: 20px; height: 20px;
     background: rgba(56, 189, 248, 0.35); border: 2px solid rgba(15, 20, 25, 0.5);
     border-radius: 50%; cursor: crosshair; opacity: 0.55;
@@ -293,9 +184,7 @@
     pointer-events: auto !important; flex: none !important; display: block !important;
   }
   .page-node:hover .drag-handle,
-  .stage-card:hover .drag-handle,
-  .module-card:hover .drag-handle,
-  .stage-module-card:hover .drag-handle {
+  .module-card:hover .drag-handle {
     opacity: 1; background: rgba(56, 189, 248, 0.9);
     box-shadow: 0 0 14px rgba(56, 189, 248, 0.9); transform: scale(1.15);
   }
@@ -305,12 +194,36 @@
   .st-done { background: #22c55e; } .st-test { background: #84cc16; } .st-impl { background: #eab308; }
   .st-ready { background: #f97316; } .st-needdesign { background: #ef4444; } .st-nodesign { background: #6b7280; }
 
+  /* استایل منوی انتخاب مرحله */
+  .stage-select {
+    width: 100%;
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-top: auto;
+  }
+  .stage-select:hover { border-color: #38bdf8; }
+  .stage-select option { background: #0f172a; color: #e2e8f0; }
+
+  /* برای کارت ماژول، دراپ داون با فاصله بیشتر */
+  .module-card .stage-select {
+    margin-top: 10px;
+    padding: 4px 6px;
+  }
+
   body.zoomed-out .module-card { width: 250px !important; height: 300px !important; transform: translate(-50%, -50%); background: #1c2531; border-color: #475569; left: 50%; top: 50%; }
   body.zoomed-out .module-title { font-size: 42px; font-weight: 700; text-align: center; text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 20px; line-height: 1.2; }
-  body.zoomed-out .module-desc, body.zoomed-out .module-progress-row, body.zoomed-out .module-badge, body.zoomed-out .module-card-header-actions { display: none; }
+  body.zoomed-out .module-desc, body.zoomed-out .module-progress-row, body.zoomed-out .module-badge, body.zoomed-out .module-card-header-actions, body.zoomed-out .stage-select { display: none; }
   body.zoomed-out .page-btn { width: 16px; height: 16px; font-size: 9px; }
   body.zoomed-out .page-btn-group { left: 4px; }
-  body.zoomed-out .page-node { margin: 0; padding-left: 65px; }
+  body.zoomed-out .page-node { margin: 0; padding-left: 65px; height: 50px; }
 
   #toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 18px; font-size: 12px; z-index: 200; opacity: 0; pointer-events: none; transition: all 0.25s; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -337,7 +250,6 @@
   <div class="toolbar-group">
     <button id="btn-reset-view">🎯 نمای کلی</button>
     <button id="btn-reset-layout" title="بازگردانی چیدمان">🔄 چیدمان پیش‌فرض</button>
-    <button id="btn-reset-stages" title="خارج کردن همه کارت‌ها از مراحل">📋 پاک‌سازی مراحل</button>
     <button id="btn-clear-connections" class="danger">🗑️ حذف اتصالات</button>
   </div>
   <div class="toolbar-group">
@@ -357,7 +269,7 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | کشیدن کارت به مراحل = انتقال | نقطه آبی = اتصال | فلش کارت ماژول = نمایش/مخفی کردن صفحات
+  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | نقطه آبی = اتصال | دراپ‌داون روی کارت = تغییر مرحله
 </div>
 
 <div id="toast"></div>
@@ -418,30 +330,25 @@ const STAGES = [
 ];
 
 const MODULE_W = 260;
-const MODULE_H = 180;
+const MODULE_H = 220; // افزایش ارتفاع برای جا دادن دراپ‌داون
 const PAGE_W = 180;
-const PAGE_H = 50;
+const PAGE_H = 75; // افزایش ارتفاع برای جا دادن دراپ‌داون
 const PAGE_GAP = 12;
 const FIXED_CLUSTER_WIDTH = 1600;
 const CLUSTER_GAP_X = 300;
 const CLUSTER_GAP_Y = 300;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
-const GRID_CELL_H = 600;
-
-const STAGE_W = 1000;
-const STAGE_GAP = 16;
-let STAGE_BOARD_HEIGHT = 2000; 
-let STAGE_BOARD_Y = -2100; 
+const GRID_CELL_H = 700; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
   selectedNode: null, filterPosition: "all", search: "",
   nextConnId: 1, customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} },
-  cardStage: {},
+  cardStage: {}, // مرحله هر کارت
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v56";
+const LS_KEY = "module-map-state-v58";
 
 function saveState() {
   try {
@@ -471,11 +378,11 @@ function loadState() {
 
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
-  const maxPerCol = 5;
+  const maxPerCol = 4; // کاهش برای جا دادن کارت‌های بلندتر
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
-  const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 40;
-  const clusterH = Math.max(MODULE_H + 60, requiredHeight);
+  const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 60;
+  const clusterH = Math.max(MODULE_H + 100, requiredHeight);
   return { w: clusterW, h: clusterH, maxPerCol, colsPerSide };
 }
 
@@ -493,7 +400,7 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
     const x = centerX - offset - (colIdx + 1) * PAGE_W - colIdx * PAGE_GAP;
-    const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
+    const y = 30 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   for (let i = pagesPerSide; i < numPages; i++) {
@@ -501,7 +408,7 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(localI / maxPerCol);
     const rowIdx = localI % maxPerCol;
     const x = centerX + offset + colIdx * (PAGE_W + PAGE_GAP);
-    const y = 20 + rowIdx * (PAGE_H + PAGE_GAP);
+    const y = 30 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   return positions;
@@ -525,421 +432,9 @@ const svgFrontLayer = document.getElementById("svg-front-layer");
 const buttonsLayer = document.getElementById("buttons-layer");
 const clusterMap = {};
 let nodePositions = {};
-const stageEls = {};
-
-function getHoveredZone(ev) {
-  const elements = document.elementsFromPoint(ev.clientX, ev.clientY);
-  for (let el of elements) {
-    if (el.classList && el.classList.contains("stage-zone")) return el;
-  }
-  return null;
-}
-
-function buildStageBoard() {
-  const boardEl = document.createElement("div");
-  boardEl.className = "stage-board";
-  boardEl.id = "stage-board";
-  const boardWidth = STAGES.length * STAGE_W + (STAGES.length - 1) * STAGE_GAP + 40;
-  boardEl.style.left = "0px";
-  boardEl.style.top = STAGE_BOARD_Y + "px";
-  boardEl.style.width = boardWidth + "px";
-  
-  const titleEl = document.createElement("div");
-  titleEl.className = "stage-title";
-  titleEl.textContent = "📋 مراحل پروژه";
-  boardEl.appendChild(titleEl);
-
-  STAGES.forEach((stage) => {
-    const zone = document.createElement("div");
-    zone.className = "stage-zone";
-    zone.dataset.stageId = stage.id;
-
-    const header = document.createElement("div");
-    header.className = "stage-header";
-    header.style.color = stage.color;
-    header.style.borderBottomColor = stage.color;
-    header.textContent = stage.name;
-    zone.appendChild(header);
-
-    const content = document.createElement("div");
-    content.className = "stage-content";
-    content.dataset.stageId = stage.id;
-    zone.appendChild(content);
-
-    boardEl.appendChild(zone);
-    stageEls[stage.id] = { zone, content };
-  });
-
-  world.appendChild(boardEl);
-}
-
-function fixStageBoardHeight() {
-  const board = document.getElementById('stage-board');
-  if (!board) return;
-
-  // ارتفاع بسیار زیاد تا در زوم کوچک کل صفحه را پر کند
-  const finalHeight = Math.max(2000, window.innerHeight * 4); 
-  board.style.height = finalHeight + 'px';
-  
-  const boardY = -finalHeight - 200;
-  board.style.top = boardY + 'px';
-
-  STAGE_BOARD_Y = boardY;
-  STAGE_BOARD_HEIGHT = finalHeight;
-}
-
-function renderStageContents() {
-  STAGES.forEach(s => {
-    if (stageEls[s.id]) stageEls[s.id].content.innerHTML = "";
-  });
-
-  STAGES.forEach(stage => {
-    const stageId = stage.id;
-    const stageContent = stageEls[stageId].content;
-
-    const modulesInStage = MODULES_DATA.filter(mod => state.cardStage["mod:" + mod.id] === stageId);
-    const orphanPages = [];
-    
-    MODULES_DATA.forEach(mod => {
-      if (state.cardStage["mod:" + mod.id] === stageId) return; 
-      mod.pages.forEach((pageName, idx) => {
-        const pageKey = mod.id + ":" + idx;
-        if (state.cardStage[pageKey] === stageId) {
-          orphanPages.push({ mod, pageName, idx, pageKey });
-        }
-      });
-    });
-
-    if (modulesInStage.length === 0 && orphanPages.length === 0) {
-      const hint = document.createElement("div");
-      hint.className = "stage-empty-hint";
-      hint.textContent = "خالی — کارت را به اینجا بکشید";
-      stageContent.appendChild(hint);
-      return;
-    }
-
-    modulesInStage.forEach(mod => {
-      const modKey = "mod:" + mod.id;
-      const isCollapsed = state.collapsedModules[mod.id];
-      
-      const groupWrapper = document.createElement("div");
-      groupWrapper.className = "stage-module-group";
-
-      const cardEl = document.createElement("div");
-      cardEl.className = "stage-module-card";
-      cardEl.dataset.nodeKey = modKey;
-      
-      const posClass = posBadgeClass(mod.position);
-      let pct = calculateModuleProgress(mod.id);
-
-      cardEl.innerHTML = `
-        <div class="module-card-header-actions">
-          <div class="toggle-pages-btn ${isCollapsed ? 'collapsed' : ''}" title="نمایش/مخفی کردن صفحات">${isCollapsed ? '▶' : '▼'}</div>
-        </div>
-        <div class="module-header">
-          <div class="module-title">${escapeHtml(mod.name)}</div>
-          <span class="module-badge ${posClass}">${escapeHtml(mod.position === "_" ? "بدون موقعیت" : mod.position)}</span>
-        </div>
-        <div class="module-desc">
-          <span>${mod.pages.length} صفحه</span>
-          <span class="module-progress-text">${pct}% تکمیل</span>
-        </div>
-        <div class="module-progress-row">
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" style="width:${pct}%"></div>
-          </div>
-        </div>
-        <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
-      `;
-
-      const toggleBtn = cardEl.querySelector('.toggle-pages-btn');
-      toggleBtn.addEventListener('mousedown', (e) => e.stopPropagation());
-      toggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        state.collapsedModules[mod.id] = !state.collapsedModules[mod.id];
-        saveState();
-        buildWorld();
-        applyTransform(true);
-      });
-      
-      cardEl.addEventListener("mousedown", (e) => {
-        if (e.target.closest('.module-card-header-actions')) return;
-        if (e.target.classList.contains("drag-handle")) return; 
-        handleStageCardDrag(e, modKey, cardEl);
-      });
-
-      cardEl.querySelector('.drag-handle').addEventListener('mousedown', (e) => {
-        e.stopPropagation(); e.preventDefault();
-        startConnection(modKey);
-      });
-
-      groupWrapper.appendChild(cardEl);
-
-      const pagesContainer = document.createElement("div");
-      pagesContainer.className = "stage-pages-container";
-
-      mod.pages.forEach((pageName, idx) => {
-        const pageKey = mod.id + ":" + idx;
-        if (state.cardStage[pageKey] !== stageId) return;
-
-        const isDone = state.pageStatus.done[pageKey] === true;
-        const isFront = state.pageStatus.front[pageKey] === true;
-        const isBack = state.pageStatus.back[pageKey] === true;
-
-        const pageCard = document.createElement("div");
-        pageCard.className = "stage-card page-stage-card is-module-page" + (isDone ? " is-done" : "") + (isCollapsed ? " hidden-by-toggle" : "");
-        pageCard.dataset.nodeKey = pageKey;
-        pageCard.style.paddingLeft = "75px";
-        
-        pageCard.innerHTML = `
-          <div class="stage-card-parent">↳ ${escapeHtml(mod.name)}</div>
-          ${escapeHtml(pageName)}
-          <div class="stage-page-btn-group">
-            <div class="stage-page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
-            <div class="stage-page-btn front ${isFront ? 'active' : ''}" title="Front">F</div>
-            <div class="stage-page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
-          </div>
-          <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
-        `;
-
-        const btnDone = pageCard.querySelector('.stage-page-btn.done');
-        const btnFront = pageCard.querySelector('.stage-page-btn.front');
-        const btnBack = pageCard.querySelector('.stage-page-btn.back');
-
-        btnDone.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const active = !state.pageStatus.done[pageKey];
-          state.pageStatus.done[pageKey] = active;
-          if (active) {
-            state.pageStatus.front[pageKey] = false;
-            state.pageStatus.back[pageKey] = false;
-            btnFront.classList.remove("active"); btnBack.classList.remove("active");
-          }
-          btnDone.classList.toggle("active", active);
-          pageCard.classList.toggle("is-done", active);
-          saveState(); buildWorld(); applyTransform(true);
-        });
-        btnFront.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const active = !state.pageStatus.front[pageKey];
-          state.pageStatus.front[pageKey] = active;
-          if (active) { state.pageStatus.done[pageKey] = false; btnDone.classList.remove("active"); pageCard.classList.remove("is-done"); }
-          btnFront.classList.toggle("active", active);
-          saveState(); buildWorld(); applyTransform(true);
-        });
-        btnBack.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const active = !state.pageStatus.back[pageKey];
-          state.pageStatus.back[pageKey] = active;
-          if (active) { state.pageStatus.done[pageKey] = false; btnDone.classList.remove("active"); pageCard.classList.remove("is-done"); }
-          btnBack.classList.toggle("active", active);
-          saveState(); buildWorld(); applyTransform(true);
-        });
-
-        pageCard.addEventListener("mousedown", (e) => {
-          if (e.target.closest('.stage-page-btn')) return;
-          if (e.target.classList.contains("drag-handle")) return;
-          handleStageCardDrag(e, pageKey, pageCard);
-        });
-
-        pageCard.querySelector('.drag-handle').addEventListener('mousedown', (e) => {
-          e.stopPropagation(); e.preventDefault();
-          startConnection(pageKey);
-        });
-
-        pagesContainer.appendChild(pageCard);
-      });
-
-      groupWrapper.appendChild(pagesContainer);
-      stageContent.appendChild(groupWrapper);
-    });
-
-    if (orphanPages.length > 0) {
-      const orphanGroup = document.createElement("div");
-      orphanGroup.className = "stage-module-group";
-      
-      const orphanTitle = document.createElement("div");
-      orphanTitle.style.cssText = "font-size: 12px; color: #94a3b8; margin-bottom: 8px; text-align: center;";
-      orphanTitle.textContent = "صفحات خارج از پوشش";
-      orphanGroup.appendChild(orphanTitle);
-
-      const pagesContainer = document.createElement("div");
-      pagesContainer.className = "stage-pages-container";
-
-      orphanPages.forEach(op => {
-        const isDone = state.pageStatus.done[op.pageKey] === true;
-        const isFront = state.pageStatus.front[op.pageKey] === true;
-        const isBack = state.pageStatus.back[op.pageKey] === true;
-
-        const pageCard = document.createElement("div");
-        pageCard.className = "stage-card page-stage-card is-module-page" + (isDone ? " is-done" : "");
-        pageCard.dataset.nodeKey = op.pageKey;
-        pageCard.style.paddingLeft = "75px";
-        
-        pageCard.innerHTML = `
-          <div class="stage-card-parent">↳ ${escapeHtml(op.mod.name)}</div>
-          ${escapeHtml(op.pageName)}
-          <div class="stage-page-btn-group">
-            <div class="stage-page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
-            <div class="stage-page-btn front ${isFront ? 'active' : ''}" title="Front">F</div>
-            <div class="stage-page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
-          </div>
-          <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
-        `;
-
-        const btnDone = pageCard.querySelector('.stage-page-btn.done');
-        const btnFront = pageCard.querySelector('.stage-page-btn.front');
-        const btnBack = pageCard.querySelector('.stage-page-btn.back');
-
-        btnDone.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const active = !state.pageStatus.done[op.pageKey];
-          state.pageStatus.done[op.pageKey] = active;
-          if (active) {
-            state.pageStatus.front[op.pageKey] = false;
-            state.pageStatus.back[op.pageKey] = false;
-            btnFront.classList.remove("active"); btnBack.classList.remove("active");
-          }
-          btnDone.classList.toggle("active", active);
-          pageCard.classList.toggle("is-done", active);
-          saveState(); buildWorld(); applyTransform(true);
-        });
-        btnFront.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const active = !state.pageStatus.front[op.pageKey];
-          state.pageStatus.front[op.pageKey] = active;
-          if (active) { state.pageStatus.done[op.pageKey] = false; btnDone.classList.remove("active"); pageCard.classList.remove("is-done"); }
-          btnFront.classList.toggle("active", active);
-          saveState(); buildWorld(); applyTransform(true);
-        });
-        btnBack.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const active = !state.pageStatus.back[op.pageKey];
-          state.pageStatus.back[op.pageKey] = active;
-          if (active) { state.pageStatus.done[op.pageKey] = false; btnDone.classList.remove("active"); pageCard.classList.remove("is-done"); }
-          btnBack.classList.toggle("active", active);
-          saveState(); buildWorld(); applyTransform(true);
-        });
-
-        pageCard.addEventListener("mousedown", (e) => {
-          if (e.target.closest('.stage-page-btn')) return;
-          if (e.target.classList.contains("drag-handle")) return;
-          handleStageCardDrag(e, op.pageKey, pageCard);
-        });
-
-        pageCard.querySelector('.drag-handle').addEventListener('mousedown', (e) => {
-          e.stopPropagation(); e.preventDefault();
-          startConnection(op.pageKey);
-        });
-
-        pagesContainer.appendChild(pageCard);
-      });
-
-      orphanGroup.appendChild(pagesContainer);
-      stageContent.appendChild(orphanGroup);
-    }
-  });
-}
-
-function handleStageCardDrag(e, cardKey, cardEl) {
-  if (e.button !== 0) return;
-  e.stopPropagation();
-  e.preventDefault();
-
-  const startX = e.clientX, startY = e.clientY;
-  let moved = false;
-  let ghost = null;
-
-  const onMove = (ev) => {
-    if (!moved && (Math.abs(ev.clientX - startX) > 5 || Math.abs(ev.clientY - startY) > 5)) {
-      moved = true;
-      cardEl.style.opacity = "0.4";
-      ghost = document.createElement("div");
-      ghost.className = "stage-card";
-      ghost.style.cssText = "position: fixed; pointer-events: none; z-index: 9999; opacity: 0.85; padding: 10px; background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; color: #e6e6e6; font-size: 13px; max-width: 240px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);";
-      ghost.innerHTML = cardEl.innerHTML;
-      ghost.querySelectorAll('button, .stage-page-btn-group, .module-card-header-actions, .drag-handle').forEach(el => el.remove());
-      document.body.appendChild(ghost);
-    }
-    if (ghost) {
-      ghost.style.left = (ev.clientX + 10) + "px";
-      ghost.style.top = (ev.clientY + 10) + "px";
-
-      document.querySelectorAll(".stage-zone").forEach(z => z.classList.remove("drag-over-stage"));
-      const zone = getHoveredZone(ev);
-      if (zone) zone.classList.add("drag-over-stage");
-    }
-  };
-
-  const onUp = (ev) => {
-    document.removeEventListener("mousemove", onMove);
-    document.removeEventListener("mouseup", onUp);
-    document.querySelectorAll(".stage-zone").forEach(z => z.classList.remove("drag-over-stage"));
-    if (ghost) ghost.remove();
-    cardEl.style.opacity = "";
-
-    if (!moved) {
-      toggleSelection(cardKey);
-      return;
-    }
-
-    const zone = getHoveredZone(ev);
-
-    if (zone) {
-      const newStage = zone.dataset.stageId;
-      if (state.cardStage[cardKey] !== newStage) {
-        state.cardStage[cardKey] = newStage;
-        if (cardKey.startsWith("mod:")) {
-          const modId = parseInt(cardKey.split(":")[1]);
-          const mod = MODULES_DATA.find(m => m.id === modId);
-          if (mod) mod.pages.forEach((_, idx) => { state.cardStage[modId + ":" + idx] = newStage; });
-        }
-        saveState(); buildWorld(); applyTransform(true);
-        showToast("منتقل شد به: " + STAGES.find(s => s.id === newStage).name);
-      }
-    } else {
-      if (state.cardStage[cardKey]) {
-        delete state.cardStage[cardKey];
-        if (cardKey.startsWith("mod:")) {
-          const modId = parseInt(cardKey.split(":")[1]);
-          const mod = MODULES_DATA.find(m => m.id === modId);
-          if (mod) mod.pages.forEach((_, idx) => { delete state.cardStage[modId + ":" + idx]; });
-        }
-        saveState(); buildWorld(); applyTransform(true);
-        showToast("از مرحله خارج شد");
-      }
-    }
-  };
-
-  document.addEventListener("mousemove", onMove);
-  document.addEventListener("mouseup", onUp);
-}
-
-function findNearestFreeSlot(startX, startY, excludeId) {
-  const gx = Math.round(startX / GRID_CELL_W);
-  const gy = Math.round(startY / GRID_CELL_H);
-  for (let r = 0; r < 20; r++) {
-    for (let i = -r; i <= r; i++) {
-      for (let j = -r; j <= r; j++) {
-        if (Math.abs(i) !== r && Math.abs(j) !== r) continue;
-        const cx = (gx + i) * GRID_CELL_W;
-        const cy = (gy + j) * GRID_CELL_H;
-        let occupied = false;
-        for (const [id, cl] of Object.entries(clusterMap)) {
-          if (parseInt(id) === excludeId) continue;
-          if (Math.abs(cx - cl.x) < GRID_CELL_W * 0.8 && Math.abs(cy - cl.y) < GRID_CELL_H * 0.8) {
-            occupied = true; break;
-          }
-        }
-        if (!occupied) return { x: cx, y: cy };
-      }
-    }
-  }
-  return { x: startX, y: startY };
-}
 
 function buildWorld() {
-  nodePositions = {}; // Reset to prevent flying lines
+  nodePositions = {}; 
 
   world.innerHTML = "";
   world.appendChild(svgLayer);
@@ -949,12 +444,6 @@ function buildWorld() {
   svgLayer.innerHTML = "";
   svgFrontLayer.innerHTML = "";
   buttonsLayer.innerHTML = "";
-  
-  Object.keys(stageEls).forEach(k => delete stageEls[k]);
-
-  buildStageBoard();
-  renderStageContents();
-  fixStageBoardHeight();
 
   const clusters = MODULES_DATA.map(m => {
     const size = computeClusterSize(m.pages.length);
@@ -977,11 +466,10 @@ function buildWorld() {
       gridIdx++;
     }
 
-    const modInStage = !!state.cardStage["mod:" + cl.mod.id];
     const isCollapsed = state.collapsedModules[cl.mod.id];
 
     const clusterEl = document.createElement("div");
-    clusterEl.className = "module-cluster" + (modInStage ? " hidden-by-stage" : "");
+    clusterEl.className = "module-cluster";
     clusterEl.style.left = cx + "px";
     clusterEl.style.top = cy + "px";
     clusterEl.style.width = cl.w + "px";
@@ -996,6 +484,10 @@ function buildWorld() {
 
     const posClass = posBadgeClass(cl.mod.position);
     let pct = calculateModuleProgress(cl.mod.id);
+
+    // ساخت گزینه‌های دراپ‌داون برای ماژول
+    const modStage = state.cardStage["mod:" + cl.mod.id] || 'back';
+    const stageOptions = STAGES.map(s => `<option value="${s.id}" ${modStage === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
 
     card.innerHTML = `
       <div class="module-card-header-actions">
@@ -1014,9 +506,28 @@ function buildWorld() {
           <div class="progress-bar-fill" style="width:${pct}%"></div>
         </div>
       </div>
+      <select class="stage-select" data-key="mod:${cl.mod.id}">
+        ${stageOptions}
+      </select>
       <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
     `;
     clusterEl.appendChild(card);
+
+    // هندل کردن دراپ‌داون ماژول
+    const selectEl = card.querySelector('.stage-select');
+    selectEl.addEventListener('mousedown', (e) => e.stopPropagation());
+    selectEl.addEventListener('change', (e) => {
+      const newStage = e.target.value;
+      state.cardStage["mod:" + cl.mod.id] = newStage;
+      // انتقال همه صفحات به همان مرحله
+      cl.mod.pages.forEach((_, idx) => {
+        state.cardStage[cl.mod.id + ":" + idx] = newStage;
+      });
+      saveState();
+      buildWorld();
+      applyTransform(true);
+      showToast("ماژول و صفحاتش منتقل شدند به: " + STAGES.find(s => s.id === newStage).name);
+    });
 
     const toggleBtn = card.querySelector('.toggle-pages-btn');
     toggleBtn.addEventListener('mousedown', (e) => e.stopPropagation());
@@ -1030,10 +541,10 @@ function buildWorld() {
 
     const modNodeX = cx + cl.w / 2 - MODULE_W / 2;
     const modNodeY = cy + cl.h / 2 - MODULE_H / 2;
-    if (!modInStage) nodePositions["mod:" + cl.mod.id] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
+    nodePositions["mod:" + cl.mod.id] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
 
     card.addEventListener("mousedown", (e) => {
-      if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".module-card-header-actions")) return;
+      if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".module-card-header-actions") || e.target.closest(".stage-select")) return;
       if (e.target.classList.contains("drag-handle")) return;
       e.stopPropagation();
       const startMouseX = e.clientX, startMouseY = e.clientY;
@@ -1057,10 +568,6 @@ function buildWorld() {
         ghost.style.left = (ev.clientX + 10) + "px";
         ghost.style.top = (ev.clientY + 10) + "px";
 
-        document.querySelectorAll(".stage-zone").forEach(z => z.classList.remove("drag-over-stage"));
-        const zone = getHoveredZone(ev);
-        if (zone) zone.classList.add("drag-over-stage");
-
         const newLeft = startLeft + (dx / state.zoom);
         const newTop = startTop + (dy / state.zoom);
         clusterEl.style.left = newLeft + "px";
@@ -1074,36 +581,21 @@ function buildWorld() {
         document.removeEventListener("mouseup", onUp);
         clusterEl.classList.remove("is-dragging");
         document.getElementById("canvas").classList.remove("dragging-module");
-        document.querySelectorAll(".stage-zone").forEach(z => z.classList.remove("drag-over-stage"));
         if (ghost) ghost.remove();
 
         if (!hasMoved) return;
 
-        const zone = getHoveredZone(ev);
-
-        if (zone) {
-          const stageId = zone.dataset.stageId;
-          state.cardStage["mod:" + cl.mod.id] = stageId;
-          cl.mod.pages.forEach((_, idx) => {
-            state.cardStage[cl.mod.id + ":" + idx] = stageId;
-          });
-          saveState();
-          buildWorld();
-          applyTransform(true);
-          showToast("ماژول منتقل شد به: " + STAGES.find(s => s.id === stageId).name);
-        } else {
-          const targetSlot = findNearestFreeSlot(parseFloat(clusterEl.style.left), parseFloat(clusterEl.style.top), cl.mod.id);
-          clusterEl.style.left = targetSlot.x + "px";
-          clusterEl.style.top = targetSlot.y + "px";
-          state.customPositions[cl.mod.id] = { x: targetSlot.x, y: targetSlot.y };
-          saveState();
-          cl.x = targetSlot.x; cl.y = targetSlot.y;
-          updateNodePositions(cl.mod.id, targetSlot.x, targetSlot.y);
-          setTimeout(() => {
-            renderConnections();
-            if (state.selectedNode) applyHighlight(state.selectedNode);
-          }, 300);
-        }
+        const targetSlot = findNearestFreeSlot(parseFloat(clusterEl.style.left), parseFloat(clusterEl.style.top), cl.mod.id);
+        clusterEl.style.left = targetSlot.x + "px";
+        clusterEl.style.top = targetSlot.y + "px";
+        state.customPositions[cl.mod.id] = { x: targetSlot.x, y: targetSlot.y };
+        saveState();
+        cl.x = targetSlot.x; cl.y = targetSlot.y;
+        updateNodePositions(cl.mod.id, targetSlot.x, targetSlot.y);
+        setTimeout(() => {
+          renderConnections();
+          if (state.selectedNode) applyHighlight(state.selectedNode);
+        }, 300);
       };
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
@@ -1119,10 +611,8 @@ function buildWorld() {
 
     pagePositions.forEach((p) => {
       const nodeKey = cl.mod.id + ":" + p.pageIdx;
-      const pageInStage = !!state.cardStage[nodeKey];
-
       const pageEl = document.createElement("div");
-      pageEl.className = "page-node" + (pageInStage ? " hidden-by-stage" : "") + (isCollapsed ? " hidden-by-toggle" : "");
+      pageEl.className = "page-node" + (isCollapsed ? " hidden-by-toggle" : "");
       pageEl.style.left = p.x + "px";
       pageEl.style.top = p.y + "px";
       pageEl.style.width = PAGE_W + "px";
@@ -1134,6 +624,10 @@ function buildWorld() {
       const isBack = state.pageStatus.back[nodeKey] === true;
       if (isDone) pageEl.classList.add("is-done");
 
+      // ساخت گزینه‌های دراپ‌داون برای صفحه
+      const pageStage = state.cardStage[nodeKey] || 'back';
+      const pageStageOptions = STAGES.map(s => `<option value="${s.id}" ${pageStage === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+
       pageEl.innerHTML = `
         <span>${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
         <div class="page-btn-group">
@@ -1142,20 +636,33 @@ function buildWorld() {
           <div class="page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
         </div>
         ${statusDotClass(cl.mod.status) ? `<span class="page-status ${statusDotClass(cl.mod.status)}"></span>` : ""}
+        <select class="stage-select" data-key="${nodeKey}">
+          ${pageStageOptions}
+        </select>
         <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
       `;
 
       clusterEl.appendChild(pageEl);
       pageEls.push({ el: pageEl, idx: p.pageIdx });
 
-      if (!pageInStage && !isCollapsed) {
+      if (!isCollapsed) {
         nodePositions[nodeKey] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
       }
 
+      // هندل کردن دراپ‌داون صفحه
+      const pageSelect = pageEl.querySelector('.stage-select');
+      pageSelect.addEventListener('mousedown', (e) => e.stopPropagation());
+      pageSelect.addEventListener('change', (e) => {
+        state.cardStage[nodeKey] = e.target.value;
+        saveState();
+        buildWorld();
+        applyTransform(true);
+        showToast("صفحه منتقل شد به: " + STAGES.find(s => s.id === e.target.value).name);
+      });
+
       pageEl.addEventListener("mousedown", (e) => {
         if (e.button !== 0) return;
-        if (e.target.closest('.page-btn-group')) return;
-        if (e.target.classList.contains("drag-handle")) return;
+        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-select")) return;
         if (draggingConn) return;
         e.stopPropagation();
 
@@ -1179,10 +686,6 @@ function buildWorld() {
             ghost.style.left = (ev.clientX + 10) + "px";
             ghost.style.top = (ev.clientY + 10) + "px";
 
-            document.querySelectorAll(".stage-zone").forEach(z => z.classList.remove("drag-over-stage"));
-            const zone = getHoveredZone(ev);
-            if (zone) zone.classList.add("drag-over-stage");
-
             pageEl.style.left = (origLeft + (ev.clientX - startX) / state.zoom) + "px";
             pageEl.style.top = (origTop + (ev.clientY - startY) / state.zoom) + "px";
 
@@ -1201,78 +704,53 @@ function buildWorld() {
           document.removeEventListener("mouseup", onUp);
           document.getElementById("canvas").style.cursor = "";
           document.querySelectorAll(".page-node").forEach(el => el.classList.remove("drag-over"));
-          document.querySelectorAll(".stage-zone").forEach(z => z.classList.remove("drag-over-stage"));
           if (ghost) ghost.remove();
 
           if (isDragging) {
             pageEl.classList.remove("is-dragging-page");
 
-            const zone = getHoveredZone(ev);
-
-            if (zone) {
-              state.cardStage[nodeKey] = zone.dataset.stageId;
-              saveState();
-              buildWorld();
-              applyTransform(true);
-              showToast("صفحه منتقل شد به: " + STAGES.find(s => s.id === zone.dataset.stageId).name);
-            } else {
-              const elements = document.elementsFromPoint(ev.clientX, ev.clientY);
-              let targetEl = null;
-              for (let el of elements) {
-                if (el.classList.contains("page-node") && el !== pageEl && el.dataset.nodeKey.startsWith(cl.mod.id + ":")) {
-                  targetEl = el; break;
-                }
+            const elements = document.elementsFromPoint(ev.clientX, ev.clientY);
+            let targetEl = null;
+            for (let el of elements) {
+              if (el.classList.contains("page-node") && el !== pageEl && el.dataset.nodeKey.startsWith(cl.mod.id + ":")) {
+                targetEl = el; break;
               }
-
-              if (targetEl) {
-                const targetIdx = parseInt(targetEl.dataset.nodeKey.split(":")[1]);
-                const sourceIdx = p.pageIdx;
-                if (sourceIdx !== targetIdx) {
-                  const temp = cl.mod.pages[sourceIdx];
-                  cl.mod.pages[sourceIdx] = cl.mod.pages[targetIdx];
-                  cl.mod.pages[targetIdx] = temp;
-
-                  const keys = [`${cl.mod.id}:${sourceIdx}`, `${cl.mod.id}:${targetIdx}`];
-                  ["done", "front", "back"].forEach(st => {
-                    const t = state.pageStatus[st][keys[0]];
-                    state.pageStatus[st][keys[0]] = state.pageStatus[st][keys[1]];
-                    state.pageStatus[st][keys[1]] = t;
-                  });
-
-                  state.connections.forEach(c => {
-                    if (c.from === keys[0]) c.from = keys[1];
-                    else if (c.from === keys[1]) c.from = keys[0];
-                    if (c.to === keys[0]) c.to = keys[1];
-                    else if (c.to === keys[1]) c.to = keys[0];
-                  });
-
-                  saveState();
-                  const spanSource = pageEl.querySelector("span");
-                  const spanTarget = targetEl.querySelector("span");
-                  const txtTemp = spanSource.textContent;
-                  spanSource.textContent = spanTarget.textContent;
-                  spanTarget.textContent = txtTemp;
-
-                  const updateBtns = (el, key) => {
-                    el.querySelector('.done').classList.toggle('active', !!state.pageStatus.done[key]);
-                    el.querySelector('.front').classList.toggle('active', !!state.pageStatus.front[key]);
-                    el.querySelector('.back').classList.toggle('active', !!state.pageStatus.back[key]);
-                    el.classList.toggle('is-done', !!state.pageStatus.done[key]);
-                  };
-                  updateBtns(pageEl, keys[0]);
-                  updateBtns(targetEl, keys[1]);
-
-                  const newPct = calculateModuleProgress(cl.mod.id);
-                  card.querySelector(".module-progress-text").textContent = `${newPct}% تکمیل`;
-                  card.querySelector(".progress-bar-fill").style.width = newPct + "%";
-
-                  renderConnections();
-                  if (state.selectedNode) applyHighlight(state.selectedNode);
-                }
-              }
-              pageEl.style.left = origLeft + "px";
-              pageEl.style.top = origTop + "px";
             }
+
+            if (targetEl) {
+              const targetIdx = parseInt(targetEl.dataset.nodeKey.split(":")[1]);
+              const sourceIdx = p.pageIdx;
+              if (sourceIdx !== targetIdx) {
+                const temp = cl.mod.pages[sourceIdx];
+                cl.mod.pages[sourceIdx] = cl.mod.pages[targetIdx];
+                cl.mod.pages[targetIdx] = temp;
+
+                const keys = [`${cl.mod.id}:${sourceIdx}`, `${cl.mod.id}:${targetIdx}`];
+                ["done", "front", "back"].forEach(st => {
+                  const t = state.pageStatus[st][keys[0]];
+                  state.pageStatus[st][keys[0]] = state.pageStatus[st][keys[1]];
+                  state.pageStatus[st][keys[1]] = t;
+                });
+
+                state.connections.forEach(c => {
+                  if (c.from === keys[0]) c.from = keys[1];
+                  else if (c.from === keys[1]) c.from = keys[0];
+                  if (c.to === keys[0]) c.to = keys[1];
+                  else if (c.to === keys[1]) c.to = keys[0];
+                });
+
+                // جابجایی مرحله هم باید swap شود
+                const tStage = state.cardStage[keys[0]];
+                state.cardStage[keys[0]] = state.cardStage[keys[1]];
+                state.cardStage[keys[1]] = tStage;
+
+                saveState();
+                buildWorld();
+                applyTransform(true);
+              }
+            }
+            pageEl.style.left = origLeft + "px";
+            pageEl.style.top = origTop + "px";
           }
         };
 
@@ -1281,7 +759,7 @@ function buildWorld() {
       });
 
       pageEl.addEventListener("click", (e) => {
-        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || draggingConn) return;
+        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-select") || draggingConn) return;
         toggleSelection(nodeKey);
       });
 
@@ -1353,46 +831,38 @@ function updateNodePositions(modId, newCx, newCy) {
 
   const modNodeX = newCx + cl.w / 2 - MODULE_W / 2;
   const modNodeY = newCy + cl.h / 2 - MODULE_H / 2;
-  if (!state.cardStage["mod:" + modId]) nodePositions["mod:" + modId] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
+  nodePositions["mod:" + modId] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
 
   cl.pageEls.forEach((pEl) => {
     const key = modId + ":" + pEl.idx;
-    if (state.cardStage[key] || state.collapsedModules[modId]) return; 
+    if (state.collapsedModules[modId]) return; 
     const left = parseFloat(pEl.el.style.left);
     const top = parseFloat(pEl.el.style.top);
     nodePositions[key] = { x: newCx + left, y: newCy + top, w: PAGE_W, h: PAGE_H };
   });
 }
 
-function updateStagePositions() {
-  if (!world) return;
-  const canvasRect = canvas.getBoundingClientRect();
-  const scale = state.zoom;
-  
-  document.querySelectorAll('.stage-card, .stage-module-card').forEach(el => {
-    const key = el.dataset.nodeKey;
-    if (!key) return;
-
-    if (el.classList.contains('hidden-by-toggle') || el.offsetParent === null) {
-      delete nodePositions[key];
-      return;
+function findNearestFreeSlot(startX, startY, excludeId) {
+  const gx = Math.round(startX / GRID_CELL_W);
+  const gy = Math.round(startY / GRID_CELL_H);
+  for (let r = 0; r < 20; r++) {
+    for (let i = -r; i <= r; i++) {
+      for (let j = -r; j <= r; j++) {
+        if (Math.abs(i) !== r && Math.abs(j) !== r) continue;
+        const cx = (gx + i) * GRID_CELL_W;
+        const cy = (gy + j) * GRID_CELL_H;
+        let occupied = false;
+        for (const [id, cl] of Object.entries(clusterMap)) {
+          if (parseInt(id) === excludeId) continue;
+          if (Math.abs(cx - cl.x) < GRID_CELL_W * 0.8 && Math.abs(cy - cl.y) < GRID_CELL_H * 0.8) {
+            occupied = true; break;
+          }
+        }
+        if (!occupied) return { x: cx, y: cy };
+      }
     }
-
-    const rect = el.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      delete nodePositions[key];
-      return; 
-    }
-
-    const x = (rect.left - canvasRect.left - state.pan.x) / scale;
-    const y = (rect.top - canvasRect.top - state.pan.y) / scale;
-    const w = rect.width / scale;
-    const h = rect.height / scale;
-    
-    if (!isNaN(x) && !isNaN(y)) {
-      nodePositions[key] = { x, y, w, h };
-    }
-  });
+  }
+  return { x: startX, y: startY };
 }
 
 function posBadgeClass(pos) {
@@ -1447,7 +917,6 @@ function autoConnectionPath(fromKey, toKey) {
 }
 
 function renderConnections() {
-  updateStagePositions(); 
   svgLayer.innerHTML = ""; 
   svgFrontLayer.innerHTML = "";
   buttonsLayer.innerHTML = "";
@@ -1556,16 +1025,10 @@ function getArrowDefs() {
 function updateSvgSize() {
   let maxX = 0, maxY = 0;
   Object.values(nodePositions).forEach(n => { maxX = Math.max(maxX, n.x + n.w); maxY = Math.max(maxY, n.y + n.h); });
-  const boardW = STAGES.length * STAGE_W + (STAGES.length - 1) * STAGE_GAP + 40;
-  maxY = Math.max(maxY, Math.abs(STAGE_BOARD_Y) + STAGE_BOARD_HEIGHT);
-  maxX = Math.max(maxX, boardW);
-  
   svgLayer.setAttribute("width", maxX + 4000);
   svgLayer.setAttribute("height", maxY + 4000);
-  
   svgFrontLayer.setAttribute("width", maxX + 4000);
   svgFrontLayer.setAttribute("height", maxY + 4000);
-  
   buttonsLayer.style.width = (maxX + 4000) + "px";
   buttonsLayer.style.height = (maxY + 4000) + "px";
 }
@@ -1595,7 +1058,7 @@ function startConnection(fromKey) {
     document.getElementById("canvas").classList.remove("connecting");
     if (draggingConn) {
       tempPath.remove();
-      const targetNode = document.elementFromPoint(e.clientX, e.clientY)?.closest(".page-node, .stage-card, .stage-module-card, .module-card");
+      const targetNode = document.elementFromPoint(e.clientX, e.clientY)?.closest(".page-node, .module-card");
       if (targetNode) {
         let toKey = targetNode.dataset.nodeKey;
         if (!toKey && targetNode.classList.contains("module-card")) {
@@ -1620,7 +1083,6 @@ function clearSelection() {
   state.selectedNode = null;
   document.querySelectorAll(".page-node").forEach(el => el.classList.remove("selected", "highlight", "dimmed"));
   document.querySelectorAll(".module-cluster").forEach(el => el.classList.remove("highlight", "dimmed"));
-  document.querySelectorAll(".stage-card, .stage-module-card").forEach(el => el.classList.remove("selected", "highlight", "dimmed"));
   renderConnections();
 }
 function applyHighlight(key) {
@@ -1629,13 +1091,6 @@ function applyHighlight(key) {
   
   document.querySelectorAll(".page-node").forEach(el => {
     const k = el.dataset.nodeKey; el.classList.remove("selected", "highlight", "dimmed");
-    if (neighbors.has(k)) { el.classList.add("highlight"); if (k === key) el.classList.add("selected"); } else el.classList.add("dimmed");
-  });
-
-  document.querySelectorAll(".stage-card, .stage-module-card").forEach(el => {
-    const k = el.dataset.nodeKey;
-    if (!k) return;
-    el.classList.remove("selected", "highlight", "dimmed");
     if (neighbors.has(k)) { el.classList.add("highlight"); if (k === key) el.classList.add("selected"); } else el.classList.add("dimmed");
   });
 
@@ -1654,7 +1109,7 @@ let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 function applyTransform(needRender = false) {
   world.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
-  const isZoomedOut = state.zoom < 0.25;
+  const isZoomedOut = state.zoom < 0.50;
   if (isZoomedOut) document.body.classList.add("zoomed-out"); else document.body.classList.remove("zoomed-out");
   if (needRender) {
     Object.values(clusterMap).forEach(cl => {
@@ -1662,7 +1117,7 @@ function applyTransform(needRender = false) {
       pagePositions.forEach((p, i) => {
         if (cl.pageEls[i]) {
           const key = cl.mod.id + ":" + cl.pageEls[i].idx;
-          if (!state.cardStage[key]) {
+          if (!state.collapsedModules[cl.mod.id]) {
             cl.pageEls[i].el.style.left = p.x + "px";
             cl.pageEls[i].el.style.top = p.y + "px";
           }
@@ -1675,8 +1130,8 @@ function applyTransform(needRender = false) {
 }
 
 canvas.addEventListener("mousedown", (e) => {
-  if (e.target.closest(".module-card") || e.target.closest(".stage-module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar") ||
-      e.target.closest(".conn-btn") || e.target.closest(".stage-card") || e.target.closest(".module-card-header-actions")) return;
+  if (e.target.closest(".module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar") ||
+      e.target.closest(".conn-btn") || e.target.closest(".module-card-header-actions") || e.target.closest(".stage-select")) return;
   if (e.button !== 0) return;
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
@@ -1710,29 +1165,35 @@ document.getElementById("btn-reset-layout").addEventListener("click", () => {
     state.customPositions = {}; saveState(); buildWorld(); applyTransform(true); fitView();
   }
 });
-document.getElementById("btn-reset-stages").addEventListener("click", () => {
-  if (state.cardStage && Object.keys(state.cardStage).length && confirm("همه کارت‌ها از مراحل خارج شوند؟")) {
-    state.cardStage = {}; saveState(); buildWorld(); applyTransform(true);
-    showToast("مراحل پاک‌سازی شد");
-  }
-});
 
 function fitView() {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let hasContent = false;
+
+  Object.values(clusterMap).forEach(c => {
+    if (c.el.style.display !== "none") {
+      hasContent = true;
+      minX = Math.min(minX, c.x);
+      maxX = Math.max(maxX, c.x + c.w);
+      minY = Math.min(minY, c.y);
+      maxY = Math.max(maxY, c.y + c.h);
+    }
+  });
+
+  if (!hasContent) return;
+
+  const pad = 80;
   const rect = canvas.getBoundingClientRect();
-  const pad = 40;
+  const mapW = maxX - minX;
+  const mapH = maxY - minY;
 
-  // Fit zoom based on stage height
-  let zoomY = (rect.height - pad*2) / STAGE_BOARD_HEIGHT;
-  let targetZoom = Math.max(0.15, Math.min(zoomY, 1.0));
-  state.zoom = targetZoom;
+  const zoomX = (rect.width - pad * 2) / mapW;
+  const zoomY = (rect.height - pad * 2) / mapH;
 
-  // Position the first stage (rightmost)
-  const boardW = STAGES.length * STAGE_W + (STAGES.length - 1) * STAGE_GAP + 40;
-  const firstStageCenterX = boardW - (STAGE_W / 2);
-  
-  state.pan.x = (rect.width / 2) - (firstStageCenterX * state.zoom);
-  state.pan.y = (rect.height - STAGE_BOARD_HEIGHT * state.zoom) / 2 - STAGE_BOARD_Y * state.zoom;
-  
+  state.zoom = Math.max(0.15, Math.min(zoomX, zoomY, 1.0));
+  state.pan.x = (rect.width - mapW * state.zoom) / 2 - minX * state.zoom;
+  state.pan.y = (rect.height - mapH * state.zoom) / 2 - minY * state.zoom;
+
   applyTransform(true); saveState();
 }
 
@@ -1770,13 +1231,13 @@ function init() {
   loadState();
   
   if (!localStorage.getItem(LS_KEY)) {
-    const firstStageId = STAGES[0].id; // بک
     MODULES_DATA.forEach(mod => {
-      state.cardStage["mod:" + mod.id] = firstStageId;
+      // مقدار پیش فرض برای مرحله همه کارت ها 'back'
+      state.cardStage["mod:" + mod.id] = 'back';
       mod.pages.forEach((_, idx) => {
-        state.cardStage[mod.id + ":" + idx] = firstStageId;
+        state.cardStage[mod.id + ":" + idx] = 'back';
       });
-      state.collapsedModules[mod.id] = true; // حالت پیش فرض بسته
+      state.collapsedModules[mod.id] = true; // بسته بودن پیش فرض
     });
     saveState();
   }
