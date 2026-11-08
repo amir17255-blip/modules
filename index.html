@@ -141,7 +141,7 @@
     background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
     border: 1px solid #334155; border-radius: 14px; padding: 12px;
     box-shadow: 0 8px 28px rgba(0,0,0,0.45); position: absolute;
-    display: flex; flex-direction: column; gap: 6px; /* کاهش gap */
+    display: flex; flex-direction: column; gap: 6px;
     transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease, background-color 0.3s, border-color 0.3s, box-shadow 0.2s;
     transform-origin: center center; left: 50%; top: 50%; transform: translate(-50%, -50%);
     cursor: grab;
@@ -153,7 +153,7 @@
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
   
-  .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-left: 55px; /* ایجاد فضا برای دکمه‌ها */ }
+  .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-left: 55px; }
   .module-title { font-size: 16px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: right; }
   .module-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; transition: opacity 0.3s; pointer-events: none; }
   .badge-reh { background: #422006; color: #fbbf24; border: 1px solid #78350f; }
@@ -198,7 +198,7 @@
   .page-node .page-title {
     flex: 1; word-break: break-word; line-height: 1.3; margin-bottom: 4px; font-weight: 600; font-size: 12px;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    overflow: hidden; pointer-events: none; padding-left: 35px; /* ایجاد فضا برای دکمه ویرایش */
+    overflow: hidden; pointer-events: none; padding-left: 35px;
   }
 
   /* ✅ نقطه آبی */
@@ -217,7 +217,7 @@
     box-shadow: 0 0 14px rgba(56, 189, 248, 0.9); transform: scale(1.15);
   }
 
-  /* 🌟 استایل دکمه‌های مرحله - کاهش فاصله */
+  /* 🌟 استایل دکمه‌های مرحله */
   .stage-btn-group {
     display: flex;
     flex-wrap: wrap;
@@ -246,7 +246,7 @@
     box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
   }
 
-  /* 🌟 دکمه‌های ویرایش و افزودن (جلوگیری از تداخل) */
+  /* 🌟 دکمه‌های ویرایش و افزودن */
   .card-actions {
     position: absolute;
     top: 8px;
@@ -268,20 +268,25 @@
   .action-btn.btn-edit { color: #fbbf24; }
   .action-btn.btn-add { color: #22c55e; }
 
-  /* 🌟 حالت ماکرو (زوم اوت) با فونت بسیار بزرگ */
+  /* 🌟 حالت ماکرو (زوم اوت) */
+  body.zoomed-out #svg-layer, 
+  body.zoomed-out #svg-front-layer, 
+  body.zoomed-out #buttons-layer { 
+    display: none !important; 
+  }
+  
   body.zoomed-out .module-card { 
-    width: 250px !important; height: 250px !important; 
+    width: 220px !important; height: 220px !important; 
     transform: translate(-50%, -50%); 
     background: #1c2531; border-color: #475569; left: 50%; top: 50%; 
     display: flex; align-items: center; justify-content: center;
-    border-radius: 20px;
+    border-radius: 20px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   }
-  body.zoomed-out .module-header { padding: 0 !important; display: block !important; text-align: center; }
+  body.zoomed-out .module-header { padding: 0 !important; display: block !important; text-align: center; width: 100%;}
   body.zoomed-out .module-title { 
-    font-size: 90px !important; font-weight: 900; 
-    text-align: center; text-shadow: 0 4px 12px rgba(0,0,0,0.9); 
-    line-height: 1.2; margin: 0 !important; padding: 0 !important;
-    color: #7dd3fc !important;
+    font-size: 32px !important; font-weight: 900; 
+    text-align: center; word-break: break-word; line-height: 1.4;
+    margin: 0 !important; padding: 0 !important; color: #7dd3fc !important;
   }
   body.zoomed-out .module-desc, 
   body.zoomed-out .module-progress-row, 
@@ -413,16 +418,16 @@ const STAGES = [
 ];
 
 const MODULE_W = 260;
-const MODULE_H = 220; // کاهش ارتفاع
+const MODULE_H = 220; 
 const PAGE_W = 160;
-const PAGE_H = 140; // کاهش ارتفاع صفحه
-const PAGE_GAP = 16;
+const PAGE_H = 140; 
+const PAGE_GAP = 30; // 🌟 افزایش فاصله برای جلوگیری از تداخل
 
-const FIXED_CLUSTER_WIDTH = 1800;
-const CLUSTER_GAP_X = 100;
-const CLUSTER_GAP_Y = 100;
+const FIXED_CLUSTER_WIDTH = 2000; // 🌟 افزایش عرض
+const CLUSTER_GAP_X = 120;
+const CLUSTER_GAP_Y = 120;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
-const GRID_CELL_H = 600; 
+const GRID_CELL_H = 650; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
@@ -433,8 +438,8 @@ const state = {
   selectedModulesFilter: [] 
 };
 
-const LS_KEY = "module-map-state-v63";
-const LS_MODULES_KEY = "module-map-data-v63";
+const LS_KEY = "module-map-state-v64";
+const LS_MODULES_KEY = "module-map-data-v64";
 
 function saveState() {
   try {
@@ -471,8 +476,8 @@ function computeClusterSize(numPages) {
   const maxPerCol = 4; 
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
-  const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 40; // کاهش ارتفاع
-  const clusterH = Math.max(MODULE_H + 80, requiredHeight);
+  const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 60; 
+  const clusterH = Math.max(MODULE_H + 100, requiredHeight);
   return { w: clusterW, h: clusterH, maxPerCol, colsPerSide };
 }
 
@@ -484,13 +489,13 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const cardW = isZoomedOut ? 650 : MODULE_W;
   const halfCardW = cardW / 2;
   const centerX = clusterW / 2;
-  const gap = isZoomedOut ? 60 : 20;
+  const gap = isZoomedOut ? 60 : 30; // Gap بزرگتر
   const offset = halfCardW + gap;
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
     const x = centerX - offset - (colIdx + 1) * PAGE_W - colIdx * PAGE_GAP;
-    const y = 40 + rowIdx * (PAGE_H + PAGE_GAP);
+    const y = 50 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   for (let i = pagesPerSide; i < numPages; i++) {
@@ -498,7 +503,7 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(localI / maxPerCol);
     const rowIdx = localI % maxPerCol;
     const x = centerX + offset + colIdx * (PAGE_W + PAGE_GAP);
-    const y = 40 + rowIdx * (PAGE_H + PAGE_GAP);
+    const y = 50 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   return positions;
@@ -687,7 +692,7 @@ function buildWorld() {
   });
 
   let gridIdx = 0;
-  const cols = 5;
+  const cols = 4; // کاهش تعداد ستون ها برای فضای بیشتر
 
   clusters.forEach((cl) => {
     let cx, cy;
@@ -1107,6 +1112,13 @@ function autoConnectionPath(fromKey, toKey) {
 }
 
 function renderConnections() {
+  if (state.zoom < 0.50) {
+    svgLayer.innerHTML = ""; 
+    svgFrontLayer.innerHTML = "";
+    buttonsLayer.innerHTML = "";
+    return;
+  }
+
   svgLayer.innerHTML = ""; 
   svgFrontLayer.innerHTML = "";
   buttonsLayer.innerHTML = "";
