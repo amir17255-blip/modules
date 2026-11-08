@@ -638,12 +638,21 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
   try {
     const res = await fetch(url, { headers: { Authorization: `token ${conf.token}` } });
     if (!res.ok) {
-      showToast("❌ فایل در گیت‌هاب یافت نشد");
+      showToast("❌ فایل در گیت‌هاب یافت نشد یا توکن نامعتبر است");
       return;
     }
     
     const fileData = await res.json();
-    const decoded = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ''))));
+    
+    // 🌟 رمزگشایی استاندارد Base64 با پشتیبانی کامل از زبان فارسی
+    const cleanContent = fileData.content.replace(/\s/g, '');
+    const binaryString = atob(cleanContent);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    const decoded = new TextDecoder("utf-8").decode(bytes);
+    
     const parsed = JSON.parse(decoded);
     
     if (parsed.modules) MODULES_DATA = parsed.modules;
@@ -661,9 +670,10 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
     buildWorld();
     applyTransform(true);
     initFilterDropdown();
-    showToast("✅ اطلاعات با موفقیت از گیت‌هاب بارگذاری شد");
+    showToast("✅ اطلاعات با موفقیت بارگذاری شد");
   } catch(e) {
-    showToast("❌ خطا در دریافت اطلاعات");
+    console.error("خطای دقیق:", e); // این خط خطا را در کنسول نشان می‌دهد
+    showToast("❌ خطا در پردازش اطلاعات دریافتی");
   }
 });
 /* ============================================================ */
