@@ -12,12 +12,14 @@
     background: #0f1419; color: #e6e6e6; overflow: hidden; user-select: none;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   }
+  
+  /* ===== Toolbar ===== */
   #toolbar {
     position: fixed; top: 0; left: 0; right: 0; height: 56px;
     background: linear-gradient(180deg, #1a2028 0%, #151a21 100%);
     border-bottom: 1px solid #2a3340;
     display: flex; align-items: center; gap: 12px; padding: 0 16px;
-    z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.4); overflow-x: auto;
+    z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.4); overflow: visible;
   }
   #toolbar h1 { font-size: 15px; font-weight: 600; color: #7dd3fc; white-space: nowrap; }
   .toolbar-group {
@@ -26,6 +28,7 @@
   }
   .toolbar-group:last-child { border-left: none; }
   .toolbar-group label { font-size: 12px; color: #94a3b8; }
+  
   select, button, input {
     font-family: inherit; font-size: 12px; background: #232c38; color: #e6e6e6;
     border: 1px solid #334155; border-radius: 6px; padding: 6px 12px;
@@ -34,13 +37,52 @@
   select:hover, button:hover, input:hover { background: #2d3846; border-color: #475569; }
   button.danger { background: #7f1d1d; border-color: #991b1b; color: #fca5a5; }
   button.danger:hover { background: #991b1b; color: #fff; }
-  #btn-reset-view { background: #1e3a5f; border-color: #3b82f6; color: #7dd3fc; }
-  #btn-reset-view:hover { background: #1e40af; color: #fff; }
-  #btn-reset-layout { background: #4c1d95; border-color: #6d28d9; color: #c4b5fd; }
-  #btn-reset-layout:hover { background: #5b21b6; color: #fff; }
+  button.primary { background: #1e3a5f; border-color: #3b82f6; color: #7dd3fc; }
+  button.primary:hover { background: #1e40af; color: #fff; }
+  button.success { background: #14532d; border-color: #22c55e; color: #86efac; }
+  button.success:hover { background: #166534; color: #fff; }
+  
   #zoom-level { font-size: 12px; color: #94a3b8; min-width: 44px; text-align: center; }
   #stats { font-size: 11px; color: #64748b; margin-right: auto; }
 
+  /* ===== Custom Filter Dropdown ===== */
+  .custom-dropdown { position: relative; display: inline-block; }
+  .custom-dropdown-menu {
+    display: none; position: absolute; top: 100%; right: 0; margin-top: 4px;
+    background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+    width: 220px; max-height: 300px; overflow-y: auto; z-index: 200;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5); padding: 8px;
+  }
+  .custom-dropdown-menu.show { display: block; }
+  .custom-dropdown-item {
+    display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+    font-size: 12px; color: #cbd5e1; cursor: pointer; border-radius: 4px;
+  }
+  .custom-dropdown-item:hover { background: #334155; }
+  .custom-dropdown-item input { cursor: pointer; margin: 0; }
+  
+  /* ===== Modal ===== */
+  #modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    z-index: 1000; display: none; align-items: center; justify-content: center;
+  }
+  #modal-overlay.show { display: flex; }
+  .modal-content {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+    padding: 24px; width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .modal-content h2 { font-size: 16px; color: #7dd3fc; margin-bottom: 8px; }
+  .modal-content label { font-size: 12px; color: #94a3b8; }
+  .modal-content input, .modal-content select, .modal-content textarea {
+    width: 100%; background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
+    padding: 8px; border-radius: 6px; font-family: inherit; font-size: 13px;
+  }
+  .modal-content textarea { resize: vertical; min-height: 100px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+
+  /* ===== Canvas ===== */
   #canvas {
     position: fixed; top: 56px; left: 0; right: 0; bottom: 0; overflow: hidden;
     cursor: grab; background-color: #0f1419;
@@ -52,7 +94,7 @@
   #canvas.dragging-module { cursor: grabbing; }
   #world { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
 
-  /* ===== لایه‌های SVG ===== */
+  /* ===== SVG Layers ===== */
   #svg-layer { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; z-index: 1; }
   #svg-front-layer { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; z-index: 90; }
   
@@ -67,7 +109,6 @@
   }
   #svg-layer path.auto-connection.dim { opacity: 0.1; }
 
-  /* لایه رویی */
   #svg-front-layer path.connection, 
   #svg-front-layer path.auto-connection {
     fill: none; stroke: #fbbf24; stroke-width: 3.5; stroke-linecap: round;
@@ -79,7 +120,6 @@
     fill: none; stroke: transparent; stroke-width: 40; pointer-events: stroke; cursor: pointer;
   }
   
-  /* 🌟 فیکس باگ اتصال: خط موقت نباید مانع کلیک روی کارت مقصد شود */
   #svg-front-layer path.temp, #svg-layer path.temp {
     fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
@@ -99,9 +139,9 @@
 
   .module-card {
     background: linear-gradient(145deg, #1c2531 0%, #161d27 100%);
-    border: 1px solid #334155; border-radius: 14px; padding: 14px 16px;
+    border: 1px solid #334155; border-radius: 14px; padding: 16px;
     box-shadow: 0 8px 28px rgba(0,0,0,0.45); position: absolute;
-    display: flex; flex-direction: column; gap: 8px;
+    display: flex; flex-direction: column; gap: 10px;
     transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease, background-color 0.3s, border-color 0.3s, box-shadow 0.2s;
     transform-origin: center center; left: 50%; top: 50%; transform: translate(-50%, -50%);
     cursor: grab;
@@ -113,8 +153,8 @@
   .module-card:hover { border-color: #475569; }
   .module-cluster.highlight .module-card { box-shadow: 0 0 0 2px #fbbf24, 0 12px 40px rgba(251,191,36,0.25); }
   
-  .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-left: 36px; }
-  .module-title { font-size: 17px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: center; }
+  .module-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-right: 30px; }
+  .module-title { font-size: 18px; font-weight: 700; color: #f1f5f9; line-height: 1.3; flex: 1; transition: font-size 0.3s; pointer-events: none; text-align: right; }
   .module-badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; transition: opacity 0.3s; pointer-events: none; }
   .badge-reh { background: #422006; color: #fbbf24; border: 1px solid #78350f; }
   .badge-sys { background: #1e3a5f; color: #7dd3fc; border: 1px solid #1e40af; }
@@ -122,13 +162,14 @@
   .badge-aqua { background: #0c4a6e; color: #67e8f9; border: 1px solid #0e7490; }
   .badge-spec { background: #4c1d95; color: #c4b5fd; border: 1px solid #6d28d9; }
   .badge-common { background: #7c2d12; color: #fdba74; border: 1px solid #9a3412; }
+  
   .module-desc {
     font-size: 12px; color: #94a3b8; padding: 6px 8px;
     background: rgba(15,23,42,0.6); border-radius: 6px; border: 1px solid #1e293b;
     transition: opacity 0.3s; pointer-events: none; text-align: center;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
-  .module-progress-text { font-size: 13px; color: #38bdf8; font-weight: bold; margin-top: 4px; }
+  .module-progress-text { font-size: 14px; color: #38bdf8; font-weight: bold; margin-top: 4px; }
   .module-progress-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; transition: opacity 0.3s; pointer-events: none; }
   .progress-bar-wrap { flex: 1; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; }
   .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #22d3ee); transition: width 0.3s ease; }
@@ -136,18 +177,16 @@
   /* ===== Page Node ===== */
   .page-node {
     position: absolute; background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
-    border: 1px solid #2d3a4a; border-radius: 8px; padding: 6px 9px 6px 75px;
-    font-size: 12px; color: #cbd5e1; text-align: right;
+    border: 1px solid #2d3a4a; border-radius: 10px; padding: 10px;
+    font-size: 13px; color: #cbd5e1; text-align: right;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: grab;
-    transition: all 0.3s, box-shadow 0.2s; display: flex; flex-direction: column; justify-content: center;
-    height: 90px; /* ارتفاع افزایش یافت برای دکمه‌های مرحله */
+    transition: all 0.3s, box-shadow 0.2s; display: flex; flex-direction: column;
   }
   .page-node:active { cursor: grabbing; }
   .page-node:hover { border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3); z-index: 10; }
   .page-node.dimmed { opacity: 0.2; }
   .page-node.highlight { opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; z-index: 11; background: #2a2416; color: #fef3c7; }
   .page-node.selected { opacity: 1; border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; z-index: 12; background: #2a2416; color: #fff; }
-  .page-node.is-done { background: linear-gradient(145deg, #142a1e 0%, #0f1f16 100%); border-color: #22c55e; color: #86efac; }
   .page-node.is-dragging-page {
     z-index: 1000 !important; opacity: 0.9; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     pointer-events: none; border-color: #38bdf8;
@@ -156,26 +195,11 @@
     border-color: #fbbf24; box-shadow: 0 0 0 2px #fbbf24; transform: scale(1.05);
   }
 
-  .page-node span:not(.drag-handle) {
-    flex: 1; word-break: break-word; line-height: 1.4; margin-bottom: 4px;
+  .page-node .page-title {
+    flex: 1; word-break: break-word; line-height: 1.4; margin-bottom: 8px; font-weight: 600;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     overflow: hidden; pointer-events: none;
   }
-
-  .page-btn-group {
-    position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
-    display: flex; gap: 4px; z-index: 99; background: #1a2330; padding: 3px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-    flex-direction: column;
-  }
-  .page-btn {
-    width: 20px; height: 20px; border-radius: 4px; background: #1e293b; border: 1px solid #475569;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    font-size: 10px; color: transparent; transition: all 0.15s; pointer-events: auto;
-  }
-  .page-btn:hover { background: #334155; border-color: #94a3b8; }
-  .page-btn.done.active { background: #22c55e; border-color: #22c55e; color: #fff; }
-  .page-btn.front.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
-  .page-btn.back.active { background: #ef4444; border-color: #ef4444; color: #fff; }
 
   /* ✅ نقطه آبی */
   .page-node .drag-handle,
@@ -192,29 +216,19 @@
     opacity: 1; background: rgba(56, 189, 248, 0.9);
     box-shadow: 0 0 14px rgba(56, 189, 248, 0.9); transform: scale(1.15);
   }
-  body.zoomed-out .drag-handle { width: 14px; height: 14px; top: -7px; right: -7px; }
 
-  .page-status { position: absolute; bottom: -3px; right: -3px; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #0f1419; pointer-events: none; }
-  .st-done { background: #22c55e; } .st-test { background: #84cc16; } .st-impl { background: #eab308; }
-  .st-ready { background: #f97316; } .st-needdesign { background: #ef4444; } .st-nodesign { background: #6b7280; }
-
-  /* 🌟 استایل دکمه‌های مرحله (به سبک دکمه‌های ✓ F B) */
+  /* 🌟 استایل دکمه‌های مرحله */
   .stage-btn-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 3px;
+    gap: 4px;
     margin-top: auto;
     justify-content: center;
-    max-height: 48px;
-    overflow-y: auto;
-    padding-bottom: 2px;
   }
-  .stage-btn-group::-webkit-scrollbar { width: 4px; }
-  .stage-btn-group::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
   
   .stage-btn {
-    font-size: 9px;
-    padding: 2px 5px;
+    font-size: 10px;
+    padding: 4px 6px;
     border-radius: 4px;
     background: #1e293b;
     border: 1px solid #475569;
@@ -229,19 +243,30 @@
     background: #3b82f6;
     border-color: #3b82f6;
     color: white;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
   }
 
-  /* برای کارت ماژول، دکمه‌ها را کمی پایین‌تر ببریم */
-  .module-card .stage-btn-group {
-    margin-top: 8px;
+  /* 🌟 دکمه‌های ویرایش و افزودن */
+  .card-actions {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
   }
-
-  body.zoomed-out .module-card { width: 250px !important; height: 300px !important; transform: translate(-50%, -50%); background: #1c2531; border-color: #475569; left: 50%; top: 50%; }
-  body.zoomed-out .module-title { font-size: 42px; font-weight: 700; text-align: center; text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 20px; line-height: 1.2; }
-  body.zoomed-out .module-desc, body.zoomed-out .module-progress-row, body.zoomed-out .module-badge, body.zoomed-out .module-card-header-actions, body.zoomed-out .stage-btn-group { display: none; }
-  body.zoomed-out .page-btn { width: 16px; height: 16px; font-size: 9px; }
-  body.zoomed-out .page-btn-group { left: 4px; }
-  body.zoomed-out .page-node { margin: 0; padding-left: 65px; height: 50px; }
+  .action-btn {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid #475569;
+    color: #7dd3fc;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; transition: all 0.2s;
+  }
+  .action-btn:hover { background: #334155; border-color: #38bdf8; color: #fff; }
+  .action-btn.btn-edit { color: #fbbf24; }
+  .action-btn.btn-add { color: #22c55e; }
 
   #toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px 18px; font-size: 12px; z-index: 200; opacity: 0; pointer-events: none; transition: all 0.25s; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -253,21 +278,28 @@
 
 <div id="toolbar">
   <h1>🗺️ نقشه ماژول‌ها</h1>
+  
   <div class="toolbar-group">
-    <label>موقعیت:</label>
-    <select id="filter-position">
-      <option value="all">همه</option><option value="رهگیری">رهگیری</option><option value="سامانه">سامانه</option>
-      <option value="زنجیره">زنجیره</option><option value="آبزیان">آبزیان</option><option value="تخصصی">تخصصی</option>
-      <option value="پرکاربرد">پرکاربرد</option><option value="_">بدون موقعیت</option>
-    </select>
+    <button id="btn-add-module" class="success">➕ ماژول جدید</button>
   </div>
+
+  <div class="toolbar-group">
+    <div class="custom-dropdown" id="filter-dropdown-container">
+      <button id="btn-filter-modules">🔽 فیلتر ماژول‌ها</button>
+      <div class="custom-dropdown-menu" id="filter-menu">
+        <!-- Checkboxes added via JS -->
+      </div>
+    </div>
+  </div>
+
   <div class="toolbar-group">
     <label>جستجو:</label>
-    <input type="text" id="search-box" placeholder="نام ماژول..." style="width:150px;">
+    <input type="text" id="search-box" placeholder="نام ماژول یا صفحه..." style="width:150px;">
   </div>
+  
   <div class="toolbar-group">
-    <button id="btn-reset-view">🎯 نمای کلی</button>
-    <button id="btn-reset-layout" title="بازگردانی چیدمان">🔄 چیدمان پیش‌فرض</button>
+    <button id="btn-reset-view" class="primary">🎯 نمای کلی</button>
+    <button id="btn-reset-layout">🔄 چیدمان پیش‌فرض</button>
     <button id="btn-clear-connections" class="danger">🗑️ حذف اتصالات</button>
   </div>
   <div class="toolbar-group">
@@ -286,6 +318,20 @@
   </div>
 </div>
 
+<!-- Modal for Add/Edit -->
+<div id="modal-overlay">
+  <div class="modal-content">
+    <h2 id="modal-title">افزودن/ویرایش</h2>
+    <div id="modal-fields">
+      <!-- Dynamic fields injected here -->
+    </div>
+    <div class="modal-actions">
+      <button id="btn-modal-save" class="success">ذخیره</button>
+      <button id="btn-modal-cancel" class="danger">انصراف</button>
+    </div>
+  </div>
+</div>
+
 <div id="hint">
   <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | نقطه آبی = اتصال | دکمه‌های روی کارت = تغییر مرحله
 </div>
@@ -293,7 +339,7 @@
 <div id="toast"></div>
 
 <script>
-const MODULES_DATA = [
+let MODULES_DATA = [
   { id:1, name:"رهگیری و ردیابی", position:"رهگیری", status:"آماده پیاده‌سازی", pages:["شناسنامه","ردیابی محصول","رهگیری کمی","رهگیری کیفی","بهای تمام‌شده"] },
   { id:2, name:"معرفی سامانه", position:"سامانه", status:"نهایی‌شده", pages:["خانه","معرفی سامانه","تغییر رمز","کیف پول","پیوندها","سؤالات متداول","ارتباط با ما","تنظیمات","نمادها","خروج","ویرایش حساب کاربری"] },
   { id:3, name:"مدیریت کاربران", position:"زنجیره", status:"نهایی‌شده", pages:["گواهی عضویت","گزارش ذینفعان سامانه","تمدید طرح کاربری","طرح فعال من","طرح‌های کاربری","قابلیت‌های سرویس‌ها","اطلاعات کاربران","گروه‌های کاربری","نقش‌ها","پروفایل کاربران","مجوزهای دسترسی","کاربران مجموعه","معرفی ماژول"] },
@@ -334,52 +380,60 @@ const MODULES_DATA = [
 ];
 
 const STAGES = [
-  { id: 'back',           name: 'بک',                   color: '#6366f1' },
-  { id: 'roles',          name: 'نقش‌ها',                color: '#f59e0b' },
-  { id: 'groups',         name: 'گروه‌ها',               color: '#10b981' },
-  { id: 'permissions',    name: 'مجوزها',                color: '#3b82f6' },
-  { id: 'permissionsLink',name: 'اتصال مجوزها',          color: '#8b5cf6' },
-  { id: 'front',          name: 'فرانت',                 color: '#ec4899' },
-  { id: 'test',           name: 'تست',                   color: '#f97316' },
-  { id: 'mobile',         name: 'موبایل',                color: '#14b8a6' },
-  { id: 'mobilePerms',    name: 'تنظیم مجوزهای موبایل',   color: '#6366f1' },
-  { id: 'mobileTest',     name: 'تست موبایل',            color: '#84cc16' },
-  { id: 'done',           name: 'تکمیل',                 color: '#22c55e' },
+  { id: 'back',           name: 'بک',                   color: '#6366f1', percent: 0 },
+  { id: 'roles',          name: 'نقش‌ها',                color: '#f59e0b', percent: 10 },
+  { id: 'groups',         name: 'گروه‌ها',               color: '#10b981', percent: 20 },
+  { id: 'permissions',    name: 'مجوزها',                color: '#3b82f6', percent: 30 },
+  { id: 'permissionsLink',name: 'اتصال مجوزها',          color: '#8b5cf6', percent: 40 },
+  { id: 'front',          name: 'فرانت',                 color: '#ec4899', percent: 50 },
+  { id: 'test',           name: 'تست',                   color: '#f97316', percent: 60 },
+  { id: 'mobile',         name: 'موبایل',                color: '#14b8a6', percent: 70 },
+  { id: 'mobilePerms',    name: 'تنظیم مجوزهای موبایل',   color: '#6366f1', percent: 80 },
+  { id: 'mobileTest',     name: 'تست موبایل',            color: '#84cc16', percent: 90 },
+  { id: 'done',           name: 'تکمیل',                 color: '#22c55e', percent: 100 },
 ];
 
-const MODULE_W = 260;
-const MODULE_H = 240; // افزایش ارتفاع برای دکمه‌ها
-const PAGE_W = 180;
-const PAGE_H = 90; // افزایش ارتفاع برای دکمه‌ها
-const PAGE_GAP = 12;
-const FIXED_CLUSTER_WIDTH = 1600;
+// ابعاد جدید کارت‌ها برای جا دادن دکمه‌ها
+const MODULE_W = 340;
+const MODULE_H = 340;
+const PAGE_W = 220;
+const PAGE_H = 240; 
+const PAGE_GAP = 16;
+const FIXED_CLUSTER_WIDTH = 1800;
 const CLUSTER_GAP_X = 300;
 const CLUSTER_GAP_Y = 300;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
-const GRID_CELL_H = 750; 
+const GRID_CELL_H = 800; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
   selectedNode: null, filterPosition: "all", search: "",
   nextConnId: 1, customPositions: {},
-  pageStatus: { done: {}, front: {}, back: {} },
   cardStage: {}, 
-  collapsedModules: {} 
+  collapsedModules: {},
+  selectedModulesFilter: [] // برای فیلتر کردن ماژول ها
 };
-const LS_KEY = "module-map-state-v59";
+
+const LS_KEY = "module-map-state-v60";
+const LS_MODULES_KEY = "module-map-data-v60";
 
 function saveState() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       pan: state.pan, zoom: state.zoom, connections: state.connections,
       nextConnId: state.nextConnId, customPositions: state.customPositions,
-      pageStatus: state.pageStatus, cardStage: state.cardStage,
-      collapsedModules: state.collapsedModules
+      cardStage: state.cardStage, collapsedModules: state.collapsedModules
     }));
+    localStorage.setItem(LS_MODULES_KEY, JSON.stringify(MODULES_DATA));
   } catch(e) {}
 }
+
 function loadState() {
   try {
+    const rawModules = localStorage.getItem(LS_MODULES_KEY);
+    if (rawModules) {
+      MODULES_DATA = JSON.parse(rawModules);
+    }
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return;
     const s = JSON.parse(raw);
@@ -388,7 +442,6 @@ function loadState() {
     if (Array.isArray(s.connections)) state.connections = s.connections.map(c => ({ ...c, type: c.type || 'one-way' }));
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
-    if (s.pageStatus) state.pageStatus = { done: s.pageStatus.done || {}, front: s.pageStatus.front || {}, back: s.pageStatus.back || {} };
     if (s.cardStage) state.cardStage = s.cardStage;
     if (s.collapsedModules) state.collapsedModules = s.collapsedModules;
   } catch(e) {}
@@ -396,11 +449,11 @@ function loadState() {
 
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
-  const maxPerCol = 4;
+  const maxPerCol = 4; 
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
   const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 60;
-  const clusterH = Math.max(MODULE_H + 100, requiredHeight);
+  const clusterH = Math.max(MODULE_H + 120, requiredHeight);
   return { w: clusterW, h: clusterH, maxPerCol, colsPerSide };
 }
 
@@ -412,13 +465,13 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const cardW = isZoomedOut ? 650 : MODULE_W;
   const halfCardW = cardW / 2;
   const centerX = clusterW / 2;
-  const gap = isZoomedOut ? 60 : 10;
+  const gap = isZoomedOut ? 60 : 20;
   const offset = halfCardW + gap;
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
     const x = centerX - offset - (colIdx + 1) * PAGE_W - colIdx * PAGE_GAP;
-    const y = 30 + rowIdx * (PAGE_H + PAGE_GAP);
+    const y = 60 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   for (let i = pagesPerSide; i < numPages; i++) {
@@ -426,7 +479,7 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
     const colIdx = Math.floor(localI / maxPerCol);
     const rowIdx = localI % maxPerCol;
     const x = centerX + offset + colIdx * (PAGE_W + PAGE_GAP);
-    const y = 30 + rowIdx * (PAGE_H + PAGE_GAP);
+    const y = 60 + rowIdx * (PAGE_H + PAGE_GAP);
     positions.push({ pageIdx: i, x, y });
   }
   return positions;
@@ -438,8 +491,9 @@ function calculateModuleProgress(modId) {
   let total = 0;
   mod.pages.forEach((_, idx) => {
     const key = modId + ":" + idx;
-    if (state.pageStatus.done[key]) total += 100;
-    else if (state.pageStatus.front[key] || state.pageStatus.back[key]) total += 50;
+    const stageId = state.cardStage[key] || 'back';
+    const stage = STAGES.find(s => s.id === stageId);
+    total += stage ? stage.percent : 0;
   });
   return Math.round(total / mod.pages.length);
 }
@@ -451,6 +505,152 @@ const buttonsLayer = document.getElementById("buttons-layer");
 const clusterMap = {};
 let nodePositions = {};
 
+// ===== منطق فیلتر =====
+function initFilterDropdown() {
+  const menu = document.getElementById('filter-menu');
+  menu.innerHTML = '';
+  MODULES_DATA.forEach(mod => {
+    const label = document.createElement('label');
+    label.className = 'custom-dropdown-item';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = mod.id;
+    cb.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        state.selectedModulesFilter.push(mod.id);
+      } else {
+        state.selectedModulesFilter = state.selectedModulesFilter.filter(id => id !== mod.id);
+      }
+      applyFilters();
+    });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(mod.name));
+    menu.appendChild(label);
+  });
+}
+
+document.getElementById('btn-filter-modules').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('filter-menu').classList.toggle('show');
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#filter-dropdown-container')) {
+    document.getElementById('filter-menu').classList.remove('show');
+  }
+});
+
+// ===== منطق مودال =====
+let modalMode = 'add'; // 'add', 'edit-module', 'edit-page'
+let editingModId = null;
+let editingPageIdx = null;
+
+function openModal(mode, modId = null, pageIdx = null) {
+  modalMode = mode;
+  editingModId = modId;
+  editingPageIdx = pageIdx;
+
+  const title = document.getElementById('modal-title');
+  const fields = document.getElementById('modal-fields');
+  fields.innerHTML = '';
+
+  if (mode === 'add' || mode === 'edit-module') {
+    title.textContent = mode === 'add' ? 'افزودن ماژول جدید' : 'ویرایش ماژول';
+    
+    let modName = "", modPos = "زنجیره", modPages = "";
+    if (mode === 'edit-module') {
+      const mod = MODULES_DATA.find(m => m.id === modId);
+      if (mod) {
+        modName = mod.name;
+        modPos = mod.position;
+        modPages = mod.pages.join('\n');
+      }
+    }
+
+    fields.innerHTML = `
+      <label>نام ماژول:</label>
+      <input type="text" id="input-mod-name" value="${modName}" placeholder="مثلا: مدیریت کاربران">
+      <label>موقعیت:</label>
+      <select id="input-mod-pos">
+        <option value="رهگیری" ${modPos==='رهگیری'?'selected':''}>رهگیری</option>
+        <option value="سامانه" ${modPos==='سامانه'?'selected':''}>سامانه</option>
+        <option value="زنجیره" ${modPos==='زنجیره'?'selected':''}>زنجیره</option>
+        <option value="آبزیان" ${modPos==='آبزیان'?'selected':''}>آبزیان</option>
+        <option value="تخصصی" ${modPos==='تخصصی'?'selected':''}>تخصصی</option>
+        <option value="پرکاربرد" ${modPos==='پرکاربرد'?'selected':''}>پرکاربرد</option>
+        <option value="_" ${modPos==='_'?'selected':''}>بدون موقعیت</option>
+      </select>
+      <label>صفحات (هر خط یک صفحه):</label>
+      <textarea id="input-mod-pages" placeholder="صفحه اول&#10;صفحه دوم&#10;...">${modPages}</textarea>
+    `;
+  } else if (mode === 'edit-page') {
+    title.textContent = 'ویرایش نام صفحه';
+    const mod = MODULES_DATA.find(m => m.id === modId);
+    const pageName = mod ? mod.pages[pageIdx] : "";
+    fields.innerHTML = `
+      <label>نام صفحه:</label>
+      <input type="text" id="input-page-name" value="${pageName}">
+    `;
+  }
+
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
+
+document.getElementById('btn-modal-save').addEventListener('click', () => {
+  if (modalMode === 'add' || modalMode === 'edit-module') {
+    const name = document.getElementById('input-mod-name').value.trim();
+    const pos = document.getElementById('input-mod-pos').value;
+    const pagesRaw = document.getElementById('input-mod-pages').value;
+    const pages = pagesRaw.split('\n').map(p => p.trim()).filter(p => p !== '');
+
+    if (!name) { showToast("نام ماژول الزامی است"); return; }
+
+    if (modalMode === 'add') {
+      const newId = MODULES_DATA.length > 0 ? Math.max(...MODULES_DATA.map(m => m.id)) + 1 : 1;
+      MODULES_DATA.push({ id: newId, name, position: pos, status: "طراحی نشده", pages });
+      pages.forEach((_, idx) => {
+        state.cardStage[newId + ":" + idx] = 'back';
+      });
+      state.cardStage["mod:" + newId] = 'back';
+    } else {
+      const mod = MODULES_DATA.find(m => m.id === editingModId);
+      if (mod) {
+        mod.name = name;
+        mod.position = pos;
+        const oldPagesCount = mod.pages.length;
+        mod.pages = pages;
+        // تنظیم مراحل برای صفحات جدید
+        pages.forEach((_, idx) => {
+          if (idx >= oldPagesCount) state.cardStage[editingModId + ":" + idx] = 'back';
+        });
+      }
+    }
+  } else if (modalMode === 'edit-page') {
+    const pageName = document.getElementById('input-page-name').value.trim();
+    if (!pageName) { showToast("نام صفحه الزامی است"); return; }
+    const mod = MODULES_DATA.find(m => m.id === editingModId);
+    if (mod) {
+      mod.pages[editingPageIdx] = pageName;
+    }
+  }
+
+  saveState();
+  closeModal();
+  buildWorld();
+  applyTransform(true);
+  initFilterDropdown(); // برای آپدیت لیست فیلتر
+  showToast("با موفقیت ذخیره شد");
+});
+
+document.getElementById('btn-add-module').addEventListener('click', () => openModal('add'));
+
+// ===== ساخت بوم =====
 function buildWorld() {
   nodePositions = {}; 
 
@@ -469,7 +669,7 @@ function buildWorld() {
   });
 
   let gridIdx = 0;
-  const cols = 4;
+  const cols = 3;
 
   clusters.forEach((cl) => {
     let cx, cy;
@@ -504,14 +704,14 @@ function buildWorld() {
     let pct = calculateModuleProgress(cl.mod.id);
     const modStage = state.cardStage["mod:" + cl.mod.id] || 'back';
 
-    // ساخت دکمه‌های مرحله برای ماژول
     const stageBtns = STAGES.map(s => 
       `<button class="stage-btn ${modStage === s.id ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
     ).join('');
 
     card.innerHTML = `
-      <div class="module-card-header-actions">
-        <div class="toggle-pages-btn ${isCollapsed ? 'collapsed' : ''}" title="نمایش/مخفی کردن صفحات">${isCollapsed ? '▶' : '▼'}</div>
+      <div class="card-actions">
+        <div class="action-btn btn-edit" title="ویرایش ماژول">✎</div>
+        <div class="action-btn btn-add" title="افزودن صفحه">+</div>
       </div>
       <div class="module-header">
         <div class="module-title">${escapeHtml(cl.mod.name)}</div>
@@ -533,14 +733,25 @@ function buildWorld() {
     `;
     clusterEl.appendChild(card);
 
-    // هندل کردن دکمه‌های مرحله ماژول
+    card.querySelector('.btn-edit').addEventListener('mousedown', (e) => e.stopPropagation());
+    card.querySelector('.btn-edit').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openModal('edit-module', cl.mod.id);
+    });
+
+    card.querySelector('.btn-add').addEventListener('mousedown', (e) => e.stopPropagation());
+    card.querySelector('.btn-add').addEventListener('click', (e) => {
+      e.stopPropagation();
+      // باز کردن مدال ویرایش ماژول که امکان اضافه کردن صفحه را هم دارد
+      openModal('edit-module', cl.mod.id);
+    });
+
     card.querySelectorAll('.stage-btn').forEach(btn => {
       btn.addEventListener('mousedown', (e) => e.stopPropagation());
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const newStage = btn.dataset.stage;
         state.cardStage["mod:" + cl.mod.id] = newStage;
-        // انتقال همه صفحات به همان مرحله
         cl.mod.pages.forEach((_, idx) => {
           state.cardStage[cl.mod.id + ":" + idx] = newStage;
         });
@@ -551,22 +762,12 @@ function buildWorld() {
       });
     });
 
-    const toggleBtn = card.querySelector('.toggle-pages-btn');
-    toggleBtn.addEventListener('mousedown', (e) => e.stopPropagation());
-    toggleBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      state.collapsedModules[cl.mod.id] = !state.collapsedModules[cl.mod.id];
-      saveState();
-      buildWorld();
-      applyTransform(true);
-    });
-
     const modNodeX = cx + cl.w / 2 - MODULE_W / 2;
     const modNodeY = cy + cl.h / 2 - MODULE_H / 2;
     nodePositions["mod:" + cl.mod.id] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
 
     card.addEventListener("mousedown", (e) => {
-      if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".module-card-header-actions") || e.target.closest(".stage-btn-group")) return;
+      if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group")) return;
       if (e.target.classList.contains("drag-handle")) return;
       e.stopPropagation();
       const startMouseX = e.clientX, startMouseY = e.clientY;
@@ -641,24 +842,16 @@ function buildWorld() {
       pageEl.style.height = PAGE_H + "px";
       pageEl.dataset.nodeKey = nodeKey;
 
-      const isDone = state.pageStatus.done[nodeKey] === true;
-      const isFront = state.pageStatus.front[nodeKey] === true;
-      const isBack = state.pageStatus.back[nodeKey] === true;
-      if (isDone) pageEl.classList.add("is-done");
-
       const pageStage = state.cardStage[nodeKey] || 'back';
       const pageStageBtns = STAGES.map(s => 
         `<button class="stage-btn ${pageStage === s.id ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
       ).join('');
 
       pageEl.innerHTML = `
-        <span>${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
-        <div class="page-btn-group">
-          <div class="page-btn done ${isDone ? 'active' : ''}" title="اتمام">✓</div>
-          <div class="page-btn front ${isFront ? 'active' : ''}" title="Front">F</div>
-          <div class="page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
+        <div class="card-actions">
+          <div class="action-btn btn-edit" title="ویرایش نام صفحه">✎</div>
         </div>
-        ${statusDotClass(cl.mod.status) ? `<span class="page-status ${statusDotClass(cl.mod.status)}"></span>` : ""}
+        <div class="page-title">${escapeHtml(cl.mod.pages[p.pageIdx])}</div>
         <div class="stage-btn-group">
           ${pageStageBtns}
         </div>
@@ -672,7 +865,12 @@ function buildWorld() {
         nodePositions[nodeKey] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
       }
 
-      // هندل کردن دکمه‌های مرحله صفحه
+      pageEl.querySelector('.btn-edit').addEventListener('mousedown', (e) => e.stopPropagation());
+      pageEl.querySelector('.btn-edit').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openModal('edit-page', cl.mod.id, p.pageIdx);
+      });
+
       pageEl.querySelectorAll('.stage-btn').forEach(btn => {
         btn.addEventListener('mousedown', (e) => e.stopPropagation());
         btn.addEventListener('click', (e) => {
@@ -687,7 +885,7 @@ function buildWorld() {
 
       pageEl.addEventListener("mousedown", (e) => {
         if (e.button !== 0) return;
-        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group")) return;
+        if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group")) return;
         if (draggingConn) return;
         e.stopPropagation();
 
@@ -751,12 +949,6 @@ function buildWorld() {
                 cl.mod.pages[targetIdx] = temp;
 
                 const keys = [`${cl.mod.id}:${sourceIdx}`, `${cl.mod.id}:${targetIdx}`];
-                ["done", "front", "back"].forEach(st => {
-                  const t = state.pageStatus[st][keys[0]];
-                  state.pageStatus[st][keys[0]] = state.pageStatus[st][keys[1]];
-                  state.pageStatus[st][keys[1]] = t;
-                });
-
                 state.connections.forEach(c => {
                   if (c.from === keys[0]) c.from = keys[1];
                   else if (c.from === keys[1]) c.from = keys[0];
@@ -783,48 +975,8 @@ function buildWorld() {
       });
 
       pageEl.addEventListener("click", (e) => {
-        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group") || draggingConn) return;
+        if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group") || draggingConn) return;
         toggleSelection(nodeKey);
-      });
-
-      const updateModuleProgress = () => {
-        let newPct = calculateModuleProgress(cl.mod.id);
-        card.querySelector(".module-progress-text").textContent = `${newPct}% تکمیل`;
-        card.querySelector(".progress-bar-fill").style.width = newPct + "%";
-      };
-
-      const btnDone = pageEl.querySelector(".page-btn.done");
-      const btnFront = pageEl.querySelector(".page-btn.front");
-      const btnBack = pageEl.querySelector(".page-btn.back");
-
-      btnDone.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const active = !state.pageStatus.done[nodeKey];
-        state.pageStatus.done[nodeKey] = active;
-        if (active) {
-          state.pageStatus.front[nodeKey] = false;
-          state.pageStatus.back[nodeKey] = false;
-          btnFront.classList.remove("active"); btnBack.classList.remove("active");
-        }
-        btnDone.classList.toggle("active", active);
-        pageEl.classList.toggle("is-done", active);
-        saveState(); updateModuleProgress();
-      });
-      btnFront.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const active = !state.pageStatus.front[nodeKey];
-        state.pageStatus.front[nodeKey] = active;
-        if (active) { state.pageStatus.done[nodeKey] = false; btnDone.classList.remove("active"); pageEl.classList.remove("is-done"); }
-        btnFront.classList.toggle("active", active);
-        saveState(); updateModuleProgress();
-      });
-      btnBack.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const active = !state.pageStatus.back[nodeKey];
-        state.pageStatus.back[nodeKey] = active;
-        if (active) { state.pageStatus.done[nodeKey] = false; btnDone.classList.remove("active"); pageEl.classList.remove("is-done"); }
-        btnBack.classList.toggle("active", active);
-        saveState(); updateModuleProgress();
       });
 
       pageEl.querySelector(".drag-handle").addEventListener("mousedown", (e) => {
@@ -891,9 +1043,6 @@ function findNearestFreeSlot(startX, startY, excludeId) {
 
 function posBadgeClass(pos) {
   return { "رهگیری":"badge-reh", "سامانه":"badge-sys", "زنجیره":"badge-chain", "آبزیان":"badge-aqua", "تخصصی":"badge-spec", "پرکاربرد":"badge-common" }[pos] || "badge-spec";
-}
-function statusDotClass(status) {
-  return { "نهایی‌شده":"st-done", "تست‌شده":"st-test", "پیاده‌سازی‌شده":"st-impl", "آماده پیاده‌سازی":"st-ready", "نیاز به طراحی":"st-needdesign", "طراحی نشده":"st-nodesign" }[status] || "";
 }
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -1082,7 +1231,17 @@ function startConnection(fromKey) {
     document.getElementById("canvas").classList.remove("connecting");
     if (draggingConn) {
       tempPath.remove();
-      const targetNode = document.elementFromPoint(e.clientX, e.clientY)?.closest(".page-node, .module-card");
+      
+      // 🌟 فیکس پیدا کردن کارت مقصد
+      let targetNode = null;
+      const elements = document.elementsFromPoint(e.clientX, e.clientY);
+      for (let el of elements) {
+        if (el.classList.contains("page-node") || el.classList.contains("module-card")) {
+          targetNode = el;
+          break;
+        }
+      }
+      
       if (targetNode) {
         let toKey = targetNode.dataset.nodeKey;
         if (!toKey && targetNode.classList.contains("module-card")) {
@@ -1155,7 +1314,7 @@ function applyTransform(needRender = false) {
 
 canvas.addEventListener("mousedown", (e) => {
   if (e.target.closest(".module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar") ||
-      e.target.closest(".conn-btn") || e.target.closest(".module-card-header-actions") || e.target.closest(".stage-btn-group")) return;
+      e.target.closest(".conn-btn") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group") || e.target.closest("#modal-overlay")) return;
   if (e.button !== 0) return;
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
@@ -1222,22 +1381,33 @@ function fitView() {
 }
 
 function applyFilters() {
-  const pos = state.filterPosition, search = state.search.trim().toLowerCase();
+  const search = state.search.trim().toLowerCase();
   let visibleCount = 0; const visibleIds = new Set();
+  
   Object.entries(clusterMap).forEach(([id, c]) => {
     const mod = MODULES_DATA.find(m => m.id === parseInt(id));
     if (!mod) return;
-    let visible = (pos === "all" || mod.position === pos);
-    if (visible && search) visible = mod.name.toLowerCase().includes(search) || mod.pages.some(p => p.toLowerCase().includes(search));
+    
+    // فیلتر ماژول های انتخاب شده
+    let visible = true;
+    if (state.selectedModulesFilter.length > 0) {
+      visible = state.selectedModulesFilter.includes(mod.id);
+    }
+    
+    if (visible && search) {
+      visible = mod.name.toLowerCase().includes(search) || mod.pages.some(p => p.toLowerCase().includes(search));
+    }
+    
     c.el.style.display = visible ? "" : "none";
     if (visible) { visibleCount++; visibleIds.add(id); }
   });
+  
   svgLayer.querySelectorAll("path.connection").forEach(p => {
     p.style.display = (visibleIds.has(p.dataset.from.split(":")[0]) && visibleIds.has(p.dataset.to.split(":")[0])) ? "" : "none";
   });
   document.getElementById("stats").textContent = `${visibleCount} / ${MODULES_DATA.length} ماژول`;
 }
-document.getElementById("filter-position").addEventListener("change", (e) => { state.filterPosition = e.target.value; applyFilters(); });
+
 document.getElementById("search-box").addEventListener("input", (e) => { state.search = e.target.value; applyFilters(); });
 document.getElementById("btn-clear-connections").addEventListener("click", () => {
   if (state.connections.length && confirm("همه اتصالات دستی حذف شوند؟ (اتصالات خودکار باقی می‌مانند)")) {
@@ -1260,11 +1430,12 @@ function init() {
       mod.pages.forEach((_, idx) => {
         state.cardStage[mod.id + ":" + idx] = 'back';
       });
-      state.collapsedModules[mod.id] = true; 
+      state.collapsedModules[mod.id] = false; // پیش‌فرض باز
     });
     saveState();
   }
 
+  initFilterDropdown();
   buildWorld();
   applyTransform(true);
   
