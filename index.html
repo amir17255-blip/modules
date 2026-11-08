@@ -268,7 +268,7 @@
   .action-btn.btn-edit { color: #fbbf24; }
   .action-btn.btn-add { color: #22c55e; }
 
-  /* 🌟 حالت ماکرو (زوم اوت) */
+  /* 🌟 حالت ماکرو (زوم اوت) - دقیقاً طبق تصویر */
   body.zoomed-out #svg-layer, 
   body.zoomed-out #svg-front-layer, 
   body.zoomed-out #buttons-layer { 
@@ -421,13 +421,13 @@ const MODULE_W = 260;
 const MODULE_H = 220; 
 const PAGE_W = 160;
 const PAGE_H = 140; 
-const PAGE_GAP = 30; // 🌟 افزایش فاصله برای جلوگیری از تداخل
+const PAGE_GAP = 40; // 🌟 افزایش فاصله بین صفحات برای خطوط ارتباطی
 
-const FIXED_CLUSTER_WIDTH = 2000; // 🌟 افزایش عرض
-const CLUSTER_GAP_X = 120;
-const CLUSTER_GAP_Y = 120;
+const FIXED_CLUSTER_WIDTH = 2400; // 🌟 افزایش عرض کلاستر
+const CLUSTER_GAP_X = 600; // 🌟 فاصله افقی بسیار زیاد بین ماژول ها
+const CLUSTER_GAP_Y = 600; // 🌟 فاصله عمودی بسیار زیاد بین ماژول ها
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
-const GRID_CELL_H = 650; 
+const GRID_CELL_H = 800; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
@@ -438,8 +438,8 @@ const state = {
   selectedModulesFilter: [] 
 };
 
-const LS_KEY = "module-map-state-v64";
-const LS_MODULES_KEY = "module-map-data-v64";
+const LS_KEY = "module-map-state-v65";
+const LS_MODULES_KEY = "module-map-data-v65";
 
 function saveState() {
   try {
@@ -489,8 +489,11 @@ function layoutPagesInCluster(numPages, clusterW, clusterH, info, isZoomedOut) {
   const cardW = isZoomedOut ? 650 : MODULE_W;
   const halfCardW = cardW / 2;
   const centerX = clusterW / 2;
-  const gap = isZoomedOut ? 60 : 30; // Gap بزرگتر
+  
+  // 🌟 افزایش فاصله بین ماژول و صفحات
+  const gap = isZoomedOut ? 100 : 80; 
   const offset = halfCardW + gap;
+  
   for (let i = 0; i < pagesPerSide; i++) {
     const colIdx = Math.floor(i / maxPerCol);
     const rowIdx = i % maxPerCol;
@@ -692,7 +695,7 @@ function buildWorld() {
   });
 
   let gridIdx = 0;
-  const cols = 4; // کاهش تعداد ستون ها برای فضای بیشتر
+  const cols = 3; // با فاصله گذاری جدید، 3 ستون کافیست
 
   clusters.forEach((cl) => {
     let cx, cy;
