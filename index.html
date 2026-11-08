@@ -59,7 +59,6 @@
   #svg-layer path.connection { fill: none; stroke: #38bdf8; stroke-width: 3; stroke-linecap: round; pointer-events: stroke; cursor: pointer; transition: all 0.2s; }
   #svg-layer path.connection.hovered { stroke: #fbbf24; stroke-width: 4.5; }
   #svg-layer path.connection.dim { opacity: 0.1; }
-  #svg-layer path.temp { fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none; }
   #svg-layer path.hitbox { fill: none; stroke: transparent; stroke-width: 40; pointer-events: stroke; cursor: pointer; }
   
   #svg-layer path.auto-connection {
@@ -78,6 +77,11 @@
   #svg-front-layer path.auto-connection.highlight { stroke-dasharray: none; }
   #svg-front-layer path.hitbox {
     fill: none; stroke: transparent; stroke-width: 40; pointer-events: stroke; cursor: pointer;
+  }
+  
+  /* 🌟 فیکس باگ اتصال: خط موقت نباید مانع کلیک روی کارت مقصد شود */
+  #svg-front-layer path.temp, #svg-layer path.temp {
+    fill: none; stroke: #fbbf24; stroke-width: 3; stroke-dasharray: 6 4; pointer-events: none;
   }
 
   #buttons-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
@@ -136,7 +140,7 @@
     font-size: 12px; color: #cbd5e1; text-align: right;
     box-shadow: 0 3px 10px rgba(0,0,0,0.35); cursor: grab;
     transition: all 0.3s, box-shadow 0.2s; display: flex; flex-direction: column; justify-content: center;
-    height: 75px; /* افزایش ارتفاع برای جا دادن دراپ‌داون */
+    height: 90px; /* ارتفاع افزایش یافت برای دکمه‌های مرحله */
   }
   .page-node:active { cursor: grabbing; }
   .page-node:hover { border-color: #38bdf8; box-shadow: 0 0 0 1px #38bdf8, 0 4px 14px rgba(56,189,248,0.3); z-index: 10; }
@@ -194,33 +198,47 @@
   .st-done { background: #22c55e; } .st-test { background: #84cc16; } .st-impl { background: #eab308; }
   .st-ready { background: #f97316; } .st-needdesign { background: #ef4444; } .st-nodesign { background: #6b7280; }
 
-  /* استایل منوی انتخاب مرحله */
-  .stage-select {
-    width: 100%;
-    background: #1e293b;
-    color: #e2e8f0;
-    border: 1px solid #334155;
-    border-radius: 4px;
-    padding: 3px 6px;
-    font-size: 11px;
-    font-family: inherit;
-    cursor: pointer;
-    outline: none;
-    transition: border-color 0.2s;
+  /* 🌟 استایل دکمه‌های مرحله (به سبک دکمه‌های ✓ F B) */
+  .stage-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
     margin-top: auto;
+    justify-content: center;
+    max-height: 48px;
+    overflow-y: auto;
+    padding-bottom: 2px;
   }
-  .stage-select:hover { border-color: #38bdf8; }
-  .stage-select option { background: #0f172a; color: #e2e8f0; }
+  .stage-btn-group::-webkit-scrollbar { width: 4px; }
+  .stage-btn-group::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+  
+  .stage-btn {
+    font-size: 9px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #94a3b8;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .stage-btn:hover { background: #334155; color: #fff; }
+  .stage-btn.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+  }
 
-  /* برای کارت ماژول، دراپ داون با فاصله بیشتر */
-  .module-card .stage-select {
-    margin-top: 10px;
-    padding: 4px 6px;
+  /* برای کارت ماژول، دکمه‌ها را کمی پایین‌تر ببریم */
+  .module-card .stage-btn-group {
+    margin-top: 8px;
   }
 
   body.zoomed-out .module-card { width: 250px !important; height: 300px !important; transform: translate(-50%, -50%); background: #1c2531; border-color: #475569; left: 50%; top: 50%; }
   body.zoomed-out .module-title { font-size: 42px; font-weight: 700; text-align: center; text-shadow: 0 4px 12px rgba(0,0,0,0.9); margin-top: 20px; line-height: 1.2; }
-  body.zoomed-out .module-desc, body.zoomed-out .module-progress-row, body.zoomed-out .module-badge, body.zoomed-out .module-card-header-actions, body.zoomed-out .stage-select { display: none; }
+  body.zoomed-out .module-desc, body.zoomed-out .module-progress-row, body.zoomed-out .module-badge, body.zoomed-out .module-card-header-actions, body.zoomed-out .stage-btn-group { display: none; }
   body.zoomed-out .page-btn { width: 16px; height: 16px; font-size: 9px; }
   body.zoomed-out .page-btn-group { left: 4px; }
   body.zoomed-out .page-node { margin: 0; padding-left: 65px; height: 50px; }
@@ -269,7 +287,7 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | نقطه آبی = اتصال | دراپ‌داون روی کارت = تغییر مرحله
+  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | نقطه آبی = اتصال | دکمه‌های روی کارت = تغییر مرحله
 </div>
 
 <div id="toast"></div>
@@ -330,25 +348,25 @@ const STAGES = [
 ];
 
 const MODULE_W = 260;
-const MODULE_H = 220; // افزایش ارتفاع برای جا دادن دراپ‌داون
+const MODULE_H = 240; // افزایش ارتفاع برای دکمه‌ها
 const PAGE_W = 180;
-const PAGE_H = 75; // افزایش ارتفاع برای جا دادن دراپ‌داون
+const PAGE_H = 90; // افزایش ارتفاع برای دکمه‌ها
 const PAGE_GAP = 12;
 const FIXED_CLUSTER_WIDTH = 1600;
 const CLUSTER_GAP_X = 300;
 const CLUSTER_GAP_Y = 300;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
-const GRID_CELL_H = 700; 
+const GRID_CELL_H = 750; 
 
 const state = {
   pan: { x: 50, y: 50 }, zoom: 0.8, connections: [],
   selectedNode: null, filterPosition: "all", search: "",
   nextConnId: 1, customPositions: {},
   pageStatus: { done: {}, front: {}, back: {} },
-  cardStage: {}, // مرحله هر کارت
+  cardStage: {}, 
   collapsedModules: {} 
 };
-const LS_KEY = "module-map-state-v58";
+const LS_KEY = "module-map-state-v59";
 
 function saveState() {
   try {
@@ -378,7 +396,7 @@ function loadState() {
 
 function computeClusterSize(numPages) {
   const clusterW = FIXED_CLUSTER_WIDTH;
-  const maxPerCol = 4; // کاهش برای جا دادن کارت‌های بلندتر
+  const maxPerCol = 4;
   const pagesPerSide = Math.ceil(numPages / 2);
   const colsPerSide = Math.ceil(pagesPerSide / maxPerCol);
   const requiredHeight = maxPerCol * (PAGE_H + PAGE_GAP) + 60;
@@ -484,10 +502,12 @@ function buildWorld() {
 
     const posClass = posBadgeClass(cl.mod.position);
     let pct = calculateModuleProgress(cl.mod.id);
-
-    // ساخت گزینه‌های دراپ‌داون برای ماژول
     const modStage = state.cardStage["mod:" + cl.mod.id] || 'back';
-    const stageOptions = STAGES.map(s => `<option value="${s.id}" ${modStage === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+
+    // ساخت دکمه‌های مرحله برای ماژول
+    const stageBtns = STAGES.map(s => 
+      `<button class="stage-btn ${modStage === s.id ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
+    ).join('');
 
     card.innerHTML = `
       <div class="module-card-header-actions">
@@ -506,27 +526,29 @@ function buildWorld() {
           <div class="progress-bar-fill" style="width:${pct}%"></div>
         </div>
       </div>
-      <select class="stage-select" data-key="mod:${cl.mod.id}">
-        ${stageOptions}
-      </select>
+      <div class="stage-btn-group">
+        ${stageBtns}
+      </div>
       <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
     `;
     clusterEl.appendChild(card);
 
-    // هندل کردن دراپ‌داون ماژول
-    const selectEl = card.querySelector('.stage-select');
-    selectEl.addEventListener('mousedown', (e) => e.stopPropagation());
-    selectEl.addEventListener('change', (e) => {
-      const newStage = e.target.value;
-      state.cardStage["mod:" + cl.mod.id] = newStage;
-      // انتقال همه صفحات به همان مرحله
-      cl.mod.pages.forEach((_, idx) => {
-        state.cardStage[cl.mod.id + ":" + idx] = newStage;
+    // هندل کردن دکمه‌های مرحله ماژول
+    card.querySelectorAll('.stage-btn').forEach(btn => {
+      btn.addEventListener('mousedown', (e) => e.stopPropagation());
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const newStage = btn.dataset.stage;
+        state.cardStage["mod:" + cl.mod.id] = newStage;
+        // انتقال همه صفحات به همان مرحله
+        cl.mod.pages.forEach((_, idx) => {
+          state.cardStage[cl.mod.id + ":" + idx] = newStage;
+        });
+        saveState();
+        buildWorld();
+        applyTransform(true);
+        showToast("ماژول و صفحاتش منتقل شدند به: " + STAGES.find(s => s.id === newStage).name);
       });
-      saveState();
-      buildWorld();
-      applyTransform(true);
-      showToast("ماژول و صفحاتش منتقل شدند به: " + STAGES.find(s => s.id === newStage).name);
     });
 
     const toggleBtn = card.querySelector('.toggle-pages-btn');
@@ -544,7 +566,7 @@ function buildWorld() {
     nodePositions["mod:" + cl.mod.id] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
 
     card.addEventListener("mousedown", (e) => {
-      if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".module-card-header-actions") || e.target.closest(".stage-select")) return;
+      if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".module-card-header-actions") || e.target.closest(".stage-btn-group")) return;
       if (e.target.classList.contains("drag-handle")) return;
       e.stopPropagation();
       const startMouseX = e.clientX, startMouseY = e.clientY;
@@ -624,9 +646,10 @@ function buildWorld() {
       const isBack = state.pageStatus.back[nodeKey] === true;
       if (isDone) pageEl.classList.add("is-done");
 
-      // ساخت گزینه‌های دراپ‌داون برای صفحه
       const pageStage = state.cardStage[nodeKey] || 'back';
-      const pageStageOptions = STAGES.map(s => `<option value="${s.id}" ${pageStage === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+      const pageStageBtns = STAGES.map(s => 
+        `<button class="stage-btn ${pageStage === s.id ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
+      ).join('');
 
       pageEl.innerHTML = `
         <span>${escapeHtml(cl.mod.pages[p.pageIdx])}</span>
@@ -636,9 +659,9 @@ function buildWorld() {
           <div class="page-btn back ${isBack ? 'active' : ''}" title="Back">B</div>
         </div>
         ${statusDotClass(cl.mod.status) ? `<span class="page-status ${statusDotClass(cl.mod.status)}"></span>` : ""}
-        <select class="stage-select" data-key="${nodeKey}">
-          ${pageStageOptions}
-        </select>
+        <div class="stage-btn-group">
+          ${pageStageBtns}
+        </div>
         <span class="drag-handle" title="برای ایجاد اتصال بکشید"></span>
       `;
 
@@ -649,20 +672,22 @@ function buildWorld() {
         nodePositions[nodeKey] = { x: cx + p.x, y: cy + p.y, w: PAGE_W, h: PAGE_H };
       }
 
-      // هندل کردن دراپ‌داون صفحه
-      const pageSelect = pageEl.querySelector('.stage-select');
-      pageSelect.addEventListener('mousedown', (e) => e.stopPropagation());
-      pageSelect.addEventListener('change', (e) => {
-        state.cardStage[nodeKey] = e.target.value;
-        saveState();
-        buildWorld();
-        applyTransform(true);
-        showToast("صفحه منتقل شد به: " + STAGES.find(s => s.id === e.target.value).name);
+      // هندل کردن دکمه‌های مرحله صفحه
+      pageEl.querySelectorAll('.stage-btn').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => e.stopPropagation());
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.cardStage[nodeKey] = btn.dataset.stage;
+          saveState();
+          buildWorld();
+          applyTransform(true);
+          showToast("صفحه منتقل شد به: " + STAGES.find(s => s.id === btn.dataset.stage).name);
+        });
       });
 
       pageEl.addEventListener("mousedown", (e) => {
         if (e.button !== 0) return;
-        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-select")) return;
+        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group")) return;
         if (draggingConn) return;
         e.stopPropagation();
 
@@ -739,7 +764,6 @@ function buildWorld() {
                   else if (c.to === keys[1]) c.to = keys[0];
                 });
 
-                // جابجایی مرحله هم باید swap شود
                 const tStage = state.cardStage[keys[0]];
                 state.cardStage[keys[0]] = state.cardStage[keys[1]];
                 state.cardStage[keys[1]] = tStage;
@@ -759,7 +783,7 @@ function buildWorld() {
       });
 
       pageEl.addEventListener("click", (e) => {
-        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-select") || draggingConn) return;
+        if (e.target.closest('.page-btn-group') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group") || draggingConn) return;
         toggleSelection(nodeKey);
       });
 
@@ -1131,7 +1155,7 @@ function applyTransform(needRender = false) {
 
 canvas.addEventListener("mousedown", (e) => {
   if (e.target.closest(".module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar") ||
-      e.target.closest(".conn-btn") || e.target.closest(".module-card-header-actions") || e.target.closest(".stage-select")) return;
+      e.target.closest(".conn-btn") || e.target.closest(".module-card-header-actions") || e.target.closest(".stage-btn-group")) return;
   if (e.button !== 0) return;
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
@@ -1232,12 +1256,11 @@ function init() {
   
   if (!localStorage.getItem(LS_KEY)) {
     MODULES_DATA.forEach(mod => {
-      // مقدار پیش فرض برای مرحله همه کارت ها 'back'
       state.cardStage["mod:" + mod.id] = 'back';
       mod.pages.forEach((_, idx) => {
         state.cardStage[mod.id + ":" + idx] = 'back';
       });
-      state.collapsedModules[mod.id] = true; // بسته بودن پیش فرض
+      state.collapsedModules[mod.id] = true; 
     });
     saveState();
   }
