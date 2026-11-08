@@ -60,6 +60,13 @@
   }
   .custom-dropdown-item:hover { background: #334155; }
   .custom-dropdown-item input { cursor: pointer; margin: 0; }
+
+  /* ===== Multi-Select Toggle ===== */
+  .multi-select-toggle {
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    color: #7dd3fc; font-weight: bold;
+  }
+  .multi-select-toggle input { width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; }
   
   /* ===== Modal ===== */
   #modal-overlay {
@@ -271,7 +278,7 @@
   /* 🌟 استایل کارت‌های انتخاب شده برای تغییر گروهی */
   .module-card.multi-selected,
   .page-node.multi-selected {
-    box-shadow: 0 0 0 3px #3b82f6 !important;
+    box-shadow: 0 0 0 4px #3b82f6 !important;
     border-color: #3b82f6 !important;
     z-index: 20 !important;
     background: #1e3a5f !important;
@@ -321,6 +328,13 @@
   </div>
 
   <div class="toolbar-group">
+    <label class="multi-select-toggle" title="با فعال‌سازی این گزینه، با کلیک روی کارت‌ها آن‌ها را برای تغییر همزمانِ مرحله انتخاب کنید">
+      <input type="checkbox" id="chk-multi-select">
+      <span>انتخاب چندگانه</span>
+    </label>
+  </div>
+
+  <div class="toolbar-group">
     <div class="custom-dropdown" id="filter-dropdown-container">
       <button id="btn-filter-modules">🔽 فیلتر ماژول‌ها</button>
       <div class="custom-dropdown-menu" id="filter-menu"></div>
@@ -366,7 +380,7 @@
 </div>
 
 <div id="hint">
-  <b>راهنما:</b> کشیدن بوم = پن | Wheel = زوم | Ctrl + کلیک روی کارت = انتخاب چندگانه | نقطه آبی = اتصال
+  <b>راهنما:</b> برای تغییر همزمان مراحل، از گزینه «انتخاب چندگانه» در بالای صفحه استفاده کنید.
 </div>
 
 <div id="toast"></div>
@@ -432,7 +446,7 @@ const PAGE_W = 160;
 const PAGE_H = 140; 
 const PAGE_GAP = 40;
 
-const FIXED_CLUSTER_WIDTH = 1500;
+const FIXED_CLUSTER_WIDTH = 2400;
 const CLUSTER_GAP_X = 600;
 const CLUSTER_GAP_Y = 600;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
@@ -447,6 +461,8 @@ const state = {
   selectedModulesFilter: [],
   multiSelected: new Set()
 };
+
+let multiSelectMode = false; // 🌟 متغیر حالت انتخاب چندگانه
 
 const LS_KEY = "module-map-state-v65";
 const LS_MODULES_KEY = "module-map-data-v65";
@@ -538,6 +554,15 @@ const svgFrontLayer = document.getElementById("svg-front-layer");
 const buttonsLayer = document.getElementById("buttons-layer");
 const clusterMap = {};
 let nodePositions = {};
+
+// ===== Multi-Select Toggle =====
+document.getElementById('chk-multi-select').addEventListener('change', (e) => {
+  multiSelectMode = e.target.checked;
+  if (!multiSelectMode) {
+    state.multiSelected.clear();
+    document.querySelectorAll('.multi-selected').forEach(el => el.classList.remove('multi-selected'));
+  }
+});
 
 // ===== منطق فیلتر =====
 function initFilterDropdown() {
@@ -778,15 +803,16 @@ function buildWorld() {
       openModal('edit-module', cl.mod.id);
     });
 
-    // 🌟 انتخاب چندگانه برای کارت ماژول
+    // 🌟 انتخاب چندگانه
     card.addEventListener("click", (e) => {
-      if (e.ctrlKey || e.metaKey) {
+      if (e.target.closest('.progress-bar-wrap') || e.target.closest('.card-actions') || e.target.closest('.stage-btn-group')) return;
+      if (e.ctrlKey || e.metaKey || multiSelectMode) {
         e.stopPropagation();
         toggleMultiSelect("mod:" + cl.mod.id, card);
       }
     });
 
-    // 🌟 دکمه‌های مرحله ماژول با قابلیت انتخاب چندگانه
+    // 🌟 دکمه‌های مرحله ماژول
     card.querySelectorAll('.stage-btn').forEach(btn => {
       btn.addEventListener('mousedown', (e) => e.stopPropagation());
       btn.addEventListener('click', (e) => {
@@ -794,7 +820,7 @@ function buildWorld() {
         const newStage = btn.dataset.stage;
         
         const targets = new Set(state.multiSelected);
-        targets.add("mod:" + cl.mod.id);
+        targets.add("mod:" + cl.mod.id); // همیشه کارتِ کلیک‌شده را هم شامل شود
         
         targets.forEach(targetKey => {
           state.cardStage[targetKey] = newStage;
@@ -810,6 +836,8 @@ function buildWorld() {
         });
         
         state.multiSelected.clear();
+        document.querySelectorAll('.multi-selected').forEach(el => el.classList.remove('multi-selected'));
+        
         saveState();
         buildWorld();
         applyTransform(true);
@@ -822,7 +850,8 @@ function buildWorld() {
     nodePositions["mod:" + cl.mod.id] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
 
     card.addEventListener("mousedown", (e) => {
-      if (e.button !== 0 || e.target.closest(".progress-bar-wrap") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group")) return;
+      if (e.button !== 0 || e.ctrlKey || e.metaKey || multiSelectMode) return; // جلوگیری از درگ در حالت انتخاب
+      if (e.target.closest(".progress-bar-wrap") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group")) return;
       if (e.target.classList.contains("drag-handle")) return;
       e.stopPropagation();
       const startMouseX = e.clientX, startMouseY = e.clientY;
@@ -929,7 +958,7 @@ function buildWorld() {
       // 🌟 انتخاب چندگانه برای کارت صفحه
       pageEl.addEventListener("click", (e) => {
         if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group") || draggingConn) return;
-        if (e.ctrlKey || e.metaKey) {
+        if (e.ctrlKey || e.metaKey || multiSelectMode) {
           e.stopPropagation();
           toggleMultiSelect(nodeKey, pageEl);
           return;
@@ -945,7 +974,7 @@ function buildWorld() {
           const newStage = btn.dataset.stage;
           
           const targets = new Set(state.multiSelected);
-          targets.add(nodeKey);
+          targets.add(nodeKey); // همیشه کارت کلیک‌شده را هم شامل شود
           
           targets.forEach(targetKey => {
             state.cardStage[targetKey] = newStage;
@@ -961,6 +990,8 @@ function buildWorld() {
           });
           
           state.multiSelected.clear();
+          document.querySelectorAll('.multi-selected').forEach(el => el.classList.remove('multi-selected'));
+          
           saveState();
           buildWorld();
           applyTransform(true);
@@ -969,7 +1000,7 @@ function buildWorld() {
       });
 
       pageEl.addEventListener("mousedown", (e) => {
-        if (e.button !== 0) return;
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || multiSelectMode) return; // جلوگیری از درگ در حالت انتخاب
         if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group")) return;
         if (draggingConn) return;
         e.stopPropagation();
