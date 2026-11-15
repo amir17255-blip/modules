@@ -972,7 +972,7 @@ function buildWorld() {
     card.innerHTML = `
       <div class="card-actions">
         <div class="action-btn btn-edit" title="ویرایش ماژول">✎</div>
-        <div class="action-btn btn-add" title="افزودن صفحه">+</div>
+        <div class="action-btn btn-delete" title="حذف ماژول" style="color: #ef4444;">✕</div>
       </div>
       <div class="module-header">
         <div class="module-title">${escapeHtml(cl.mod.name)}</div>
@@ -1004,6 +1004,33 @@ function buildWorld() {
     card.querySelector('.btn-add').addEventListener('click', (e) => {
       e.stopPropagation();
       openModal('edit-module', cl.mod.id);
+    });
+    card.querySelector('.btn-delete').addEventListener('mousedown', (e) => e.stopPropagation());
+    card.querySelector('.btn-delete').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm(`آیا از حذف ماژول "${cl.mod.name}" و تمام صفحات آن مطمئن هستید؟`)) {
+        // حذف ماژول از آرایه اصلی
+        MODULES_DATA = MODULES_DATA.filter(m => m.id !== cl.mod.id);
+
+        // پاکسازی اطلاعات ذخیره‌شده در حافظه
+        delete state.customPositions[cl.mod.id];
+        delete state.collapsedModules[cl.mod.id];
+        delete state.cardStage["mod:" + cl.mod.id];
+        
+        // حذف اتصالات مرتبط با این ماژول و صفحاتش
+        state.connections = state.connections.filter(c => 
+          c.from !== "mod:" + cl.mod.id && 
+          c.to !== "mod:" + cl.mod.id &&
+          !c.from.startsWith(cl.mod.id + ":") &&
+          !c.to.startsWith(cl.mod.id + ":")
+        );
+
+        saveState();
+        buildWorld();
+        applyTransform(true);
+        initFilterDropdown();
+        showToast("ماژول با موفقیت حذف شد");
+      }
     });
 
     card.addEventListener("click", (e) => {
