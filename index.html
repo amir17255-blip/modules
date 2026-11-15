@@ -259,7 +259,7 @@
     box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
   }
 
-  /* 🌟 دکمه‌های ویرایش و افزودن */
+  /* 🌟 دکمه‌های ویرایش و حذف */
   .card-actions {
     position: absolute;
     top: 8px;
@@ -279,7 +279,8 @@
   }
   .action-btn:hover { background: #334155; border-color: #38bdf8; color: #fff; }
   .action-btn.btn-edit { color: #fbbf24; }
-  .action-btn.btn-add { color: #22c55e; }
+  .action-btn.btn-delete { color: #ef4444; border-color: #7f1d1d; }
+  .action-btn.btn-delete:hover { background: #7f1d1d; color: #fff; border-color: #ef4444; }
 
   /* 🌟 استایل کارت‌های انتخاب شده برای تغییر گروهی */
   .module-card.multi-selected,
@@ -331,9 +332,9 @@
   
   <div class="toolbar-group">
     <button id="btn-add-module" class="success">➕ ماژول جدید</button>
-    <button id="btn-save-gh" title="ذخیره تغییرات">☁️ ذخیره </button>
-    <button id="btn-fetch-gh" title="دریافت آخرین تغییرات">☁️ دریافت </button>
-    <button id="btn-gh-settings" title="تنظیمات اتصال ">⚙️</button>
+    <button id="btn-save-gh" title="ذخیره تغییرات در گیت‌هاب">☁️ ذخیره در گیت‌هاب</button>
+    <button id="btn-fetch-gh" title="دریافت آخرین تغییرات از گیت‌هاب">☁️ دریافت از گیت‌هاب</button>
+    <button id="btn-gh-settings" title="تنظیمات اتصال به گیت‌هاب">⚙️</button>
   </div>
 
   <div class="toolbar-group">
@@ -474,7 +475,7 @@ const PAGE_W = 160;
 const PAGE_H = 140; 
 const PAGE_GAP = 40;
 
-const FIXED_CLUSTER_WIDTH = 1500;
+const FIXED_CLUSTER_WIDTH = 2400;
 const CLUSTER_GAP_X = 600;
 const CLUSTER_GAP_Y = 600;
 const GRID_CELL_W = FIXED_CLUSTER_WIDTH + CLUSTER_GAP_X;
@@ -620,8 +621,16 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
     if (putRes.ok) {
       showToast("✅ با موفقیت در گیت‌هاب ذخیره شد");
     } else {
-      const err = await putRes.json();
-      showToast("❌ خطا در ذخیره: " + (err.message || "نامشخص"));
+      if (putRes.status === 401) {
+        showToast("❌ خطا: توکن نامعتبر است. لطفاً توکن جدید بسازید.");
+      } else if (putRes.status === 403) {
+        showToast("❌ خطا: دسترسی کافی وجود ندارد. مطمئن شوید توکن دسترسی repo دارد.");
+      } else if (putRes.status === 404) {
+        showToast("❌ خطا: مخزن یا مسیر فایل یافت نشد. نام کاربری و مخزن را بررسی کنید.");
+      } else {
+        const err = await putRes.json();
+        showToast("❌ خطا در ذخیره: " + (err.message || "نامشخص"));
+      }
     }
   } catch(e) {
     showToast("❌ خطا در ارتباط با گیت‌هاب");
@@ -644,6 +653,11 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
     
     const fileData = await res.json();
     
+    if (!fileData || !fileData.content) {
+      showToast("❌ محتوای فایل از گیت‌هاب دریافت نشد");
+      return;
+    }
+
     // 🌟 رمزگشایی استاندارد Base64 با پشتیبانی کامل از زبان فارسی
     const cleanContent = fileData.content.replace(/\s/g, '');
     const binaryString = atob(cleanContent);
@@ -670,10 +684,10 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
     buildWorld();
     applyTransform(true);
     initFilterDropdown();
-    showToast("✅ اطلاعات با موفقیت بارگذاری شد");
+    showToast("✅ اطلاعات با موفقیت از گیت‌هاب بارگذاری شد");
   } catch(e) {
-    console.error("خطای دقیق:", e); // این خط خطا را در کنسول نشان می‌دهد
-    showToast("❌ خطا در پردازش اطلاعات دریافتی");
+    console.error("خطای دقیق:", e);
+    showToast("❌ خطا: " + e.message);
   }
 });
 /* ============================================================ */
@@ -972,7 +986,7 @@ function buildWorld() {
     card.innerHTML = `
       <div class="card-actions">
         <div class="action-btn btn-edit" title="ویرایش ماژول">✎</div>
-        <div class="action-btn btn-delete" title="حذف ماژول" style="color: #ef4444;">✕</div>
+        <div class="action-btn btn-delete" title="حذف ماژول">✕</div>
       </div>
       <div class="module-header">
         <div class="module-title">${escapeHtml(cl.mod.name)}</div>
@@ -1000,24 +1014,17 @@ function buildWorld() {
       openModal('edit-module', cl.mod.id);
     });
 
-    card.querySelector('.btn-add').addEventListener('mousedown', (e) => e.stopPropagation());
-    card.querySelector('.btn-add').addEventListener('click', (e) => {
-      e.stopPropagation();
-      openModal('edit-module', cl.mod.id);
-    });
+    // 🌟 اضافه شدن دکمه حذف
     card.querySelector('.btn-delete').addEventListener('mousedown', (e) => e.stopPropagation());
     card.querySelector('.btn-delete').addEventListener('click', (e) => {
       e.stopPropagation();
       if (confirm(`آیا از حذف ماژول "${cl.mod.name}" و تمام صفحات آن مطمئن هستید؟`)) {
-        // حذف ماژول از آرایه اصلی
         MODULES_DATA = MODULES_DATA.filter(m => m.id !== cl.mod.id);
-
-        // پاکسازی اطلاعات ذخیره‌شده در حافظه
+        
         delete state.customPositions[cl.mod.id];
         delete state.collapsedModules[cl.mod.id];
         delete state.cardStage["mod:" + cl.mod.id];
         
-        // حذف اتصالات مرتبط با این ماژول و صفحاتش
         state.connections = state.connections.filter(c => 
           c.from !== "mod:" + cl.mod.id && 
           c.to !== "mod:" + cl.mod.id &&
@@ -1441,7 +1448,7 @@ function autoConnectionPath(fromKey, toKey) {
 }
 
 function renderConnections() {
-  if (state.zoom < 0.25) {
+  if (state.zoom < 0.50) {
     svgLayer.innerHTML = ""; 
     svgFrontLayer.innerHTML = "";
     buttonsLayer.innerHTML = "";
@@ -1643,7 +1650,7 @@ let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 function applyTransform(needRender = false) {
   world.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
   document.getElementById("zoom-level").textContent = Math.round(state.zoom * 100) + "%";
-  const isZoomedOut = state.zoom < 0.35;
+  const isZoomedOut = state.zoom < 0.50;
   if (isZoomedOut) document.body.classList.add("zoomed-out"); else document.body.classList.remove("zoomed-out");
   if (needRender) {
     Object.values(clusterMap).forEach(cl => {
