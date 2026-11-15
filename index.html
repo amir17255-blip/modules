@@ -585,7 +585,7 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
   const conf = getGHConfig();
   if (!conf) { showToast("ابتدا از دکمه ⚙️ تنظیمات گیت‌هاب را وارد کنید"); return; }
   
-  showToast("در حال ذخیره در گیت‌هاب...");
+  showToast("در حال ذخیره  ...");
   const url = `https://api.github.com/repos/${conf.owner}/${conf.repo}/contents/${conf.path}`;
   
   const data = {
@@ -619,7 +619,7 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
     });
     
     if (putRes.ok) {
-      showToast("✅ با موفقیت در گیت‌هاب ذخیره شد");
+      showToast("✅ با موفقیت ذخیره شد");
     } else {
       if (putRes.status === 401) {
         showToast("❌ خطا: توکن نامعتبر است. لطفاً توکن جدید بسازید.");
@@ -684,7 +684,7 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
     buildWorld();
     applyTransform(true);
     initFilterDropdown();
-    showToast("✅ اطلاعات با موفقیت از گیت‌هاب بارگذاری شد");
+    showToast("✅ اطلاعات با موفقیت بارگذاری شد");
   } catch(e) {
     console.error("خطای دقیق:", e);
     showToast("❌ خطا: " + e.message);
