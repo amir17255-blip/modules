@@ -587,7 +587,7 @@ const state = {
 let multiSelectMode = false;
 let toastTimer;
 
-// 🌟 تعریف متغیرهای اصلی DOM برای جلوگیری از خطای svgLayer is not defined
+// 🌟 تعریف متغیرهای اصلی DOM
 const world = document.getElementById("world");
 const svgLayer = document.getElementById("svg-layer");
 const svgFrontLayer = document.getElementById("svg-front-layer");
@@ -697,6 +697,158 @@ function loadState() {
   }
 }
 
+/* ============================================================
+   GitHub Integration (تنظیمات، دریافت و ذخیره)
+   ============================================================ */
+function getGHConfig() {
+  const raw = localStorage.getItem(LS_GH_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch(e) { return null; }
+}
+
+document.getElementById("btn-gh-settings").addEventListener("click", () => {
+  const conf = getGHConfig();
+  if (conf) {
+    document.getElementById("gh-owner").value = conf.owner || "";
+    document.getElementById("gh-repo").value = conf.repo || "";
+    document.getElementById("gh-path").value = conf.path || "data.json";
+    document.getElementById("gh-token").value = conf.token || "";
+  }
+  document.getElementById("gh-modal-overlay").classList.add("show");
+});
+
+document.getElementById("btn-gh-cancel").addEventListener("click", () => {
+  document.getElementById("gh-modal-overlay").classList.remove("show");
+});
+
+document.getElementById("btn-gh-save").addEventListener("click", () => {
+  const conf = {
+    owner: document.getElementById("gh-owner").value.trim(),
+    repo: document.getElementById("gh-repo").value.trim(),
+    path: document.getElementById("gh-path").value.trim() || "data.json",
+    token: document.getElementById("gh-token").value.trim()
+  };
+  if (!conf.owner || !conf.repo || !conf.token) {
+    showToast("لطفا تمامی فیلدها (نام کاربری، مخزن و توکن) را پر کنید"); return;
+  }
+  localStorage.setItem(LS_GH_KEY, JSON.stringify(conf));
+  document.getElementById("gh-modal-overlay").classList.remove("show");
+  showToast("✅ تنظیمات گیت‌هاب با موفقیت ذخیره شد");
+});
+
+document.getElementById("btn-save-gh").addEventListener("click", async () => {
+  const conf = getGHConfig();
+  if (!conf) { showToast("ابتدا از دکمه ⚙️ تنظیمات گیت‌هاب را وارد کنید"); return; }
+  
+  showToast("در حال ذخیره در گیت‌هاب...");
+  const url = `https://api.github.com/repos/${conf.owner}/${conf.repo}/contents/${conf.path}`;
+  
+  const data = {
+    modules: MODULES_DATA,
+    stages: STAGES,
+    tasks: TASK_STATS,
+    state: {
+      pan: state.pan, zoom: state.zoom, connections: state.connections,
+      nextConnId: state.nextConnId, customPositions: state.customPositions,
+      cardStage: state.cardStage, hiddenStages: state.hiddenStages,
+      collapsedModules: state.collapsedModules
+    }
+  };
+  
+  try {
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    
+    let sha = null;
+    const getRes = await fetch(url, { headers: { Authorization: `token ${conf.token}` } });
+    if (getRes.ok) {
+      const fileData = await getRes.json();
+      sha = fileData.sha;
+    }
+    
+    const body = { message: "Update module map data", content: content };
+    if (sha) body.sha = sha;
+    
+    const putRes = await fetch(url, {
+      method: "PUT",
+      headers: { Authorization: `token ${conf.token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    
+    if (putRes.ok) {
+      showToast("✅ با موفقیت در گیت‌هاب ذخیره شد");
+    } else {
+      if (putRes.status === 401) showToast("❌ خطا: توکن نامعتبر است. (Bad Credentials)");
+      else if (putRes.status === 403) showToast("❌ خطا: دسترسی کافی نیست. (توکن باید دسترسی repo داشته باشد)");
+      else if (putRes.status === 404) showToast("❌ خطا: مخزن یا مسیر فایل یافت نشد. (نام کاربری و مخزن را چک کنید)");
+      else {
+        const err = await putRes.json();
+        showToast("❌ خطا در ذخیره: " + (err.message || "نامشخص"));
+      }
+    }
+  } catch(e) {
+    showToast("❌ خطا در ارتباط با گیت‌هاب. اینترنت یا VPN خود را بررسی کنید.");
+  }
+});
+
+document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
+  const conf = getGHConfig();
+  if (!conf) { showToast("ابتدا از دکمه ⚙️ تنظیمات گیت‌هاب را وارد کنید"); return; }
+  
+  showToast("در حال دریافت از گیت‌هاب...");
+  const url = `https://api.github.com/repos/${conf.owner}/${conf.repo}/contents/${conf.path}`;
+  
+  try {
+    const res = await fetch(url, { headers: { Authorization: `token ${conf.token}` } });
+    if (!res.ok) {
+      if (res.status === 401) showToast("❌ خطا: توکن نامعتبر است.");
+      else if (res.status === 404) showToast("❌ خطا: فایل در گیت‌هاب یافت نشد. ابتدا یک بار دکمه ذخیره را بزنید.");
+      else showToast("❌ فایل در گیت‌هاب یافت نشد یا توکن نامعتبر است");
+      return;
+    }
+    
+    const fileData = await res.json();
+    
+    if (!fileData || !fileData.content) {
+      showToast("❌ محتوای فایل از گیت‌هاب دریافت نشد");
+      return;
+    }
+
+    const cleanContent = fileData.content.replace(/\s/g, '');
+    const binaryString = atob(cleanContent);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    const decoded = new TextDecoder("utf-8").decode(bytes);
+    
+    const parsed = JSON.parse(decoded);
+    
+    if (parsed.modules) MODULES_DATA = sanitizeModules(parsed.modules);
+    if (parsed.stages) STAGES = sanitizeStages(parsed.stages);
+    if (parsed.tasks && typeof parsed.tasks === 'object') TASK_STATS = parsed.tasks;
+    
+    if (parsed.state) {
+      state.pan = parsed.state.pan || state.pan;
+      state.zoom = parsed.state.zoom || state.zoom;
+      state.connections = parsed.state.connections || state.connections;
+      state.nextConnId = parsed.state.nextConnId || state.nextConnId;
+      state.customPositions = parsed.state.customPositions || state.customPositions;
+      state.cardStage = parsed.state.cardStage || state.cardStage;
+      state.hiddenStages = parsed.state.hiddenStages || {};
+      state.collapsedModules = parsed.state.collapsedModules || state.collapsedModules;
+    }
+    
+    saveState();
+    buildWorld();
+    applyTransform(true);
+    initFilterDropdown();
+    initStageFilterDropdown();
+    showToast("✅ اطلاعات با موفقیت از گیت‌هاب بارگذاری شد");
+  } catch(e) {
+    console.error("خطای دقیق:", e);
+    showToast("❌ خطا در پردازش اطلاعات دریافتی: " + e.message);
+  }
+});
 /* ============================================================ */
 
 function computeClusterSize(numPages) {
@@ -2052,7 +2204,7 @@ document.getElementById("btn-clear-connections").addEventListener("click", () =>
 
 function showToast(msg) {
   const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2500);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
 }
 
 // ===== منطق فیلتر ماژول =====
