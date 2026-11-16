@@ -587,6 +587,15 @@ const state = {
 let multiSelectMode = false;
 let toastTimer;
 
+// 🌟 تعریف متغیرهای اصلی DOM برای جلوگیری از خطای svgLayer is not defined
+const world = document.getElementById("world");
+const svgLayer = document.getElementById("svg-layer");
+const svgFrontLayer = document.getElementById("svg-front-layer");
+const buttonsLayer = document.getElementById("buttons-layer");
+const canvas = document.getElementById("canvas");
+const clusterMap = {};
+let nodePositions = {};
+
 const LS_KEY = "module-map-state-v65";
 const LS_MODULES_KEY = "module-map-data-v65";
 const LS_STAGES_KEY = "module-map-stages-v65";
@@ -1878,7 +1887,6 @@ function applyHighlight(key) {
   renderConnections();
 }
 
-const canvas = document.getElementById("canvas");
 let isPanning = false, panStart = { x: 0, y: 0, panX: 0, panY: 0 };
 
 function applyTransform(needRender = false) {
