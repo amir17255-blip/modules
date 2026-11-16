@@ -21,12 +21,13 @@
     display: flex; align-items: center; gap: 12px; padding: 0 16px;
     z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.4); 
     
-    /* 🌟 اصلاح چیدمان: فعال‌سازی اسکرول افقی */
+    /* 🌟 اصلاح چیدمان نوار بالا */
     overflow-x: auto;
     overflow-y: hidden;
-    scrollbar-width: none; /* برای فایرفاکس */
+    white-space: nowrap;
+    scrollbar-width: none; /* فایرفاکس */
   }
-  #toolbar::-webkit-scrollbar { display: none; } /* برای کروم و سافاری */
+  #toolbar::-webkit-scrollbar { display: none; } /* کروم و سافاری */
   
   #toolbar h1 { font-size: 15px; font-weight: 600; color: #7dd3fc; white-space: nowrap; }
   .toolbar-group {
@@ -56,7 +57,7 @@
   #btn-gh-settings:hover { background: #475569; color: #fff; }
 
   #zoom-level { font-size: 12px; color: #94a3b8; min-width: 44px; text-align: center; }
-  #stats { font-size: 11px; color: #64748b; margin-right: auto; white-space: nowrap; }
+  #stats { font-size: 11px; color: #64748b; margin-right: auto; white-space: nowrap; padding-left: 10px;}
 
   /* ===== Custom Filter Dropdown ===== */
   .custom-dropdown { position: relative; display: inline-block; }
@@ -636,11 +637,11 @@ function loadState() {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return;
     const s = JSON.parse(raw);
-    if (s.pan) state.pan = s.pan;
-    if (typeof s.zoom === "number") state.zoom = s.zoom;
+    if (s.pan && typeof s.pan === 'object') state.pan = s.pan;
+    if (typeof s.zoom === "number" && !isNaN(s.zoom)) state.zoom = s.zoom;
     if (Array.isArray(s.connections)) state.connections = s.connections.map(c => ({ ...c, type: c.type || 'one-way' }));
     if (s.nextConnId) state.nextConnId = s.nextConnId;
-    if (s.customPositions) state.customPositions = s.customPositions;
+    if (s.customPositions && typeof s.customPositions === 'object') state.customPositions = s.customPositions;
     
     if (s.hiddenStages) {
       Object.keys(s.hiddenStages).forEach(key => {
@@ -1675,11 +1676,35 @@ function buildWorld() {
     }, 50);
   } catch (e) {
     console.error("Critical error in buildWorld:", e);
-    showToast("❌ خطای بحرانی در رندر نقشه (در حال ریست خودکار...)");
+    showToast("❌ خطا در رندر نقشه. بازگشت به حالت اولیه...");
     
-    // 🌟 مکانیزم خودترمیم: اگر رندر به طور کلی شکست خورد، حافظه را پاک و ری‌لود کن
+    // 🌟 در صورت بروز خطا، به جای رفرش، داده‌ها را ریست کرده و دوباره می‌سازیم
+    MODULES_DATA = JSON.parse(JSON.stringify(DEFAULT_MODULES));
+    STAGES = JSON.parse(JSON.stringify(DEFAULT_STAGES));
+    TASK_STATS = {};
+    state.cardStage = {};
+    state.customPositions = {};
+    state.connections = [];
+    state.hiddenStages = {};
+    
+    MODULES_DATA.forEach(mod => {
+      state.cardStage["mod:" + mod.id] = ['back'];
+      if(mod.pages) {
+        mod.pages.forEach((_, idx) => {
+          state.cardStage[mod.id + ":" + idx] = ['back'];
+        });
+      }
+    });
+    
     localStorage.clear();
-    setTimeout(() => location.reload(), 1500);
+    saveState();
+    
+    try {
+      buildWorld();
+      applyTransform(true);
+    } catch(recoveryErr) {
+      console.error("Recovery failed:", recoveryErr);
+    }
   }
 }
 
@@ -1803,7 +1828,7 @@ function renderConnections() {
     if (state.collapsedModules[mod.id]) return;
     const modKey = "mod:" + mod.id;
     if (!nodePositions[modKey]) return;
-    if (!mod.pages) return; 
+    if (!mod.pages || !Array.isArray(mod.pages)) return; 
 
     mod.pages.forEach((_, idx) => {
       const pageKey = mod.id + ":" + idx;
@@ -2103,7 +2128,7 @@ function applyFilters() {
     }
     
     if (visible && search) {
-      visible = mod.name.toLowerCase().includes(search) || (mod.pages && mod.pages.some(p => p.toLowerCase().includes(search)));
+      visible = mod.name.toLowerCase().includes(search) || (mod.pages && Array.isArray(mod.pages) && mod.pages.some(p => p.toLowerCase().includes(search)));
     }
 
     if (visible && state.selectedStagesFilter.length > 0) {
@@ -2115,7 +2140,7 @@ function applyFilters() {
       
       if (modStages.some(s => state.selectedStagesFilter.includes(s))) {
         hasSelectedStage = true;
-      } else if (mod.pages) {
+      } else if (mod.pages && Array.isArray(mod.pages)) {
         for (let i = 0; i < mod.pages.length; i++) {
           let pageStages = state.cardStage[mod.id + ":" + i] || ['back'];
           if (!Array.isArray(pageStages)) pageStages = [pageStages];
