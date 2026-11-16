@@ -75,15 +75,15 @@
   .multi-select-toggle input { width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; }
   
   /* ===== Modal ===== */
-  #modal-overlay, #gh-modal-overlay, #stages-modal-overlay, #page-stages-modal-overlay {
+  #modal-overlay, #gh-modal-overlay, #stages-modal-overlay, #page-stages-modal-overlay, #tasks-modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
     z-index: 1000; display: none; align-items: center; justify-content: center;
   }
-  #modal-overlay.show, #gh-modal-overlay.show, #stages-modal-overlay.show, #page-stages-modal-overlay.show { display: flex; }
+  #modal-overlay.show, #gh-modal-overlay.show, #stages-modal-overlay.show, #page-stages-modal-overlay.show, #tasks-modal-overlay.show { display: flex; }
   .modal-content {
     background: #1e293b; border: 1px solid #334155; border-radius: 12px;
-    padding: 24px; width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    padding: 24px; width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     display: flex; flex-direction: column; gap: 16px; max-height: 90vh; overflow-y: auto;
   }
   .modal-content h2 { font-size: 16px; color: #7dd3fc; margin-bottom: 8px; }
@@ -92,7 +92,7 @@
     width: 100%; background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
     padding: 8px; border-radius: 6px; font-family: inherit; font-size: 13px;
   }
-  .modal-content textarea { resize: vertical; min-height: 100px; }
+  .modal-content textarea { resize: vertical; min-height: 150px; font-family: monospace; direction: ltr; text-align: left;}
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 
   /* ===== Stage List in Modal ===== */
@@ -195,6 +195,16 @@
   .progress-bar-wrap { flex: 1; height: 6px; background: #1e293b; border-radius: 4px; overflow: hidden; }
   .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #22d3ee); transition: width 0.3s ease; }
 
+  /* 🌟 استایل تسک‌ها روی کارت ماژول */
+  .module-task-stats {
+    display: flex; justify-content: space-around; font-size: 11px; 
+    background: #0f172a; padding: 6px; border-radius: 6px; border: 1px dashed #334155;
+    margin-top: 4px; pointer-events: none;
+  }
+  .module-task-stats span { display: flex; align-items: center; gap: 4px; }
+  .task-stat-done { color: #22c55e; font-weight: bold; }
+  .task-stat-hours { color: #fbbf24; font-weight: bold; }
+
   /* ===== Page Node ===== */
   .page-node {
     position: absolute; background: linear-gradient(145deg, #1a2330 0%, #131a24 100%);
@@ -219,7 +229,7 @@
   .page-node .page-title {
     flex: 1; word-break: break-word; line-height: 1.3; margin-bottom: 4px; font-weight: 600; font-size: 12px;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    overflow: hidden; pointer-events: none; padding-left: 55px; /* Increased padding to accommodate 2 buttons */
+    overflow: hidden; pointer-events: none; padding-left: 55px;
   }
 
   /* ✅ نقطه آبی */
@@ -240,49 +250,27 @@
 
   /* 🌟 استایل دکمه‌های مرحله */
   .stage-btn-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px;
-    margin-top: 4px;
-    justify-content: center;
+    display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; justify-content: center;
   }
   
   .stage-btn {
-    font-size: 9px;
-    padding: 2px 4px;
-    border-radius: 4px;
-    background: #1e293b;
-    border: 1px solid #475569;
-    color: #94a3b8;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.15s;
-    font-family: inherit;
+    font-size: 9px; padding: 2px 4px; border-radius: 4px; background: #1e293b;
+    border: 1px solid #475569; color: #94a3b8; cursor: pointer; white-space: nowrap;
+    transition: all 0.15s; font-family: inherit;
   }
   .stage-btn:hover { background: #334155; color: #fff; }
   .stage-btn.active {
-    background: #3b82f6;
-    border-color: #3b82f6;
-    color: white;
+    background: #3b82f6; border-color: #3b82f6; color: white;
     box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
   }
 
   /* 🌟 دکمه‌های ویرایش و حذف */
   .card-actions {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    display: flex;
-    gap: 4px;
-    z-index: 10;
+    position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; z-index: 10;
   }
   .action-btn {
-    width: 22px; height: 22px;
-    border-radius: 6px;
-    background: rgba(30, 41, 59, 0.9);
-    border: 1px solid #475569;
-    color: #7dd3fc;
-    display: flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 6px; background: rgba(30, 41, 59, 0.9);
+    border: 1px solid #475569; color: #7dd3fc; display: flex; align-items: center; justify-content: center;
     cursor: pointer; font-size: 12px; transition: all 0.2s;
   }
   .action-btn:hover { background: #334155; border-color: #38bdf8; color: #fff; }
@@ -295,35 +283,30 @@
   /* 🌟 استایل کارت‌های انتخاب شده برای تغییر گروهی */
   .module-card.multi-selected,
   .page-node.multi-selected {
-    box-shadow: 0 0 0 4px #3b82f6 !important;
-    border-color: #3b82f6 !important;
-    z-index: 20 !important;
-    background: #1e3a5f !important;
+    box-shadow: 0 0 0 4px #3b82f6 !important; border-color: #3b82f6 !important;
+    z-index: 20 !important; background: #1e3a5f !important;
   }
 
   /* 🌟 حالت ماکرو (زوم اوت) */
   body.zoomed-out #svg-layer, 
   body.zoomed-out #svg-front-layer, 
-  body.zoomed-out #buttons-layer { 
-    display: none !important; 
-  }
+  body.zoomed-out #buttons-layer { display: none !important; }
   
   body.zoomed-out .module-card { 
-    width: 500px !important; height: 500px !important; 
-    transform: translate(-50%, -50%); 
+    width: 500px !important; height: 500px !important; transform: translate(-50%, -50%); 
     background: #1c2531; border-color: #475569; left: 50%; top: 50%; 
     display: flex; align-items: center; justify-content: center;
     border-radius: 20px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   }
   body.zoomed-out .module-header { padding: 0 !important; display: block !important; text-align: center; width: 100%;}
   body.zoomed-out .module-title { 
-    font-size: 100px !important; font-weight: 900; 
-    text-align: center; word-break: break-word; line-height: 1.4;
+    font-size: 100px !important; font-weight: 900; text-align: center; word-break: break-word; line-height: 1.4;
     margin: 0 !important; padding: 0 !important; color: #7dd3fc !important;
   }
   body.zoomed-out .module-desc, 
   body.zoomed-out .module-progress-row, 
   body.zoomed-out .module-badge, 
+  body.zoomed-out .module-task-stats,
   body.zoomed-out .card-actions, 
   body.zoomed-out .stage-btn-group,
   body.zoomed-out .drag-handle { display: none !important; }
@@ -343,6 +326,7 @@
   <div class="toolbar-group">
     <button id="btn-add-module" class="success">➕ ماژول جدید</button>
     <button id="btn-manage-stages">⚙️ مدیریت مراحل</button>
+    <button id="btn-import-tasks" style="background: #0369a1; border-color: #0ea5e9; color: #e0f2fe;">📊 ورود داده‌های تسک</button>
     <button id="btn-save-gh" title="ذخیره تغییرات در گیت‌هاب">☁️ ذخیره در گیت‌هاب</button>
     <button id="btn-fetch-gh" title="دریافت آخرین تغییرات از گیت‌هاب">☁️ دریافت از گیت‌هاب</button>
     <button id="btn-gh-settings" title="تنظیمات اتصال به گیت‌هاب">⚙️</button>
@@ -439,6 +423,26 @@
     <div class="modal-actions">
       <button id="btn-page-stages-save" class="success">ذخیره</button>
       <button id="btn-page-stages-cancel" class="danger">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Import Tasks -->
+<div id="tasks-modal-overlay">
+  <div class="modal-content">
+    <h2>📊 ورود داده‌های تسک (از اکسل)</h2>
+    <p style="font-size: 12px; color: #cbd5e1; line-height: 1.5;">
+      برای اتصال داده‌های اکسل به نقشه، مراحل زیر را انجام دهید:<br>
+      ۱. در فایل اکسل خود (شیت اصلی که داده‌هاست)، ستون‌های <b>ماژول</b>، <b>مجموع زمان گزارش شده</b> و <b>وضعیت</b> را انتخاب کرده و کپی کنید (Ctrl+C).<br>
+      ۲. در کادر زیر پیست کنید (Ctrl+V) و دکمه پردازش را بزنید.
+    </p>
+    <textarea id="tasks-data-input" placeholder="داده‌های کپی شده از اکسل را اینجا پیست کنید..."></textarea>
+    <div class="modal-actions" style="justify-content: space-between;">
+      <button id="btn-clear-tasks" class="danger">پاک کردن داده‌ها</button>
+      <div>
+        <button id="btn-tasks-cancel" class="secondary" style="background:#334155; color:#fff;">انصراف</button>
+        <button id="btn-tasks-save" class="success">پردازش و ذخیره</button>
+      </div>
     </div>
   </div>
 </div>
@@ -540,18 +544,20 @@ const state = {
   selectedNode: null, filterPosition: "all", search: "",
   nextConnId: 1, customPositions: {},
   cardStage: {}, 
-  hiddenStages: {}, // ذخیره مراحلی که روی هر صفحه مخفی شده‌اند
+  hiddenStages: {},
   collapsedModules: {},
   selectedModulesFilter: [],
   selectedStagesFilter: [],
   multiSelected: new Set()
 };
 
+let TASK_STATS = {}; // آمار تسک‌ها
 let multiSelectMode = false;
 
 const LS_KEY = "module-map-state-v65";
 const LS_MODULES_KEY = "module-map-data-v65";
 const LS_STAGES_KEY = "module-map-stages-v65";
+const LS_TASKS_KEY = "module-map-tasks-v65";
 const LS_GH_KEY = "module-map-github-config";
 
 function saveState() {
@@ -564,19 +570,20 @@ function saveState() {
     }));
     localStorage.setItem(LS_MODULES_KEY, JSON.stringify(MODULES_DATA));
     localStorage.setItem(LS_STAGES_KEY, JSON.stringify(STAGES));
+    localStorage.setItem(LS_TASKS_KEY, JSON.stringify(TASK_STATS));
   } catch(e) {}
 }
 
 function loadState() {
   try {
     const rawModules = localStorage.getItem(LS_MODULES_KEY);
-    if (rawModules) {
-      MODULES_DATA = JSON.parse(rawModules);
-    }
+    if (rawModules) MODULES_DATA = JSON.parse(rawModules);
+    
     const rawStages = localStorage.getItem(LS_STAGES_KEY);
-    if (rawStages) {
-      STAGES = JSON.parse(rawStages);
-    }
+    if (rawStages) STAGES = JSON.parse(rawStages);
+
+    const rawTasks = localStorage.getItem(LS_TASKS_KEY);
+    if (rawTasks) TASK_STATS = JSON.parse(rawTasks);
     
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return;
@@ -655,6 +662,7 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
   const data = {
     modules: MODULES_DATA,
     stages: STAGES,
+    tasks: TASK_STATS,
     state: {
       pan: state.pan, zoom: state.zoom, connections: state.connections,
       nextConnId: state.nextConnId, customPositions: state.customPositions,
@@ -685,13 +693,10 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
     if (putRes.ok) {
       showToast("✅ با موفقیت ذخیره شد");
     } else {
-      if (putRes.status === 401) {
-        showToast("❌ خطا: توکن نامعتبر است. لطفاً توکن جدید بسازید.");
-      } else if (putRes.status === 403) {
-        showToast("❌ خطا: دسترسی کافی وجود ندارد. مطمئن شوید توکن دسترسی repo دارد.");
-      } else if (putRes.status === 404) {
-        showToast("❌ خطا: مخزن یا مسیر فایل یافت نشد. نام کاربری و مخزن را بررسی کنید.");
-      } else {
+      if (putRes.status === 401) showToast("❌ خطا: توکن نامعتبر است.");
+      else if (putRes.status === 403) showToast("❌ خطا: دسترسی کافی وجود ندارد.");
+      else if (putRes.status === 404) showToast("❌ خطا: مخزن یا مسیر فایل یافت نشد.");
+      else {
         const err = await putRes.json();
         showToast("❌ خطا در ذخیره: " + (err.message || "نامشخص"));
       }
@@ -734,6 +739,8 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
     
     if (parsed.modules) MODULES_DATA = parsed.modules;
     if (parsed.stages) STAGES = parsed.stages;
+    if (parsed.tasks) TASK_STATS = parsed.tasks;
+    
     if (parsed.state) {
       state.pan = parsed.state.pan || state.pan;
       state.zoom = parsed.state.zoom || state.zoom;
@@ -815,90 +822,89 @@ function calculateModuleProgress(modId) {
   return Math.round(total / mod.pages.length);
 }
 
-const world = document.getElementById("world");
-const svgLayer = document.getElementById("svg-layer");
-const svgFrontLayer = document.getElementById("svg-front-layer");
-const buttonsLayer = document.getElementById("buttons-layer");
-const clusterMap = {};
-let nodePositions = {};
-
-// ===== Multi-Select Toggle =====
-document.getElementById('chk-multi-select').addEventListener('change', (e) => {
-  multiSelectMode = e.target.checked;
-  if (!multiSelectMode) {
-    state.multiSelected.clear();
-    document.querySelectorAll('.multi-selected').forEach(el => el.classList.remove('multi-selected'));
+// 🌟 محاسبه و پردازش داده‌های تسک‌ها
+function parseDurationToHours(str) {
+  if (!str) return 0;
+  str = str.trim();
+  let hours = 0;
+  // فرمت: 1 day, 12:00:00
+  const dayMatch = str.match(/(\d+)\s*day/i);
+  if (dayMatch) hours += parseInt(dayMatch[1]) * 24;
+  
+  const timeMatch = str.match(/(\d+):(\d+):(\d+)/);
+  if (timeMatch) {
+    hours += parseInt(timeMatch[1]) + (parseInt(timeMatch[2]) / 60) + (parseInt(timeMatch[3]) / 3600);
+  } else {
+    const hOnly = str.match(/(\d+):(\d+)/);
+    if (hOnly) hours += parseInt(hOnly[1]) + (parseInt(hOnly[2]) / 60);
   }
-});
-
-// ===== منطق فیلتر ماژول =====
-function initFilterDropdown() {
-  const menu = document.getElementById('filter-menu');
-  menu.innerHTML = '';
-  MODULES_DATA.forEach(mod => {
-    const label = document.createElement('label');
-    label.className = 'custom-dropdown-item';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.value = mod.id;
-    cb.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        state.selectedModulesFilter.push(mod.id);
-      } else {
-        state.selectedModulesFilter = state.selectedModulesFilter.filter(id => id !== mod.id);
-      }
-      applyFilters();
-    });
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(mod.name));
-    menu.appendChild(label);
-  });
+  return Math.round(hours * 10) / 10; // یک رقم اعشار
 }
 
-// ===== منطق فیلتر مراحل =====
-function initStageFilterDropdown() {
-  const menu = document.getElementById('stage-filter-menu');
-  menu.innerHTML = '';
-  STAGES.forEach(stg => {
-    const label = document.createElement('label');
-    label.className = 'custom-dropdown-item';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.value = stg.id;
-    cb.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        state.selectedStagesFilter.push(stg.id);
-      } else {
-        state.selectedStagesFilter = state.selectedStagesFilter.filter(id => id !== stg.id);
+function processTasksData(rawText) {
+  const lines = rawText.split('\n').filter(l => l.trim() !== '');
+  if (lines.length === 0) { showToast("داده‌ای یافت نشد."); return; }
+
+  // یافتن ستون‌ها بر اساس هدر
+  let moduleIdx = -1, timeIdx = -1, statusIdx = -1;
+  let dataStartIndex = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const cols = lines[i].split('\t');
+    if (cols.some(c => c.includes('ماژول')) && cols.some(c => c.includes('وضعیت'))) {
+      // هدر پیدا شد
+      moduleIdx = cols.findIndex(c => c.includes('ماژول'));
+      timeIdx = cols.findIndex(c => c.includes('مجموع زمان گزارش شده'));
+      statusIdx = cols.findIndex(c => c.includes('وضعیت'));
+      dataStartIndex = i + 1;
+      break;
+    }
+  }
+
+  // اگر هدر پیدا نشد، فرض می‌کنیم کاربر فقط 3 ستون کپی کرده است
+  if (moduleIdx === -1) {
+    moduleIdx = 0; timeIdx = 1; statusIdx = 2;
+    dataStartIndex = 0;
+  }
+
+  const newStats = {};
+  
+  for (let i = dataStartIndex; i < lines.length; i++) {
+    const cols = lines[i].split('\t');
+    if (cols.length <= Math.max(moduleIdx, timeIdx, statusIdx)) continue;
+
+    let modName = cols[moduleIdx].trim();
+    const timeStr = cols[timeIdx].trim();
+    const statusStr = cols[statusIdx].trim().toLowerCase();
+
+    if (!modName) continue;
+
+    // تمیز کردن نام ماژول برای تطبیق (حذف کلمه "ماژول ")
+    modName = modName.replace(/^ماژول\s+/i, '').trim();
+
+    // پیدا کردن ماژول متناظر در سیستم
+    const matchedMod = MODULES_DATA.find(m => 
+      m.name.includes(modName) || modName.includes(m.name)
+    );
+
+    if (matchedMod) {
+      const key = matchedMod.id;
+      if (!newStats[key]) newStats[key] = { hours: 0, done: 0, total: 0 };
+      
+      newStats[key].total++;
+      newStats[key].hours += parseDurationToHours(timeStr);
+      if (statusStr.includes('done') || statusStr.includes('تکمیل') || statusStr.includes('انجام')) {
+        newStats[key].done++;
       }
-      applyFilters();
-    });
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(stg.name));
-    menu.appendChild(label);
-  });
+    }
+  }
+
+  TASK_STATS = newStats;
+  saveState();
+  buildWorld();
+  applyTransform(true);
+  showToast("✅ داده‌های تسک پردازش و روی ماژول‌ها اعمال شد");
 }
-
-document.getElementById('btn-filter-modules').addEventListener('click', (e) => {
-  e.stopPropagation();
-  document.getElementById('filter-menu').classList.toggle('show');
-  document.getElementById('stage-filter-menu').classList.remove('show');
-});
-
-document.getElementById('btn-filter-stages').addEventListener('click', (e) => {
-  e.stopPropagation();
-  document.getElementById('stage-filter-menu').classList.toggle('show');
-  document.getElementById('filter-menu').classList.remove('show');
-});
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#filter-dropdown-container')) {
-    document.getElementById('filter-menu').classList.remove('show');
-  }
-  if (!e.target.closest('#stage-filter-container')) {
-    document.getElementById('stage-filter-menu').classList.remove('show');
-  }
-});
 
 // ===== مدیریت مراحل کلی (Toolbar) =====
 function renderStagesModal() {
@@ -951,17 +957,13 @@ window.deleteStage = function(stageId) {
   
   STAGES = STAGES.filter(s => s.id !== stageId);
   
-  // پاکسازی state.cardStage
   Object.keys(state.cardStage).forEach(key => {
     let arr = state.cardStage[key];
     if (!Array.isArray(arr)) arr = [arr];
     state.cardStage[key] = arr.filter(s => s !== stageId);
-    if (state.cardStage[key].length === 0) {
-      state.cardStage[key] = ['back']; // اگر خالی شد، حداقل یک مرحله پیش‌فرض داشته باشد
-    }
+    if (state.cardStage[key].length === 0) state.cardStage[key] = ['back'];
   });
   
-  // پاکسازی state.hiddenStages
   Object.keys(state.hiddenStages).forEach(key => {
     state.hiddenStages[key] = state.hiddenStages[key].filter(s => s !== stageId);
   });
@@ -1132,6 +1134,35 @@ document.getElementById('btn-modal-save').addEventListener('click', () => {
 
 document.getElementById('btn-add-module').addEventListener('click', () => openModal('add'));
 
+// ===== مودال ورود داده‌های تسک =====
+document.getElementById('btn-import-tasks').addEventListener('click', () => {
+  document.getElementById('tasks-modal-overlay').classList.add('show');
+});
+
+document.getElementById('btn-tasks-cancel').addEventListener('click', () => {
+  document.getElementById('tasks-modal-overlay').classList.remove('show');
+});
+
+document.getElementById('btn-tasks-save').addEventListener('click', () => {
+  const text = document.getElementById('tasks-data-input').value;
+  if (!text.trim()) { showToast("لطفا داده‌ها را پیست کنید"); return; }
+  
+  processTasksData(text);
+  document.getElementById('tasks-modal-overlay').classList.remove('show');
+  document.getElementById('tasks-data-input').value = ''; // پاک کردن پس از پردازش
+});
+
+document.getElementById('btn-clear-tasks').addEventListener('click', () => {
+  if(confirm("آیا از پاک کردن تمام داده‌های تسک مطمئن هستید؟")) {
+    TASK_STATS = {};
+    saveState();
+    buildWorld();
+    applyTransform(true);
+    document.getElementById('tasks-modal-overlay').classList.remove('show');
+    showToast("داده‌های تسک پاک شد");
+  }
+});
+
 function toggleCardStage(cardKey, stageId) {
   let stages = state.cardStage[cardKey] || ['back'];
   if (!Array.isArray(stages)) stages = [stages]; // Safety
@@ -1202,10 +1233,21 @@ function buildWorld() {
     let modStages = state.cardStage["mod:" + cl.mod.id] || ['back'];
     if (!Array.isArray(modStages)) modStages = [modStages];
 
-    // تولید دکمه‌های مرحله بر اساس آرایه STAGES که ممکن است تغییر کرده باشد
     const stageBtns = STAGES.map(s => 
       `<button class="stage-btn ${modStages.includes(s.id) ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
     ).join('');
+
+    // 🌟 آماده‌سازی بخش آمار تسک برای نمایش
+    let taskStatsHTML = '';
+    if (TASK_STATS[cl.mod.id]) {
+      const st = TASK_STATS[cl.mod.id];
+      taskStatsHTML = `
+        <div class="module-task-stats">
+          <span class="task-stat-hours">⏱️ ${st.hours} ساعت</span>
+          <span class="task-stat-done">✅ ${st.done} انجام‌شده</span>
+        </div>
+      `;
+    }
 
     card.innerHTML = `
       <div class="card-actions">
@@ -1220,6 +1262,7 @@ function buildWorld() {
         <span>${cl.mod.pages.length} صفحه</span>
         <span class="module-progress-text">${pct}% تکمیل</span>
       </div>
+      ${taskStatsHTML}
       <div class="module-progress-row">
         <div class="progress-bar-wrap">
           <div class="progress-bar-fill" style="width:${pct}%"></div>
@@ -1247,6 +1290,7 @@ function buildWorld() {
         delete state.customPositions[cl.mod.id];
         delete state.collapsedModules[cl.mod.id];
         delete state.cardStage["mod:" + cl.mod.id];
+        delete TASK_STATS[cl.mod.id];
         
         state.connections = state.connections.filter(c => 
           c.from !== "mod:" + cl.mod.id && 
@@ -1264,7 +1308,7 @@ function buildWorld() {
     });
 
     card.addEventListener("click", (e) => {
-      if (e.target.closest('.progress-bar-wrap') || e.target.closest('.card-actions') || e.target.closest('.stage-btn-group')) return;
+      if (e.target.closest('.progress-bar-wrap') || e.target.closest('.card-actions') || e.target.closest('.stage-btn-group') || e.target.closest('.module-task-stats')) return;
       if (e.ctrlKey || e.metaKey || multiSelectMode) {
         e.stopPropagation();
         toggleMultiSelect("mod:" + cl.mod.id, card);
@@ -1310,7 +1354,7 @@ function buildWorld() {
 
     card.addEventListener("mousedown", (e) => {
       if (e.button !== 0 || e.ctrlKey || e.metaKey || multiSelectMode) return;
-      if (e.target.closest(".progress-bar-wrap") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group")) return;
+      if (e.target.closest(".progress-bar-wrap") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group") || e.target.closest('.module-task-stats')) return;
       if (e.target.classList.contains("drag-handle")) return;
       e.stopPropagation();
       const startMouseX = e.clientX, startMouseY = e.clientY;
@@ -1388,7 +1432,7 @@ function buildWorld() {
       let pageStages = state.cardStage[nodeKey] || ['back'];
       if (!Array.isArray(pageStages)) pageStages = [pageStages];
 
-      // 🌟 فیلتر کردن مراحلی که برای این صفحه مخفی شده‌اند
+      // فیلتر کردن مراحلی که برای این صفحه مخفی شده‌اند
       const hiddenStages = state.hiddenStages[nodeKey] || [];
       const visibleStages = STAGES.filter(s => !hiddenStages.includes(s.id));
 
@@ -1421,7 +1465,6 @@ function buildWorld() {
         openModal('edit-page', cl.mod.id, p.pageIdx);
       });
 
-      // 🌟 دکمه تنظیمات مرحله اختصاصی صفحه
       pageEl.querySelector('.btn-stage-settings').addEventListener('mousedown', (e) => e.stopPropagation());
       pageEl.querySelector('.btn-stage-settings').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1544,12 +1587,10 @@ function buildWorld() {
                   else if (c.to === keys[1]) c.to = keys[0];
                 });
 
-                // جابه‌جایی استیج‌ها
                 const tStage = state.cardStage[keys[0]];
                 state.cardStage[keys[0]] = state.cardStage[keys[1]];
                 state.cardStage[keys[1]] = tStage;
 
-                // جابه‌جایی مراحل مخفی‌شده
                 const tHidden = state.hiddenStages[keys[0]];
                 state.hiddenStages[keys[0]] = state.hiddenStages[keys[1]];
                 state.hiddenStages[keys[1]] = tHidden;
@@ -1913,7 +1954,7 @@ function applyTransform(needRender = false) {
 
 canvas.addEventListener("mousedown", (e) => {
   if (e.target.closest(".module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar") ||
-      e.target.closest(".conn-btn") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group") || e.target.closest("#modal-overlay") || e.target.closest("#gh-modal-overlay") || e.target.closest("#page-stages-modal-overlay")) return;
+      e.target.closest(".conn-btn") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group") || e.target.closest("#modal-overlay") || e.target.closest("#gh-modal-overlay") || e.target.closest("#page-stages-modal-overlay") || e.target.closest("#tasks-modal-overlay")) return;
   if (e.button !== 0) return;
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
@@ -1993,17 +2034,14 @@ function applyFilters() {
     
     let visible = true;
 
-    // 1. فیلتر ماژول‌ها
     if (state.selectedModulesFilter.length > 0) {
       visible = state.selectedModulesFilter.includes(mod.id);
     }
     
-    // 2. فیلتر جستجو
     if (visible && search) {
       visible = mod.name.toLowerCase().includes(search) || mod.pages.some(p => p.toLowerCase().includes(search));
     }
 
-    // 3. فیلتر مراحل
     if (visible && state.selectedStagesFilter.length > 0) {
       let hasSelectedStage = false;
       
@@ -2011,11 +2049,9 @@ function applyFilters() {
       let modStages = state.cardStage[modStageKey] || ['back'];
       if (!Array.isArray(modStages)) modStages = [modStages];
       
-      // آیا خود ماژول این مرحله را دارد؟
       if (modStages.some(s => state.selectedStagesFilter.includes(s))) {
         hasSelectedStage = true;
       } else {
-        // آیا یکی از صفحات ماژول این مرحله را دارد؟
         for (let i = 0; i < mod.pages.length; i++) {
           let pageStages = state.cardStage[mod.id + ":" + i] || ['back'];
           if (!Array.isArray(pageStages)) pageStages = [pageStages];
@@ -2048,7 +2084,7 @@ document.getElementById("btn-clear-connections").addEventListener("click", () =>
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2000);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2500);
 }
 
 function init() {
