@@ -75,12 +75,12 @@
   .multi-select-toggle input { width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; }
   
   /* ===== Modal ===== */
-  #modal-overlay, #gh-modal-overlay, #stages-modal-overlay {
+  #modal-overlay, #gh-modal-overlay, #stages-modal-overlay, #page-stages-modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
     z-index: 1000; display: none; align-items: center; justify-content: center;
   }
-  #modal-overlay.show, #gh-modal-overlay.show, #stages-modal-overlay.show { display: flex; }
+  #modal-overlay.show, #gh-modal-overlay.show, #stages-modal-overlay.show, #page-stages-modal-overlay.show { display: flex; }
   .modal-content {
     background: #1e293b; border: 1px solid #334155; border-radius: 12px;
     padding: 24px; width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
@@ -219,7 +219,7 @@
   .page-node .page-title {
     flex: 1; word-break: break-word; line-height: 1.3; margin-bottom: 4px; font-weight: 600; font-size: 12px;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    overflow: hidden; pointer-events: none; padding-left: 35px;
+    overflow: hidden; pointer-events: none; padding-left: 55px; /* Increased padding to accommodate 2 buttons */
   }
 
   /* ✅ نقطه آبی */
@@ -289,6 +289,8 @@
   .action-btn.btn-edit { color: #fbbf24; }
   .action-btn.btn-delete { color: #ef4444; border-color: #7f1d1d; }
   .action-btn.btn-delete:hover { background: #7f1d1d; color: #fff; border-color: #ef4444; }
+  .action-btn.btn-stage-settings { color: #a78bfa; }
+  .action-btn.btn-stage-settings:hover { background: #4c1d95; color: #fff; border-color: #8b5cf6; }
 
   /* 🌟 استایل کارت‌های انتخاب شده برای تغییر گروهی */
   .module-card.multi-selected,
@@ -426,6 +428,21 @@
   </div>
 </div>
 
+<!-- Modal for Page Stages Settings -->
+<div id="page-stages-modal-overlay">
+  <div class="modal-content">
+    <h2 id="page-stages-modal-title">تنظیم مراحل صفحه</h2>
+    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">مراحلی که تیک می‌خورند روی کارت این صفحه نمایش داده می‌شوند. برای حذف دکمه یک مرحله از این صفحه، تیک آن را بردارید.</p>
+    <div id="page-stages-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; padding: 4px;">
+      <!-- Checkboxes will be generated here -->
+    </div>
+    <div class="modal-actions">
+      <button id="btn-page-stages-save" class="success">ذخیره</button>
+      <button id="btn-page-stages-cancel" class="danger">انصراف</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal for GitHub Settings -->
 <div id="gh-modal-overlay">
   <div class="modal-content">
@@ -523,6 +540,7 @@ const state = {
   selectedNode: null, filterPosition: "all", search: "",
   nextConnId: 1, customPositions: {},
   cardStage: {}, 
+  hiddenStages: {}, // ذخیره مراحلی که روی هر صفحه مخفی شده‌اند
   collapsedModules: {},
   selectedModulesFilter: [],
   selectedStagesFilter: [],
@@ -541,7 +559,8 @@ function saveState() {
     localStorage.setItem(LS_KEY, JSON.stringify({
       pan: state.pan, zoom: state.zoom, connections: state.connections,
       nextConnId: state.nextConnId, customPositions: state.customPositions,
-      cardStage: state.cardStage, collapsedModules: state.collapsedModules
+      cardStage: state.cardStage, hiddenStages: state.hiddenStages,
+      collapsedModules: state.collapsedModules
     }));
     localStorage.setItem(LS_MODULES_KEY, JSON.stringify(MODULES_DATA));
     localStorage.setItem(LS_STAGES_KEY, JSON.stringify(STAGES));
@@ -567,6 +586,7 @@ function loadState() {
     if (Array.isArray(s.connections)) state.connections = s.connections.map(c => ({ ...c, type: c.type || 'one-way' }));
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
+    if (s.hiddenStages) state.hiddenStages = s.hiddenStages;
     
     if (s.cardStage) {
       state.cardStage = {};
@@ -638,7 +658,8 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
     state: {
       pan: state.pan, zoom: state.zoom, connections: state.connections,
       nextConnId: state.nextConnId, customPositions: state.customPositions,
-      cardStage: state.cardStage, collapsedModules: state.collapsedModules
+      cardStage: state.cardStage, hiddenStages: state.hiddenStages,
+      collapsedModules: state.collapsedModules
     }
   };
   
@@ -720,6 +741,7 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
       state.nextConnId = parsed.state.nextConnId || state.nextConnId;
       state.customPositions = parsed.state.customPositions || state.customPositions;
       state.cardStage = parsed.state.cardStage || state.cardStage;
+      state.hiddenStages = parsed.state.hiddenStages || {};
       state.collapsedModules = parsed.state.collapsedModules || state.collapsedModules;
     }
     
@@ -878,7 +900,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ===== مدیریت مراحل =====
+// ===== مدیریت مراحل کلی (Toolbar) =====
 function renderStagesModal() {
   const list = document.getElementById('stages-list');
   list.innerHTML = '';
@@ -939,7 +961,11 @@ window.deleteStage = function(stageId) {
     }
   });
   
-  // حذف از فیلترها
+  // پاکسازی state.hiddenStages
+  Object.keys(state.hiddenStages).forEach(key => {
+    state.hiddenStages[key] = state.hiddenStages[key].filter(s => s !== stageId);
+  });
+  
   state.selectedStagesFilter = state.selectedStagesFilter.filter(s => s !== stageId);
   
   saveState();
@@ -950,6 +976,52 @@ window.deleteStage = function(stageId) {
   applyFilters();
   showToast("مرحله حذف شد");
 };
+
+// ===== تنظیم مراحل اختصاصی هر صفحه =====
+let editingPageNodeKey = null;
+
+function openPageStagesModal(nodeKey, pageName) {
+  editingPageNodeKey = nodeKey;
+  document.getElementById('page-stages-modal-title').textContent = 'تنظیم مراحل صفحه: ' + pageName;
+  const list = document.getElementById('page-stages-list');
+  list.innerHTML = '';
+  
+  const hidden = state.hiddenStages[nodeKey] || [];
+
+  STAGES.forEach(stg => {
+    const isVisible = !hidden.includes(stg.id);
+    const label = document.createElement('label');
+    label.style.cssText = "display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px; background: #0f172a; border-radius: 6px; border: 1px solid #334155;";
+    label.innerHTML = `
+      <input type="checkbox" value="${stg.id}" ${isVisible ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: #3b82f6; cursor: pointer;">
+      <span style="color: ${stg.color}; font-weight: bold; font-size: 13px;">${stg.name}</span>
+    `;
+    list.appendChild(label);
+  });
+  
+  document.getElementById('page-stages-modal-overlay').classList.add('show');
+}
+
+document.getElementById('btn-page-stages-cancel').addEventListener('click', () => {
+  document.getElementById('page-stages-modal-overlay').classList.remove('show');
+});
+
+document.getElementById('btn-page-stages-save').addEventListener('click', () => {
+  if (!editingPageNodeKey) return;
+  const checkboxes = document.querySelectorAll('#page-stages-list input[type="checkbox"]');
+  const hidden = [];
+  checkboxes.forEach(cb => {
+    if (!cb.checked) hidden.push(cb.value);
+  });
+  
+  state.hiddenStages[editingPageNodeKey] = hidden;
+  saveState();
+  document.getElementById('page-stages-modal-overlay').classList.remove('show');
+  
+  buildWorld();
+  applyTransform(true);
+  showToast("تنظیمات مراحل صفحه ذخیره شد");
+});
 
 // ===== منطق مودال ماژول =====
 let modalMode = 'add';
@@ -1316,13 +1388,18 @@ function buildWorld() {
       let pageStages = state.cardStage[nodeKey] || ['back'];
       if (!Array.isArray(pageStages)) pageStages = [pageStages];
 
-      const pageStageBtns = STAGES.map(s => 
+      // 🌟 فیلتر کردن مراحلی که برای این صفحه مخفی شده‌اند
+      const hiddenStages = state.hiddenStages[nodeKey] || [];
+      const visibleStages = STAGES.filter(s => !hiddenStages.includes(s.id));
+
+      const pageStageBtns = visibleStages.map(s => 
         `<button class="stage-btn ${pageStages.includes(s.id) ? 'active' : ''}" data-stage="${s.id}">${s.name}</button>`
       ).join('');
 
       pageEl.innerHTML = `
         <div class="card-actions">
           <div class="action-btn btn-edit" title="ویرایش نام صفحه">✎</div>
+          <div class="action-btn btn-stage-settings" title="مدیریت دکمه‌های مرحله">⚙️</div>
         </div>
         <div class="page-title">${escapeHtml(cl.mod.pages[p.pageIdx])}</div>
         <div class="stage-btn-group">
@@ -1342,6 +1419,13 @@ function buildWorld() {
       pageEl.querySelector('.btn-edit').addEventListener('click', (e) => {
         e.stopPropagation();
         openModal('edit-page', cl.mod.id, p.pageIdx);
+      });
+
+      // 🌟 دکمه تنظیمات مرحله اختصاصی صفحه
+      pageEl.querySelector('.btn-stage-settings').addEventListener('mousedown', (e) => e.stopPropagation());
+      pageEl.querySelector('.btn-stage-settings').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPageStagesModal(nodeKey, cl.mod.pages[p.pageIdx]);
       });
 
       pageEl.addEventListener("click", (e) => {
@@ -1460,9 +1544,15 @@ function buildWorld() {
                   else if (c.to === keys[1]) c.to = keys[0];
                 });
 
+                // جابه‌جایی استیج‌ها
                 const tStage = state.cardStage[keys[0]];
                 state.cardStage[keys[0]] = state.cardStage[keys[1]];
                 state.cardStage[keys[1]] = tStage;
+
+                // جابه‌جایی مراحل مخفی‌شده
+                const tHidden = state.hiddenStages[keys[0]];
+                state.hiddenStages[keys[0]] = state.hiddenStages[keys[1]];
+                state.hiddenStages[keys[1]] = tHidden;
 
                 saveState();
                 buildWorld();
@@ -1823,7 +1913,7 @@ function applyTransform(needRender = false) {
 
 canvas.addEventListener("mousedown", (e) => {
   if (e.target.closest(".module-card") || e.target.closest(".page-node") || e.target.closest("#toolbar") ||
-      e.target.closest(".conn-btn") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group") || e.target.closest("#modal-overlay") || e.target.closest("#gh-modal-overlay")) return;
+      e.target.closest(".conn-btn") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group") || e.target.closest("#modal-overlay") || e.target.closest("#gh-modal-overlay") || e.target.closest("#page-stages-modal-overlay")) return;
   if (e.button !== 0) return;
   isPanning = true;
   panStart = { x: e.clientX, y: e.clientY, panX: state.pan.x, panY: state.pan.y };
