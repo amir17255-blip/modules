@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" translate="no">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
 <title>نقشه ماژول‌ها و صفحات سامانه</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,7 +22,7 @@
     display: flex; align-items: center; gap: 12px; padding: 0 16px;
     z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.4); 
     
-    /* 🌟 اصلاح چیدمان نوار بالا */
+    /* 🌟 چیدمان افقی */
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
@@ -1676,9 +1677,9 @@ function buildWorld() {
     }, 50);
   } catch (e) {
     console.error("Critical error in buildWorld:", e);
-    showToast("❌ خطا در رندر نقشه. بازگشت به حالت اولیه...");
+    showToast("❌ خطا در رندر نقشه. بازیابی خودکار داده‌ها...");
     
-    // 🌟 در صورت بروز خطا، به جای رفرش، داده‌ها را ریست کرده و دوباره می‌سازیم
+    // 🌟 مکانیزم بازیابی بدون رفرش صفحه (به جای location.reload())
     MODULES_DATA = JSON.parse(JSON.stringify(DEFAULT_MODULES));
     STAGES = JSON.parse(JSON.stringify(DEFAULT_STAGES));
     TASK_STATS = {};
@@ -1686,6 +1687,7 @@ function buildWorld() {
     state.customPositions = {};
     state.connections = [];
     state.hiddenStages = {};
+    state.collapsedModules = {};
     
     MODULES_DATA.forEach(mod => {
       state.cardStage["mod:" + mod.id] = ['back'];
@@ -1694,9 +1696,9 @@ function buildWorld() {
           state.cardStage[mod.id + ":" + idx] = ['back'];
         });
       }
+      state.collapsedModules[mod.id] = false;
     });
     
-    localStorage.clear();
     saveState();
     
     try {
@@ -1704,6 +1706,7 @@ function buildWorld() {
       applyTransform(true);
     } catch(recoveryErr) {
       console.error("Recovery failed:", recoveryErr);
+      world.innerHTML = '<div style="color:red; padding:20px; text-align:center;">خطای غیرقابل جبران در ساخت نقشه. لطفا صفحه را دستی رفرش کنید.</div>';
     }
   }
 }
@@ -2273,8 +2276,22 @@ function init() {
     }, 100);
   } catch (e) {
     console.error("Critical error in init:", e);
-    localStorage.clear();
-    location.reload();
+    // 🌟 حذف رفرش خودکار. در صورت بروز خطای شدید، فقط یک بار داده‌ها را ریست کرده و می‌سازیم.
+    MODULES_DATA = JSON.parse(JSON.stringify(DEFAULT_MODULES));
+    STAGES = JSON.parse(JSON.stringify(DEFAULT_STAGES));
+    TASK_STATS = {};
+    state.cardStage = {};
+    state.customPositions = {};
+    state.connections = [];
+    state.hiddenStages = {};
+    state.collapsedModules = {};
+    
+    try {
+      buildWorld();
+      applyTransform(true);
+    } catch (err) {
+      console.error("Failed to recover in init:", err);
+    }
   }
 }
 
