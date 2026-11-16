@@ -19,8 +19,15 @@
     background: linear-gradient(180deg, #1a2028 0%, #151a21 100%);
     border-bottom: 1px solid #2a3340;
     display: flex; align-items: center; gap: 12px; padding: 0 16px;
-    z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.4); overflow: visible;
+    z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.4); 
+    
+    /* 🌟 اصلاح چیدمان: فعال‌سازی اسکرول افقی */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none; /* برای فایرفاکس */
   }
+  #toolbar::-webkit-scrollbar { display: none; } /* برای کروم و سافاری */
+  
   #toolbar h1 { font-size: 15px; font-weight: 600; color: #7dd3fc; white-space: nowrap; }
   .toolbar-group {
     display: flex; align-items: center; gap: 6px; padding: 0 10px;
@@ -49,7 +56,7 @@
   #btn-gh-settings:hover { background: #475569; color: #fff; }
 
   #zoom-level { font-size: 12px; color: #94a3b8; min-width: 44px; text-align: center; }
-  #stats { font-size: 11px; color: #64748b; margin-right: auto; }
+  #stats { font-size: 11px; color: #64748b; margin-right: auto; white-space: nowrap; }
 
   /* ===== Custom Filter Dropdown ===== */
   .custom-dropdown { position: relative; display: inline-block; }
@@ -529,7 +536,7 @@ const DEFAULT_STAGES = [
   { id: 'done',           name: 'تکمیل',                 color: '#22c55e', percent: 100 }
 ];
 
-// دیتاهای زنده (از روی مقادیر پیش‌فرض کپی می‌شوند تا در صورت خرابی ریست شوند)
+// دیتاهای زنده
 let MODULES_DATA = JSON.parse(JSON.stringify(DEFAULT_MODULES));
 let STAGES = JSON.parse(JSON.stringify(DEFAULT_STAGES));
 let TASK_STATS = {};
@@ -580,24 +587,44 @@ function saveState() {
   } catch(e) { console.warn("Save state failed", e); }
 }
 
+// 🌟 توابع ضد خطا برای اصلاح داده‌های دریافتی
+function sanitizeModules(data) {
+  if (!Array.isArray(data) || data.length === 0) return JSON.parse(JSON.stringify(DEFAULT_MODULES));
+  return data.map(m => {
+    if (!m || typeof m !== 'object') return null;
+    return {
+      id: m.id || Math.floor(Math.random() * 100000),
+      name: m.name || "بدون نام",
+      position: m.position || "_",
+      status: m.status || "",
+      pages: Array.isArray(m.pages) ? m.pages : []
+    };
+  }).filter(Boolean);
+}
+
+function sanitizeStages(data) {
+  if (!Array.isArray(data) || data.length === 0) return JSON.parse(JSON.stringify(DEFAULT_STAGES));
+  return data.map(s => {
+    if (!s || typeof s !== 'object') return null;
+    return {
+      id: s.id || 'stage_' + Math.random(),
+      name: s.name || "بدون نام",
+      percent: typeof s.percent === 'number' ? s.percent : 0,
+      color: s.color || '#3b82f6'
+    };
+  }).filter(Boolean);
+}
+
 function loadState() {
   try {
     const rawModules = localStorage.getItem(LS_MODULES_KEY);
     if (rawModules) {
-      const parsed = JSON.parse(rawModules);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        MODULES_DATA = parsed.map(m => {
-          if (!m || typeof m !== 'object') return null;
-          if (!Array.isArray(m.pages)) m.pages = []; // اصلاح ماژول‌های بدون فیلد صفحات
-          return m;
-        }).filter(Boolean);
-      }
+      MODULES_DATA = sanitizeModules(JSON.parse(rawModules));
     }
     
     const rawStages = localStorage.getItem(LS_STAGES_KEY);
     if (rawStages) {
-      const parsed = JSON.parse(rawStages);
-      if (Array.isArray(parsed) && parsed.length > 0) STAGES = parsed;
+      STAGES = sanitizeStages(JSON.parse(rawStages));
     }
 
     const rawTasks = localStorage.getItem(LS_TASKS_KEY);
@@ -615,7 +642,6 @@ function loadState() {
     if (s.nextConnId) state.nextConnId = s.nextConnId;
     if (s.customPositions) state.customPositions = s.customPositions;
     
-    // اصلاح hiddenStages
     if (s.hiddenStages) {
       Object.keys(s.hiddenStages).forEach(key => {
         if (!Array.isArray(s.hiddenStages[key])) s.hiddenStages[key] = [];
@@ -642,6 +668,7 @@ function loadState() {
     console.error("Error loading state, resetting to default:", e);
     MODULES_DATA = JSON.parse(JSON.stringify(DEFAULT_MODULES));
     STAGES = JSON.parse(JSON.stringify(DEFAULT_STAGES));
+    TASK_STATS = {};
   }
 }
 
@@ -769,14 +796,9 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
     
     const parsed = JSON.parse(decoded);
     
-    if (parsed.modules && Array.isArray(parsed.modules)) {
-      MODULES_DATA = parsed.modules.map(m => {
-        if (!m || typeof m !== 'object') return null;
-        if (!Array.isArray(m.pages)) m.pages = [];
-        return m;
-      }).filter(Boolean);
-    }
-    if (parsed.stages && Array.isArray(parsed.stages)) STAGES = parsed.stages;
+    // 🌟 استفاده از توابع ضد خطا
+    if (parsed.modules) MODULES_DATA = sanitizeModules(parsed.modules);
+    if (parsed.stages) STAGES = sanitizeStages(parsed.stages);
     if (parsed.tasks && typeof parsed.tasks === 'object') TASK_STATS = parsed.tasks;
     
     if (parsed.state) {
@@ -1211,7 +1233,6 @@ function toggleCardStage(cardKey, stageId) {
 function buildWorld() {
   try {
     nodePositions = {}; 
-    // پاک کردن مقادیر قبلی برای جلوگیری از خطاهای دوباره
     Object.keys(clusterMap).forEach(k => delete clusterMap[k]);
 
     world.innerHTML = "";
@@ -1641,7 +1662,7 @@ function buildWorld() {
         world.appendChild(clusterEl);
         clusterMap[cl.mod.id] = { ...cl, el: clusterEl, card, x: cx, y: cy, pageEls };
       } catch (err) {
-        console.error("Error rendering module:", cl.mod.name, err);
+        console.error("Error rendering module:", cl.mod ? cl.mod.name : "Unknown", err);
       }
     });
 
@@ -1654,7 +1675,11 @@ function buildWorld() {
     }, 50);
   } catch (e) {
     console.error("Critical error in buildWorld:", e);
-    showToast("❌ خطای بحرانی در رندر نقشه");
+    showToast("❌ خطای بحرانی در رندر نقشه (در حال ریست خودکار...)");
+    
+    // 🌟 مکانیزم خودترمیم: اگر رندر به طور کلی شکست خورد، حافظه را پاک و ری‌لود کن
+    localStorage.clear();
+    setTimeout(() => location.reload(), 1500);
   }
 }
 
@@ -2196,30 +2221,36 @@ document.addEventListener('click', (e) => {
 });
 
 function init() {
-  loadState();
-  
-  if (!localStorage.getItem(LS_KEY)) {
-    MODULES_DATA.forEach(mod => {
-      state.cardStage["mod:" + mod.id] = ['back'];
-      if(mod.pages) {
-        mod.pages.forEach((_, idx) => {
-          state.cardStage[mod.id + ":" + idx] = ['back'];
-        });
-      }
-      state.collapsedModules[mod.id] = false; 
-    });
-    saveState();
-  }
+  try {
+    loadState();
+    
+    if (!localStorage.getItem(LS_KEY)) {
+      MODULES_DATA.forEach(mod => {
+        state.cardStage["mod:" + mod.id] = ['back'];
+        if(mod.pages) {
+          mod.pages.forEach((_, idx) => {
+            state.cardStage[mod.id + ":" + idx] = ['back'];
+          });
+        }
+        state.collapsedModules[mod.id] = false; 
+      });
+      saveState();
+    }
 
-  initFilterDropdown();
-  initStageFilterDropdown();
-  buildWorld();
-  applyTransform(true);
-  
-  setTimeout(() => {
-    fitView();
-    setTimeout(() => document.getElementById("hint").classList.add("hidden"), 8000);
-  }, 100);
+    initFilterDropdown();
+    initStageFilterDropdown();
+    buildWorld();
+    applyTransform(true);
+    
+    setTimeout(() => {
+      fitView();
+      setTimeout(() => document.getElementById("hint").classList.add("hidden"), 8000);
+    }, 100);
+  } catch (e) {
+    console.error("Critical error in init:", e);
+    localStorage.clear();
+    location.reload();
+  }
 }
 
 window.addEventListener("load", init);
