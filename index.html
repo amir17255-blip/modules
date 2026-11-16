@@ -325,9 +325,9 @@
     <button id="btn-add-module" class="success">➕ ماژول جدید</button>
     <button id="btn-manage-stages">⚙️ مدیریت مراحل</button>
     <button id="btn-import-tasks" style="background: #0369a1; border-color: #0ea5e9; color: #e0f2fe;">📊 ورود داده‌های تسک</button>
-    <button id="btn-save-gh" title="ذخیره تغییرات در گیت‌هاب">☁️ ذخیره در گیت‌هاب</button>
-    <button id="btn-fetch-gh" title="دریافت آخرین تغییرات از گیت‌هاب">☁️ دریافت از گیت‌هاب</button>
-    <button id="btn-gh-settings" title="تنظیمات اتصال به گیت‌هاب">⚙️</button>
+    <button id="btn-save-gh" title="ذخیره تغییرات">☁️ ذخیره  </button>
+    <button id="btn-fetch-gh" title="دریافت آخرین تغییرات">☁️ دریافت</button>
+    <button id="btn-gh-settings" title="تنظیمات اتصال">⚙️</button>
   </div>
 
   <!-- انتخاب چندگانه حذف شد -->
@@ -444,7 +444,7 @@
 <!-- Modal for GitHub Settings -->
 <div id="gh-modal-overlay">
   <div class="modal-content">
-    <h2>تنظیمات گیت‌هاب</h2>
+    <h2>تنظیمات </h2>
     <label>نام کاربری (Owner):</label>
     <input type="text" id="gh-owner" placeholder="مثلا: username">
     <label>نام مخزن (Repository):</label>
@@ -718,14 +718,14 @@ document.getElementById("btn-gh-save").addEventListener("click", () => {
   }
   localStorage.setItem(LS_GH_KEY, JSON.stringify(conf));
   document.getElementById("gh-modal-overlay").classList.remove("show");
-  showToast("✅ تنظیمات گیت‌هاب با موفقیت ذخیره شد");
+  showToast("✅ تنظیمات با موفقیت ذخیره شد");
 });
 
 document.getElementById("btn-save-gh").addEventListener("click", async () => {
   const conf = getGHConfig();
   if (!conf) { showToast("ابتدا از دکمه ⚙️ تنظیمات گیت‌هاب را وارد کنید"); return; }
   
-  showToast("در حال ذخیره در گیت‌هاب...");
+  showToast("در حال ذخیره ...");
   const url = `https://api.github.com/repos/${conf.owner}/${conf.repo}/contents/${conf.path}`;
   
   const data = {
@@ -760,7 +760,7 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
     });
     
     if (putRes.ok) {
-      showToast("✅ با موفقیت در گیت‌هاب ذخیره شد");
+      showToast("✅ با موفقیت ذخیره شد");
     } else {
       if (putRes.status === 401) showToast("❌ خطا: توکن نامعتبر است. (Bad Credentials)");
       else if (putRes.status === 403) showToast("❌ خطا: دسترسی کافی نیست. (توکن باید دسترسی repo داشته باشد)");
@@ -771,7 +771,7 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
       }
     }
   } catch(e) {
-    showToast("❌ خطا در ارتباط با گیت‌هاب. اینترنت یا VPN خود را بررسی کنید.");
+    showToast("❌ خطا در ارتباط . اینترنت یا VPN خود را بررسی کنید.");
   }
 });
 
@@ -779,7 +779,7 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
   const conf = getGHConfig();
   if (!conf) { showToast("ابتدا از دکمه ⚙️ تنظیمات گیت‌هاب را وارد کنید"); return; }
   
-  showToast("در حال دریافت از گیت‌هاب...");
+  showToast("در حال دریافت ...");
   const url = `https://api.github.com/repos/${conf.owner}/${conf.repo}/contents/${conf.path}`;
   
   try {
@@ -828,7 +828,7 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
     applyTransform(true);
     initFilterDropdown();
     initStageFilterDropdown();
-    showToast("✅ اطلاعات با موفقیت از گیت‌هاب بارگذاری شد");
+    showToast("✅ اطلاعات با موفقیت بارگذاری شد");
   } catch(e) {
     console.error("خطای دقیق:", e);
     showToast("❌ خطا در پردازش اطلاعات دریافتی: " + e.message);
