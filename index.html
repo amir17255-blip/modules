@@ -19,27 +19,25 @@
     position: fixed; top: 0; left: 0; right: 0; height: 56px;
     background: linear-gradient(180deg, #1a2028 0%, #151a21 100%);
     border-bottom: 1px solid #2a3340;
-    display: flex; align-items: center; gap: 12px; padding: 0 16px;
+    display: flex; align-items: center; gap: 8px; padding: 0 12px;
     z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.4); 
     overflow-x: auto; overflow-y: hidden; white-space: nowrap;
-    scrollbar-width: thin;
+    scrollbar-width: none; /* اسکرول بار مخفی شود */
   }
-  #toolbar::-webkit-scrollbar { height: 6px; display: block; }
-  #toolbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-  #toolbar::-webkit-scrollbar-track { background: #1e293b; }
+  #toolbar::-webkit-scrollbar { display: none; }
   
-  #toolbar h1 { font-size: 15px; font-weight: 600; color: #7dd3fc; white-space: nowrap; }
+  #toolbar h1 { font-size: 14px; font-weight: 600; color: #7dd3fc; white-space: nowrap; }
   .toolbar-group {
-    display: flex; align-items: center; gap: 6px; padding: 0 10px;
+    display: flex; align-items: center; gap: 4px; padding: 0 8px;
     border-left: 1px solid #2a3340; white-space: nowrap;
   }
   .toolbar-group:last-child { border-left: none; }
-  .toolbar-group label { font-size: 12px; color: #94a3b8; }
+  .toolbar-group label { font-size: 11px; color: #94a3b8; }
   
   select, button, input {
-    font-family: inherit; font-size: 12px; background: #232c38; color: #e6e6e6;
-    border: 1px solid #334155; border-radius: 6px; padding: 6px 12px;
-    cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+    font-family: inherit; font-size: 11px; background: #232c38; color: #e6e6e6;
+    border: 1px solid #334155; border-radius: 6px; padding: 5px 10px;
+    cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 4px;
   }
   select:hover, button:hover, input:hover { background: #2d3846; border-color: #475569; }
   button.danger { background: #7f1d1d; border-color: #991b1b; color: #fca5a5; }
@@ -55,15 +53,15 @@
   #btn-gh-settings { background: #334155; border-color: #475569; color: #cbd5e1; }
   #btn-gh-settings:hover { background: #475569; color: #fff; }
 
-  #zoom-level { font-size: 12px; color: #94a3b8; min-width: 44px; text-align: center; }
-  #stats { font-size: 11px; color: #64748b; margin-right: auto; white-space: nowrap; padding-left: 10px;}
+  #zoom-level { font-size: 11px; color: #94a3b8; min-width: 40px; text-align: center; }
+  #stats { font-size: 11px; color: #64748b; margin-right: auto; white-space: nowrap; padding-left: 8px;}
 
   /* ===== Custom Filter Dropdown ===== */
   .custom-dropdown { position: relative; display: inline-block; }
   .custom-dropdown-menu {
-    display: none; position: absolute; top: 100%; right: 0; margin-top: 4px;
+    display: none; position: fixed; /* 🌟 موقعیت fixed برای جلوگیری از بریده شدن */
     background: #1e293b; border: 1px solid #334155; border-radius: 8px;
-    width: 220px; max-height: 300px; overflow-y: auto; z-index: 200;
+    width: 220px; max-height: 300px; overflow-y: auto; z-index: 3000;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5); padding: 8px;
   }
   .custom-dropdown-menu.show { display: block; }
@@ -73,19 +71,12 @@
   }
   .custom-dropdown-item:hover { background: #334155; }
   .custom-dropdown-item input { cursor: pointer; margin: 0; }
-
-  /* ===== Multi-Select Toggle ===== */
-  .multi-select-toggle {
-    display: flex; align-items: center; gap: 6px; cursor: pointer;
-    color: #7dd3fc; font-weight: bold;
-  }
-  .multi-select-toggle input { width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; }
   
   /* ===== Modal ===== */
   #modal-overlay, #gh-modal-overlay, #stages-modal-overlay, #page-stages-modal-overlay, #tasks-modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-    z-index: 1000; display: none; align-items: center; justify-content: center;
+    z-index: 4000; display: none; align-items: center; justify-content: center;
   }
   #modal-overlay.show, #gh-modal-overlay.show, #stages-modal-overlay.show, #page-stages-modal-overlay.show, #tasks-modal-overlay.show { display: flex; }
   .modal-content {
@@ -339,12 +330,7 @@
     <button id="btn-gh-settings" title="تنظیمات اتصال به گیت‌هاب">⚙️</button>
   </div>
 
-  <div class="toolbar-group">
-    <label class="multi-select-toggle" title="با فعال‌سازی این گزینه، با کلیک روی کارت‌ها آن‌ها را برای تغییر همزمانِ مرحله انتخاب کنید">
-      <input type="checkbox" id="chk-multi-select">
-      <span>انتخاب چندگانه</span>
-    </label>
-  </div>
+  <!-- انتخاب چندگانه حذف شد -->
 
   <div class="toolbar-group">
     <div class="custom-dropdown" id="filter-dropdown-container">
@@ -359,14 +345,14 @@
 
   <div class="toolbar-group">
     <label>جستجو:</label>
-    <input type="text" id="search-box" placeholder="نام ماژول یا صفحه..." style="width:150px;" autocomplete="off">
+    <input type="text" id="search-box" placeholder="نام ماژول یا صفحه..." style="width:120px;" autocomplete="off">
   </div>
   
   <div class="toolbar-group">
     <button id="btn-reset-view" class="primary">🎯 نمای کلی</button>
-    <button id="btn-reset-layout">🔄 چیدمان پیش‌فرض</button>
+    <button id="btn-reset-layout">🔄 چیدمان</button>
     <button id="btn-clear-connections" class="danger">🗑️ حذف اتصالات</button>
-    <button id="btn-hard-reset" class="danger" style="background:#450a0a; border-color:#7f1d1d;" title="پاک کردن کامل حافظه و بازگشت به حالت اولیه">♻️ ریست کامل</button>
+    <button id="btn-hard-reset" class="danger" style="background:#450a0a; border-color:#7f1d1d;" title="پاک کردن کامل حافظه">♻️ ریست</button>
   </div>
   <div class="toolbar-group">
     <button id="btn-zoom-out">-</button>
@@ -584,7 +570,6 @@ const state = {
   multiSelected: new Set()
 };
 
-let multiSelectMode = false;
 let toastTimer;
 
 // 🌟 تعریف متغیرهای اصلی DOM
@@ -1391,7 +1376,7 @@ function buildWorld() {
 
         card.addEventListener("click", (e) => {
           if (e.target.closest('.progress-bar-wrap') || e.target.closest('.card-actions') || e.target.closest('.stage-btn-group') || e.target.closest('.module-task-stats')) return;
-          if (e.ctrlKey || e.metaKey || multiSelectMode) {
+          if (e.ctrlKey || e.metaKey) {
             e.stopPropagation();
             toggleMultiSelect("mod:" + cl.mod.id, card);
           }
@@ -1428,7 +1413,7 @@ function buildWorld() {
         nodePositions["mod:" + cl.mod.id] = { x: modNodeX, y: modNodeY, w: MODULE_W, h: MODULE_H };
 
         card.addEventListener("mousedown", (e) => {
-          if (e.button !== 0 || e.ctrlKey || e.metaKey || multiSelectMode) return;
+          if (e.button !== 0 || e.ctrlKey || e.metaKey) return;
           if (e.target.closest(".progress-bar-wrap") || e.target.closest(".card-actions") || e.target.closest(".stage-btn-group") || e.target.closest('.module-task-stats')) return;
           if (e.target.classList.contains("drag-handle")) return;
           e.stopPropagation();
@@ -1549,7 +1534,7 @@ function buildWorld() {
 
           pageEl.addEventListener("click", (e) => {
             if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group") || draggingConn) return;
-            if (e.ctrlKey || e.metaKey || multiSelectMode) {
+            if (e.ctrlKey || e.metaKey) {
               e.stopPropagation();
               toggleMultiSelect(nodeKey, pageEl);
               return;
@@ -1584,7 +1569,7 @@ function buildWorld() {
           });
 
           pageEl.addEventListener("mousedown", (e) => {
-            if (e.button !== 0 || e.ctrlKey || e.metaKey || multiSelectMode) return;
+            if (e.button !== 0 || e.ctrlKey || e.metaKey) return;
             if (e.target.closest('.card-actions') || e.target.classList.contains("drag-handle") || e.target.closest(".stage-btn-group")) return;
             if (draggingConn) return;
             e.stopPropagation();
@@ -2257,22 +2242,33 @@ function initStageFilterDropdown() {
 
 document.getElementById('btn-filter-modules').addEventListener('click', (e) => {
   e.stopPropagation();
-  document.getElementById('filter-menu').classList.toggle('show');
-  document.getElementById('stage-filter-menu').classList.remove('show');
+  const menu = document.getElementById('filter-menu');
+  const isShowing = menu.classList.contains('show');
+  document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.remove('show'));
+  if (!isShowing) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.classList.add('show');
+  }
 });
 
 document.getElementById('btn-filter-stages').addEventListener('click', (e) => {
   e.stopPropagation();
-  document.getElementById('stage-filter-menu').classList.toggle('show');
-  document.getElementById('filter-menu').classList.remove('show');
+  const menu = document.getElementById('stage-filter-menu');
+  const isShowing = menu.classList.contains('show');
+  document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.remove('show'));
+  if (!isShowing) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.classList.add('show');
+  }
 });
 
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('#filter-dropdown-container')) {
-    document.getElementById('filter-menu').classList.remove('show');
-  }
-  if (!e.target.closest('#stage-filter-container')) {
-    document.getElementById('stage-filter-menu').classList.remove('show');
+  if (!e.target.closest('.custom-dropdown')) {
+    document.querySelectorAll('.custom-dropdown-menu').forEach(m => m.classList.remove('show'));
   }
 });
 
