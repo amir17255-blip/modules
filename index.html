@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google" content="notranslate">
-<title> ماژول‌ و صفحات سامانه</title>
+<title>نقشه ماژول‌ها و صفحات سامانه</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -22,7 +22,7 @@
     display: flex; align-items: center; gap: 8px; padding: 0 12px;
     z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.4); 
     overflow-x: auto; overflow-y: hidden; white-space: nowrap;
-    scrollbar-width: none; /* اسکرول بار مخفی شود */
+    scrollbar-width: none;
   }
   #toolbar::-webkit-scrollbar { display: none; }
   
@@ -59,7 +59,7 @@
   /* ===== Custom Filter Dropdown ===== */
   .custom-dropdown { position: relative; display: inline-block; }
   .custom-dropdown-menu {
-    display: none; position: fixed; /* 🌟 موقعیت fixed برای جلوگیری از بریده شدن */
+    display: none; position: fixed; /* موقعیت fixed برای جلوگیری از بریده شدن */
     background: #1e293b; border: 1px solid #334155; border-radius: 8px;
     width: 220px; max-height: 300px; overflow-y: auto; z-index: 3000;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5); padding: 8px;
@@ -325,12 +325,10 @@
     <button id="btn-add-module" class="success">➕ ماژول جدید</button>
     <button id="btn-manage-stages">⚙️ مدیریت مراحل</button>
     <button id="btn-import-tasks" style="background: #0369a1; border-color: #0ea5e9; color: #e0f2fe;">📊 ورود داده‌های تسک</button>
-    <button id="btn-save-gh" title="ذخیره تغییرات">☁️ ذخیره  </button>
-    <button id="btn-fetch-gh" title="دریافت آخرین تغییرات">☁️ دریافت</button>
-    <button id="btn-gh-settings" title="تنظیمات اتصال">⚙️</button>
+    <button id="btn-save-gh" title="ذخیره تغییرات در گیت‌هاب">☁️ ذخیره در گیت‌هاب</button>
+    <button id="btn-fetch-gh" title="دریافت آخرین تغییرات از گیت‌هاب">☁️ دریافت از گیت‌هاب</button>
+    <button id="btn-gh-settings" title="تنظیمات اتصال به گیت‌هاب">⚙️</button>
   </div>
-
-  <!-- انتخاب چندگانه حذف شد -->
 
   <div class="toolbar-group">
     <div class="custom-dropdown" id="filter-dropdown-container">
@@ -444,7 +442,7 @@
 <!-- Modal for GitHub Settings -->
 <div id="gh-modal-overlay">
   <div class="modal-content">
-    <h2>تنظیمات </h2>
+    <h2>تنظیمات گیت‌هاب</h2>
     <label>نام کاربری (Owner):</label>
     <input type="text" id="gh-owner" placeholder="مثلا: username">
     <label>نام مخزن (Repository):</label>
@@ -547,7 +545,7 @@ let STAGES = JSON.parse(JSON.stringify(DEFAULT_STAGES));
 let TASK_STATS = {};
 
 const MODULE_W = 260;
-const MODULE_H = 240; 
+const MODULE_H = 220; 
 const PAGE_W = 160;
 const PAGE_H = 140; 
 const PAGE_GAP = 40;
@@ -718,14 +716,14 @@ document.getElementById("btn-gh-save").addEventListener("click", () => {
   }
   localStorage.setItem(LS_GH_KEY, JSON.stringify(conf));
   document.getElementById("gh-modal-overlay").classList.remove("show");
-  showToast("✅ تنظیمات با موفقیت ذخیره شد");
+  showToast("✅ تنظیمات گیت‌هاب با موفقیت ذخیره شد");
 });
 
 document.getElementById("btn-save-gh").addEventListener("click", async () => {
   const conf = getGHConfig();
   if (!conf) { showToast("ابتدا از دکمه ⚙️ تنظیمات گیت‌هاب را وارد کنید"); return; }
   
-  showToast("در حال ذخیره ...");
+  showToast("در حال ذخیره در گیت‌هاب...");
   const url = `https://api.github.com/repos/${conf.owner}/${conf.repo}/contents/${conf.path}`;
   
   const data = {
@@ -760,7 +758,7 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
     });
     
     if (putRes.ok) {
-      showToast("✅ با موفقیت ذخیره شد");
+      showToast("✅ با موفقیت در گیت‌هاب ذخیره شد");
     } else {
       if (putRes.status === 401) showToast("❌ خطا: توکن نامعتبر است. (Bad Credentials)");
       else if (putRes.status === 403) showToast("❌ خطا: دسترسی کافی نیست. (توکن باید دسترسی repo داشته باشد)");
@@ -771,7 +769,7 @@ document.getElementById("btn-save-gh").addEventListener("click", async () => {
       }
     }
   } catch(e) {
-    showToast("❌ خطا در ارتباط . اینترنت یا VPN خود را بررسی کنید.");
+    showToast("❌ خطا در ارتباط با گیت‌هاب. اینترنت یا VPN خود را بررسی کنید.");
   }
 });
 
@@ -779,7 +777,7 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
   const conf = getGHConfig();
   if (!conf) { showToast("ابتدا از دکمه ⚙️ تنظیمات گیت‌هاب را وارد کنید"); return; }
   
-  showToast("در حال دریافت ...");
+  showToast("در حال دریافت از گیت‌هاب...");
   const url = `https://api.github.com/repos/${conf.owner}/${conf.repo}/contents/${conf.path}`;
   
   try {
@@ -828,7 +826,7 @@ document.getElementById("btn-fetch-gh").addEventListener("click", async () => {
     applyTransform(true);
     initFilterDropdown();
     initStageFilterDropdown();
-    showToast("✅ اطلاعات با موفقیت بارگذاری شد");
+    showToast("✅ اطلاعات با موفقیت از گیت‌هاب بارگذاری شد");
   } catch(e) {
     console.error("خطای دقیق:", e);
     showToast("❌ خطا در پردازش اطلاعات دریافتی: " + e.message);
@@ -983,11 +981,41 @@ function renderStagesModal() {
         <div class="stage-color-dot" style="background:${stg.color}"></div>
         <span>${stg.name} (${stg.percent}%)</span>
       </div>
-      <button class="danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteStage('${stg.id}')">حذف</button>
+      <div style="display: flex; gap: 4px;">
+        <button class="primary" style="padding: 4px 8px; font-size: 11px;" onclick="moveStageUp(${index})" ${index === 0 ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>⬆️</button>
+        <button class="primary" style="padding: 4px 8px; font-size: 11px;" onclick="moveStageDown(${index})" ${index === STAGES.length - 1 ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>⬇️</button>
+        <button class="danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteStage('${stg.id}')">حذف</button>
+      </div>
     `;
     list.appendChild(div);
   });
 }
+
+window.moveStageUp = function(index) {
+  if (index > 0) {
+    const temp = STAGES[index];
+    STAGES[index] = STAGES[index - 1];
+    STAGES[index - 1] = temp;
+    saveState();
+    renderStagesModal();
+    buildWorld();
+    applyTransform(true);
+    initStageFilterDropdown();
+  }
+};
+
+window.moveStageDown = function(index) {
+  if (index < STAGES.length - 1) {
+    const temp = STAGES[index];
+    STAGES[index] = STAGES[index + 1];
+    STAGES[index + 1] = temp;
+    saveState();
+    renderStagesModal();
+    buildWorld();
+    applyTransform(true);
+    initStageFilterDropdown();
+  }
+};
 
 document.getElementById("btn-manage-stages").addEventListener("click", () => {
   renderStagesModal();
