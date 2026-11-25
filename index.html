@@ -891,7 +891,38 @@ function calculateModuleProgress(modId) {
   return Math.round(total / mod.pages.length);
 }
 
-// 🌟 محاسبه و پردازش داده‌های تسک‌ها
+// 🌟 توابع جدید برای پردازش و تطبیق هوشمند نام ماژول‌ها
+function normalizeText(text) {
+  if (!text) return "";
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "") // حذف نیم‌فاصله و کاراکترهای مخفی
+    .replace(/ماژول/g, "") // حذف کلمه ماژول
+    .replace(/[-()]/g, " ") // تبدیل خط تیره و پرانتز به فاصله
+    .replace(/\s+/g, " ") // تبدیل فاصله‌های متعدد به یک فاصله
+    .trim();
+}
+
+function isModuleMatch(appName, excelName) {
+  const cleanApp = normalizeText(appName);
+  const cleanExcel = normalizeText(excelName);
+  
+  if (cleanApp === cleanExcel) return true;
+  if (cleanApp.includes(cleanExcel) || cleanExcel.includes(cleanApp)) return true;
+  
+  // تطبیق کلمه به کلمه (برای ترتیب‌های متفاوت)
+  const appWords = cleanApp.split(" ").filter(w => w.length > 1);
+  const excelWords = cleanExcel.split(" ").filter(w => w.length > 1);
+  
+  if (excelWords.length > 0 && excelWords.every(ew => appWords.includes(ew))) return true;
+  if (appWords.length > 0 && appWords.every(aw => excelWords.includes(aw))) return true;
+  
+  return false;
+}
+
 function parseDurationToHours(str) {
   if (!str) return 0;
   str = str.trim();
@@ -933,6 +964,7 @@ function processTasksData(rawText) {
   }
 
   const newStats = {};
+  let matchedCount = 0;
   
   for (let i = dataStartIndex; i < lines.length; i++) {
     const cols = lines[i].split('\t');
@@ -942,23 +974,23 @@ function processTasksData(rawText) {
     const timeStr = cols[timeIdx] ? cols[timeIdx].trim() : '';
     const statusStr = cols[statusIdx] ? cols[statusIdx].trim().toLowerCase() : '';
 
-    if (!modName) continue;
+    if (!modName || modName === "Grand Total" || modName.includes("Row Labels")) continue;
 
-    modName = modName.replace(/^ماژول\s+/i, '').trim();
-
-    const matchedMod = MODULES_DATA.find(m => 
-      m.name.includes(modName) || modName.includes(m.name)
-    );
+    const matchedMod = MODULES_DATA.find(m => isModuleMatch(m.name, modName));
 
     if (matchedMod) {
+      matchedCount++;
       const key = matchedMod.id;
       if (!newStats[key]) newStats[key] = { hours: 0, done: 0, total: 0 };
       
       newStats[key].total++;
       newStats[key].hours += parseDurationToHours(timeStr);
-      if (statusStr.includes('done') || statusStr.includes('تکمیل') || statusStr.includes('انجام')) {
+      
+      if (statusStr.includes('done') || statusStr.includes('تکمیل') || statusStr.includes('انجام') || statusStr.includes('100')) {
         newStats[key].done++;
       }
+    } else {
+      console.warn("ماژول در اکسل مچ نشد:", modName);
     }
   }
 
@@ -966,7 +998,7 @@ function processTasksData(rawText) {
   saveState();
   buildWorld();
   applyTransform(true);
-  showToast("✅ داده‌های تسک پردازش و روی ماژول‌ها اعمال شد");
+  showToast(`✅ تعداد ${matchedCount} ردیف تسک پردازش و روی ماژول‌ها اعمال شد`);
 }
 
 // ===== مدیریت مراحل کلی (Toolbar) =====
@@ -1980,28 +2012,79 @@ function updateSvgSize() {
 }
 
 let draggingConn = null;
+let autoPanReq = null;
+let connMouseX = 0, connMouseY = 0;
+
 function startConnection(fromKey) {
-  const fromNode = nodePositions[fromKey]; if (!fromNode) return;
+  const fromNode = nodePositions[fromKey]; 
+  if (!fromNode) return;
   if (draggingConn) return;
+  
   draggingConn = { fromKey };
   document.getElementById("canvas").classList.add("connecting");
   const tempPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
   tempPath.setAttribute("class", "temp"); 
   svgFrontLayer.appendChild(tempPath); 
+  
+  connMouseX = 0; connMouseY = 0;
 
-  const onMove = (e) => {
+  const updateTempPath = () => {
     if (!draggingConn) return;
     const rect = canvas.getBoundingClientRect();
-    const worldX = (e.clientX - rect.left - state.pan.x) / state.zoom;
-    const worldY = (e.clientY - rect.top - state.pan.y) / state.zoom;
+    const worldX = (connMouseX - rect.left - state.pan.x) / state.zoom;
+    const worldY = (connMouseY - rect.top - state.pan.y) / state.zoom;
+    
     const p1 = edgePoint(fromNode, worldX, worldY);
     const dx = worldX - p1.x, dy = worldY - p1.y, dist = Math.sqrt(dx*dx+dy*dy) || 1, curv = Math.min(dist*0.15, 40);
     const mx = (p1.x+worldX)/2, my = (p1.y+worldY)/2;
     tempPath.setAttribute("d", `M ${p1.x} ${p1.y} C ${mx-dy/dist*curv} ${my+dx/dist*curv}, ${mx+dy/dist*curv} ${my-dx/dist*curv}, ${worldX} ${worldY}`);
   };
+
+  const onMove = (e) => {
+    connMouseX = e.clientX;
+    connMouseY = e.clientY;
+    updateTempPath();
+  };
+
+  // 🌟 قابلیت جابه‌جایی خودکار بوم هنگام نزدیک شدن به لبه‌ها
+  const autoPan = () => {
+    if (!draggingConn) return;
+    
+    // اگر ماوس هنوز حرکت نکرده، حلقه ادامه پیدا کند
+    if (connMouseX === 0 && connMouseY === 0) {
+      autoPanReq = requestAnimationFrame(autoPan);
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    let dx = 0, dy = 0;
+    const threshold = 40; // فاصله از لبه برای شروع جابه‌جایی
+    const panSpeed = 12;  // سرعت جابه‌جایی
+
+    if (connMouseX < rect.left + threshold && state.pan.x < 10000) dx = panSpeed;
+    else if (connMouseX > rect.right - threshold && state.pan.x > -10000) dx = -panSpeed;
+
+    if (connMouseY < rect.top + threshold && state.pan.y < 10000) dy = panSpeed;
+    else if (connMouseY > rect.bottom - threshold && state.pan.y > -10000) dy = -panSpeed;
+
+    if (dx !== 0 || dy !== 0) {
+      state.pan.x += dx;
+      state.pan.y += dy;
+      applyTransform(false); // اعمال جابه‌جایی
+      updateTempPath();      // آپدیت خطِ در حال کشیدن
+    }
+    autoPanReq = requestAnimationFrame(autoPan);
+  };
+  
+  autoPanReq = requestAnimationFrame(autoPan);
+
   const onUp = (e) => {
-    window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp);
+    window.removeEventListener("mousemove", onMove); 
+    window.removeEventListener("mouseup", onUp);
+    
+    if (autoPanReq) cancelAnimationFrame(autoPanReq);
     document.getElementById("canvas").classList.remove("connecting");
+    
     if (draggingConn) {
       tempPath.remove();
       
@@ -2017,14 +2100,21 @@ function startConnection(fromKey) {
         if (toKey && toKey !== fromKey) {
           if (!state.connections.some(c => (c.from===fromKey && c.to===toKey) || (c.from===toKey && c.to===fromKey))) {
             state.connections.push({ id: state.nextConnId++, from: fromKey, to: toKey, type: 'one-way' });
-            saveState(); renderConnections(); if (state.selectedNode) applyHighlight(state.selectedNode); showToast("اتصال ساخته شد ✅");
-          } else showToast("این اتصال قبلاً وجود دارد");
+            saveState(); 
+            renderConnections(); 
+            if (state.selectedNode) applyHighlight(state.selectedNode); 
+            showToast("اتصال ساخته شد ✅");
+          } else {
+            showToast("این اتصال قبلاً وجود دارد");
+          }
         }
       }
       draggingConn = null;
     }
   };
-  window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
+  
+  window.addEventListener("mousemove", onMove); 
+  window.addEventListener("mouseup", onUp);
 }
 
 function toggleSelection(key) { if (state.selectedNode === key) clearSelection(); else { state.selectedNode = key; applyHighlight(key); } }
